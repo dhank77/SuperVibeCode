@@ -122,3 +122,21 @@ export function createMarkdownImages(read: ReadMarkdownImage) {
     },
   }
 }
+
+/**
+ * A web address served from this machine, such as a dev server's `http://localhost:5173/`: loopback hosts and the
+ * `.localhost` and `.test` names local web servers use. The host may open these inside the app instead of a browser.
+ */
+export function localServerURL(href: string) {
+  if (!URL.canParse(href.trim())) return
+
+  const url = new URL(href.trim())
+
+  if (url.protocol !== "http:" && url.protocol !== "https:") return
+
+  const host = url.hostname.toLowerCase()
+
+  return /^(?:localhost|127(?:\.\d{1,3}){3}|0\.0\.0\.0|\[::1?\])$/.test(host) || /\.(?:localhost|test)$/.test(host)
+    ? url.href
+    : undefined
+}

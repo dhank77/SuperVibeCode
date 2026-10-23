@@ -2,7 +2,7 @@ import { checksum } from "@opencode/util/encode"
 import { parseSmallMarkdown } from "@opencode/ui/context/marked-base"
 import DOMPurify from "dompurify"
 import { MarkdownWorkerDisposedError, parseMarkdown } from "./markdown-worker"
-import { localImagePath, localLinkPath } from "./markdown-image"
+import { localImagePath, localLinkPath, localServerURL } from "./markdown-image"
 
 export type MarkdownCacheEntry = {
   raw: string
@@ -36,6 +36,16 @@ if (typeof window !== "undefined" && purifier.isSupported) {
     if (node instanceof HTMLAnchorElement) {
       // Local file links never navigate the document; the host decides how to open them.
       node.removeAttribute("data-local-link")
+      const server = localServerURL(node.getAttribute("href") ?? "")
+
+      // A local server's page, e.g. a dev server, goes to the host too, which can show it in the app. It keeps its href,
+      // so it stays an ordinary link where no host handles local links.
+      if (server) {
+        node.setAttribute("data-local-link", server)
+
+        return
+      }
+
       const path = localLinkPath(node.getAttribute("href") ?? "")
 
       if (!path) return

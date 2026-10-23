@@ -61,3 +61,15 @@ export function serverOrigin(input: string) {
 
   return `${url.protocol}//${host}:${url.port}`
 }
+
+/** Whether `input` is a page served from this machine, which the preview shows in the app. */
+export function isLocalServer(input: string) {
+  if (!URL.canParse(input)) return false
+
+  const url = new URL(input)
+
+  return (
+    /^https?:$/.test(url.protocol) &&
+    (serverOrigin(input)?.includes("//localhost:") === true || /\.(?:localhost|test)$/i.test(url.hostname))
+  )
+}

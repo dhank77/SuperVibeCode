@@ -2,9 +2,20 @@ import { Icon } from "@opencode/ui/icon"
 import { showToast } from "@opencode/ui/toast"
 import { createMemo, lazy, mapArray, onCleanup, Show, Suspense } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Command, createKeyed, MenuItem, onIdle, Panel, Slot, type PanelTab, type SessionRef, type Setup } from "../sdk"
+import {
+  Command,
+  createKeyed,
+  LinkHandler,
+  MenuItem,
+  onIdle,
+  Panel,
+  Slot,
+  type PanelTab,
+  type SessionRef,
+  type Setup,
+} from "../sdk"
 import { Preview } from "./contract"
-import { detectURL, serverOrigin } from "./detect"
+import { detectURL, isLocalServer, serverOrigin } from "./detect"
 import type definition from "./index"
 
 // How often a running shell's output is read while it has not announced an address yet.
@@ -211,6 +222,20 @@ const setup: Setup<typeof definition> = (ctx) => {
 
       return true
     },
+  })
+
+  // A local server link in the conversation, e.g. the agent's "see it at http://localhost:5174/about", opens in the
+  // preview instead of a system browser. Ahead of the file extension, which takes every other local link.
+  ctx.add(LinkHandler, {
+    priority: 20,
+    match: (link) => !!link.session && isLocalServer(link.href),
+    open(link) {
+      if (!link.session) return
+
+      setState("found", link.session.key, link.href)
+      show(link.session, link.href, true)
+    },
+    exists: () => true,
   })
 
   ctx.add(Command, (): Command | undefined => {

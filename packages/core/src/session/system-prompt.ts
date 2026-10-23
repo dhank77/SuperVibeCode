@@ -12,6 +12,7 @@ export function render(prompt: string, tools: string[]) {
     instructions.push(
       "- Prefer dedicated tools over shell commands; fall back to the shell when a tool cannot do what you need.",
       "- Do not chain shell commands with separators like `echo \"====\";` or `printf '---'`; the output becomes noisy in a way that makes the user's side of the conversation worse.",
+      "- When you create or change an app the user views in a browser, run its dev server yourself with the shell tool's `background` option (for example `npm run dev`, `bun run dev`, or `php artisan serve`, installing dependencies first when they are missing) instead of telling the user to run it. OpenCode shows the running app in its preview panel. Do not start a second server when one is already running for the project; it reloads changes by itself.",
     )
   }
   if (tools.includes("write")) {

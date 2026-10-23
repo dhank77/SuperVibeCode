@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { localImagePath, localLinkPath } from "./markdown-image"
+import { localImagePath, localLinkPath, localServerURL } from "./markdown-image"
 
 test.each([
   ["./out/report.html", "./out/report.html"],
@@ -57,4 +57,13 @@ test.each([
   "",
 ])("does not read non-local or invalid source %s", (source) => {
   expect(localImagePath(source)).toBeUndefined()
+})
+
+test("localServerURL accepts only this machine's web servers", () => {
+  expect(localServerURL("http://localhost:5174/about")).toBe("http://localhost:5174/about")
+  expect(localServerURL("http://127.0.0.1:8000")).toBe("http://127.0.0.1:8000/")
+  expect(localServerURL("https://shop.test/cart")).toBe("https://shop.test/cart")
+  expect(localServerURL("https://example.com")).toBeUndefined()
+  expect(localServerURL("file:///tmp/a.html")).toBeUndefined()
+  expect(localServerURL("src/app.ts")).toBeUndefined()
 })

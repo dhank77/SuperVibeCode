@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { detectURL, serverOrigin } from "./detect"
+import { detectURL, isLocalServer, serverOrigin } from "./detect"
 
 describe("detectURL", () => {
   test.each([
@@ -33,4 +33,12 @@ describe("detectURL", () => {
 test("serverOrigin folds loopback hosts", () => {
   expect(serverOrigin("http://127.0.0.1:8000/admin")).toBe(serverOrigin("http://localhost:8000/"))
   expect(serverOrigin("http://localhost:8000/")).not.toBe(serverOrigin("http://localhost:5173/"))
+})
+
+test("isLocalServer accepts this machine's pages only", () => {
+  expect(isLocalServer("http://localhost:5174/about")).toBe(true)
+  expect(isLocalServer("http://127.0.0.1:8000")).toBe(true)
+  expect(isLocalServer("https://shop.test/")).toBe(true)
+  expect(isLocalServer("https://example.com/")).toBe(false)
+  expect(isLocalServer("src/app.ts")).toBe(false)
 })
