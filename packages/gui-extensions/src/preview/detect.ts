@@ -45,3 +45,19 @@ function normalize(input: string) {
 
   return url.href
 }
+
+/**
+ * The scheme, loopback-folded host and port of an address, so `localhost:8000` and `127.0.0.1:8000` count as one
+ * server. Undefined for text that is not a URL.
+ */
+export function serverOrigin(input: string) {
+  if (!URL.canParse(input)) return
+
+  const url = new URL(input)
+
+  const host = /^(?:localhost|127(?:\.\d{1,3}){3}|0\.0\.0\.0|\[::1?\])$/i.test(url.hostname)
+    ? "localhost"
+    : url.hostname
+
+  return `${url.protocol}//${host}:${url.port}`
+}

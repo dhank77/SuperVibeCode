@@ -4,6 +4,8 @@ export default {
   "command.inspect": "Select an element in the browser page",
   "command.address": "Focus browser address",
   "command.close": "Close browser tab",
+  "device.mobile": "Mobile view",
+  "device.desktop": "Desktop view",
   "tab.title": "Browser",
   "tab.new": "New tab",
   "address.label": "Browser address",

@@ -1,7 +1,7 @@
 import { Icon } from "@opencode/ui/icon"
 import { IconButton } from "@opencode/ui/icon-button"
 import { Tooltip } from "@opencode/ui/tooltip"
-import { Show } from "solid-js"
+import { createSignal, Show } from "solid-js"
 import { useExtension } from "../sdk"
 import type definition from "./index"
 
@@ -10,6 +10,8 @@ export default function PreviewPane(props: { url: string | undefined }) {
   const extension = useExtension<typeof definition>()
   // Setting a frame's address again reloads it, also across origins where its own reload is out of reach.
   let frame: HTMLIFrameElement | undefined
+  // Shows the app at a phone's viewport size, so its mobile layout shows.
+  const [mobile, setMobile] = createSignal(false)
 
   return (
     <div class="flex h-full min-h-0 flex-col">
@@ -38,6 +40,16 @@ export default function PreviewPane(props: { url: string | undefined }) {
                   icon={<Icon name="outline-rotate-clockwise" />}
                 />
               </Tooltip>
+              <Tooltip placement="top" value={extension.t(mobile() ? "device.desktop" : "device.mobile")}>
+                <IconButton
+                  variant="ghost-muted"
+                  size="large"
+                  aria-label={extension.t(mobile() ? "device.desktop" : "device.mobile")}
+                  aria-pressed={mobile()}
+                  onClick={() => setMobile((value) => !value)}
+                  icon={<Icon name={mobile() ? "outline-globe" : "outline-device-mobile"} />}
+                />
+              </Tooltip>
               <Tooltip placement="top" value={extension.t("action.external")}>
                 <IconButton
                   variant="ghost-muted"
@@ -48,12 +60,21 @@ export default function PreviewPane(props: { url: string | undefined }) {
                 />
               </Tooltip>
             </div>
-            <iframe
-              ref={frame}
-              class="min-h-0 w-full flex-1 border-0 bg-white"
-              src={url()}
-              title={extension.t("tab.title")}
-            />
+            <div
+              class="flex min-h-0 flex-1"
+              classList={{ "items-center justify-center bg-v2-background-bg-deep p-4": mobile() }}
+            >
+              <iframe
+                ref={frame}
+                class="border-0 bg-white"
+                classList={{
+                  "min-w-0 flex-1": !mobile(),
+                  "h-full max-h-[844px] w-[390px] max-w-full shrink-0 rounded-[10px] shadow-lg": mobile(),
+                }}
+                src={url()}
+                title={extension.t("tab.title")}
+              />
+            </div>
           </>
         )}
       </Show>

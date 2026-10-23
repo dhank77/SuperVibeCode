@@ -6,4 +6,6 @@ export default {
   empty: "Run a dev server, such as npm run dev, bun run dev, or php artisan serve, and the app appears here.",
   "action.reload": "Reload preview",
   "action.external": "Open in system browser",
+  "device.mobile": "Mobile view",
+  "device.desktop": "Desktop view",
 }

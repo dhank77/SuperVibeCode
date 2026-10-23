@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { detectURL } from "./detect"
+import { detectURL, serverOrigin } from "./detect"
 
 describe("detectURL", () => {
   test.each([
@@ -28,4 +28,9 @@ describe("detectURL", () => {
     expect(detectURL("Server running on https://example.com")).toBeUndefined()
     expect(detectURL("added 120 packages in 3s")).toBeUndefined()
   })
+})
+
+test("serverOrigin folds loopback hosts", () => {
+  expect(serverOrigin("http://127.0.0.1:8000/admin")).toBe(serverOrigin("http://localhost:8000/"))
+  expect(serverOrigin("http://localhost:8000/")).not.toBe(serverOrigin("http://localhost:5173/"))
 })

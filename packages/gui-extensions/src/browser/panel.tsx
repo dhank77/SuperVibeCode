@@ -39,6 +39,8 @@ type PaneState = {
   active: number
   /** Escape closed the suggestions; typing opens them again. */
   dismissed: boolean
+  /** Tabs shown at a phone's viewport size, so the page's mobile layout shows. Keyed by tab id. */
+  mobile: Record<string, boolean>
   /** The tab whose element picker is on. */
   picking: { sessionKey: string; tabID: Browser.TabID } | undefined
   /** A picked element awaiting its comment. The page stays frozen as a still until it closes. */
@@ -78,6 +80,7 @@ export default function SessionBrowserPane(props: {
   const panel = usePanel()
   const visible = () => panel.visible()
   const state = () => props.model.tab(props.session, props.tab().id)
+  const mobile = () => !!store.mobile[props.tab().id]
   const address = () => (state()?.url === "about:blank" ? "" : (state()?.url ?? ""))
   const failed = () => !!state()?.loadError
   const suspended = () => props.model.suspended(props.session)
@@ -102,6 +105,7 @@ export default function SessionBrowserPane(props: {
     note: undefined,
     size: { width: 0, height: 0 },
     editorHeight: 0,
+    mobile: {},
   })
 
   // Finished loads, counted. A submitted address that lands on the URL the page already had (say "example.com" on
@@ -573,6 +577,21 @@ export default function SessionBrowserPane(props: {
               }
             />
           </Tooltip>
+          <Tooltip placement="top" value={extension.t(mobile() ? "device.desktop" : "device.mobile")}>
+            <IconButton
+              variant="ghost-muted"
+              size="large"
+              disabled={!state()}
+              aria-label={extension.t(mobile() ? "device.desktop" : "device.mobile")}
+              aria-pressed={mobile()}
+              onClick={() => {
+                const tab = state()
+
+                if (tab) setStore("mobile", tab.id, !mobile())
+              }}
+              icon={<Icon name={mobile() ? "outline-globe" : "outline-device-mobile"} />}
+            />
+          </Tooltip>
         </div>
         <Popover
           open={store.editing && listed()}
@@ -866,167 +885,177 @@ export default function SessionBrowserPane(props: {
           {error()}
         </div>
       </Show>
-      <embeds.View
-        id={embed()}
-        visible={shown()}
-        frozen={commenting() || noting()}
-        radius={10}
-        class="relative min-h-0 flex-1 bg-v2-background-bg-base flex items-center justify-center"
+      {/* The native page fills the box it is measured from, so a phone-sized box gives the page a phone's viewport. */}
+      <div
+        class="flex min-h-0 min-w-0 flex-1"
+        classList={{ "items-center justify-center bg-v2-background-bg-deep p-4": mobile() }}
       >
-        <div ref={box} aria-hidden="true" class="pointer-events-none absolute inset-0" />
-        <Show when={empty() && !failed() && !suspended()}>
-          {/* As designed: the heading 80px from the top, the recent list centered above a 160px bottom inset. The
+        <embeds.View
+          id={embed()}
+          visible={shown()}
+          frozen={commenting() || noting()}
+          radius={10}
+          class={
+            mobile()
+              ? "relative h-full max-h-[844px] w-[390px] max-w-full shrink-0 bg-v2-background-bg-base flex items-center justify-center"
+              : "relative min-h-0 min-w-0 flex-1 bg-v2-background-bg-base flex items-center justify-center"
+          }
+        >
+          <div ref={box} aria-hidden="true" class="pointer-events-none absolute inset-0" />
+          <Show when={empty() && !failed() && !suspended()}>
+            {/* As designed: the heading 80px from the top, the recent list centered above a 160px bottom inset. The
               minimum height keeps a full list clear of the heading in a short pane, which then scrolls. */}
-          <div dir="auto" class="size-full overflow-y-auto">
-            <div class="relative flex min-h-[max(100%,732px)] items-center justify-center px-6 pb-40">
-              <div class="absolute inset-x-6 top-20 mx-auto flex max-w-[360px] flex-col items-center gap-4 text-center">
-                <Icon name="outline-globe" size="large" class="text-v2-icon-icon-muted" />
-                <div class="flex flex-col gap-2">
-                  <div class="text-[13px] font-[530] leading-[var(--line-height-compact)] text-v2-text-text-base">
-                    {extension.t("home.title")}
-                  </div>
-                  <div class="text-[13px] font-[440] leading-[var(--line-height-compact)] text-v2-text-text-muted">
-                    {extension.t("home.description")}
-                  </div>
-                </div>
-              </div>
-              {/* One visit is enough to list; the list stops at a handful. */}
-              <Show when={recent().length > 0}>
-                <div class="flex w-full max-w-[685px] flex-col gap-4">
-                  <div class="px-2 text-[13px] font-[440] leading-[var(--line-height-compact)] text-v2-text-text-muted">
-                    {extension.t("home.recent")}
-                  </div>
+            <div dir="auto" class="size-full overflow-y-auto">
+              <div class="relative flex min-h-[max(100%,732px)] items-center justify-center px-6 pb-40">
+                <div class="absolute inset-x-6 top-20 mx-auto flex max-w-[360px] flex-col items-center gap-4 text-center">
+                  <Icon name="outline-globe" size="large" class="text-v2-icon-icon-muted" />
                   <div class="flex flex-col gap-2">
-                    <For each={recent()}>{(visit) => <PageRow visit={visit} onClick={() => go(visit.url)} />}</For>
+                    <div class="text-[13px] font-[530] leading-[var(--line-height-compact)] text-v2-text-text-base">
+                      {extension.t("home.title")}
+                    </div>
+                    <div class="text-[13px] font-[440] leading-[var(--line-height-compact)] text-v2-text-text-muted">
+                      {extension.t("home.description")}
+                    </div>
                   </div>
                 </div>
-              </Show>
-            </div>
-          </div>
-        </Show>
-        <Show when={failed() && !suspended()}>
-          {/* Add the 40px toolbar to the file empty state's 160px bottom padding to align their centers. */}
-          <div
-            dir="auto"
-            class="flex size-full flex-col items-center justify-center gap-2 p-6 pb-[200px] text-center text-text-weak"
-          >
-            <Icon name="globe" size="large" class="mb-2 shrink-0" />
-            <div class="text-[13px] font-medium leading-[var(--line-height-compact)] text-text-strong">
-              {extension.t("failed.title")}
-            </div>
-            <div class="text-13-regular leading-[var(--line-height-base)]">{extension.t("failed.description")}</div>
-          </div>
-        </Show>
-        <Show when={suspended()}>
-          <p class="px-6 text-center text-13-regular text-v2-text-text-subtle" role="status">
-            {extension.t("suspended")}
-          </p>
-        </Show>
-        <Show when={commenting() && store.comment}>
-          {(current) => (
-            <div
-              data-component="browser-comment"
-              class="absolute inset-0 z-10"
-              onPointerDown={(event) => {
-                // A click beside the editor dismisses it unless it would discard a draft.
-                if (event.target === event.currentTarget && !current().draft.trim()) closeComment()
-              }}
-            >
-              <Show when={spotlight()}>
-                {(rect) => (
-                  <div
-                    data-slot="browser-comment-spotlight"
-                    class="pointer-events-none absolute rounded-[2px]"
-                    style={{
-                      left: `${rect().x}px`,
-                      top: `${rect().y}px`,
-                      width: `${rect().width}px`,
-                      height: `${rect().height}px`,
-                    }}
-                  />
-                )}
-              </Show>
-              <Show when={placement()}>
-                {(position) => (
-                  <div
-                    ref={(element) =>
-                      createResizeObserver(element, (rect) => setStore("editorHeight", Math.ceil(rect.height)))
-                    }
-                    data-slot="browser-comment-editor"
-                    data-prevent-autofocus
-                    class="absolute overflow-y-auto rounded-[6px] shadow-[var(--v2-elevation-raised)]"
-                    style={{
-                      left: `${position().left}px`,
-                      top: `${position().top}px`,
-                      width: `${position().width}px`,
-                      "max-height": `${position().maxHeight}px`,
-                    }}
-                  >
-                    <LineCommentEditor
-                      value={current().draft}
-                      onInput={(value) => setStore("comment", "draft", value)}
-                      onCancel={closeComment}
-                      onSubmit={submitComment}
-                      mention={{
-                        items: (query) => props.screen.file.search(query, { kind: "any" }),
-                      }}
-                      selection={
-                        <span class="flex min-w-0 items-center gap-1" dir="ltr">
-                          <Icon name="select-element" size="small" class="shrink-0" />
-                          <span class="min-w-0 truncate leading-[var(--line-height-tight)]">
-                            {current().element.label}
-                          </span>
-                        </span>
-                      }
-                    />
+                {/* One visit is enough to list; the list stops at a handful. */}
+                <Show when={recent().length > 0}>
+                  <div class="flex w-full max-w-[685px] flex-col gap-4">
+                    <div class="px-2 text-[13px] font-[440] leading-[var(--line-height-compact)] text-v2-text-text-muted">
+                      {extension.t("home.recent")}
+                    </div>
+                    <div class="flex flex-col gap-2">
+                      <For each={recent()}>{(visit) => <PageRow visit={visit} onClick={() => go(visit.url)} />}</For>
+                    </div>
                   </div>
-                )}
-              </Show>
+                </Show>
+              </div>
             </div>
-          )}
-        </Show>
-        <Show when={noting() && store.note}>
-          {(current) => (
+          </Show>
+          <Show when={failed() && !suspended()}>
+            {/* Add the 40px toolbar to the file empty state's 160px bottom padding to align their centers. */}
             <div
-              data-component="browser-comment"
-              class="absolute inset-0 z-10"
-              onPointerDown={(event) => {
-                if (event.target === event.currentTarget && !current().draft.trim()) closeNote()
-              }}
+              dir="auto"
+              class="flex size-full flex-col items-center justify-center gap-2 p-6 pb-[200px] text-center text-text-weak"
             >
-              {/* Under the page actions at the address field's end, which opened it. */}
+              <Icon name="globe" size="large" class="mb-2 shrink-0" />
+              <div class="text-[13px] font-medium leading-[var(--line-height-compact)] text-text-strong">
+                {extension.t("failed.title")}
+              </div>
+              <div class="text-13-regular leading-[var(--line-height-base)]">{extension.t("failed.description")}</div>
+            </div>
+          </Show>
+          <Show when={suspended()}>
+            <p class="px-6 text-center text-13-regular text-v2-text-text-subtle" role="status">
+              {extension.t("suspended")}
+            </p>
+          </Show>
+          <Show when={commenting() && store.comment}>
+            {(current) => (
               <div
-                data-slot="browser-comment-editor"
-                data-prevent-autofocus
-                class="absolute end-2 top-2 overflow-y-auto rounded-[6px] shadow-[var(--v2-elevation-raised)]"
-                style={{
-                  width: `${Math.max(0, Math.min(400, store.size.width - 16))}px`,
-                  "max-height": `${Math.max(0, store.size.height - 16)}px`,
+                data-component="browser-comment"
+                class="absolute inset-0 z-10"
+                onPointerDown={(event) => {
+                  // A click beside the editor dismisses it unless it would discard a draft.
+                  if (event.target === event.currentTarget && !current().draft.trim()) closeComment()
                 }}
               >
-                <LineCommentEditor
-                  value={current().draft}
-                  onInput={(value) => setStore("note", "draft", value)}
-                  onCancel={closeNote}
-                  onSubmit={submitNote}
-                  placeholder={extension.t("page.placeholder")}
-                  mention={{
-                    items: (query) => props.screen.file.search(query, { kind: "any" }),
-                  }}
-                  selection={
-                    <span class="flex min-w-0 items-center gap-1" dir="ltr">
-                      <Icon name="outline-globe" size="small" class="shrink-0" />
-                      <span class="min-w-0 truncate leading-[var(--line-height-tight)]">
-                        {current().title || addressParts(current().url).host || current().url}
-                      </span>
-                    </span>
-                  }
-                />
+                <Show when={spotlight()}>
+                  {(rect) => (
+                    <div
+                      data-slot="browser-comment-spotlight"
+                      class="pointer-events-none absolute rounded-[2px]"
+                      style={{
+                        left: `${rect().x}px`,
+                        top: `${rect().y}px`,
+                        width: `${rect().width}px`,
+                        height: `${rect().height}px`,
+                      }}
+                    />
+                  )}
+                </Show>
+                <Show when={placement()}>
+                  {(position) => (
+                    <div
+                      ref={(element) =>
+                        createResizeObserver(element, (rect) => setStore("editorHeight", Math.ceil(rect.height)))
+                      }
+                      data-slot="browser-comment-editor"
+                      data-prevent-autofocus
+                      class="absolute overflow-y-auto rounded-[6px] shadow-[var(--v2-elevation-raised)]"
+                      style={{
+                        left: `${position().left}px`,
+                        top: `${position().top}px`,
+                        width: `${position().width}px`,
+                        "max-height": `${position().maxHeight}px`,
+                      }}
+                    >
+                      <LineCommentEditor
+                        value={current().draft}
+                        onInput={(value) => setStore("comment", "draft", value)}
+                        onCancel={closeComment}
+                        onSubmit={submitComment}
+                        mention={{
+                          items: (query) => props.screen.file.search(query, { kind: "any" }),
+                        }}
+                        selection={
+                          <span class="flex min-w-0 items-center gap-1" dir="ltr">
+                            <Icon name="select-element" size="small" class="shrink-0" />
+                            <span class="min-w-0 truncate leading-[var(--line-height-tight)]">
+                              {current().element.label}
+                            </span>
+                          </span>
+                        }
+                      />
+                    </div>
+                  )}
+                </Show>
               </div>
-            </div>
-          )}
-        </Show>
-      </embeds.View>
+            )}
+          </Show>
+          <Show when={noting() && store.note}>
+            {(current) => (
+              <div
+                data-component="browser-comment"
+                class="absolute inset-0 z-10"
+                onPointerDown={(event) => {
+                  if (event.target === event.currentTarget && !current().draft.trim()) closeNote()
+                }}
+              >
+                {/* Under the page actions at the address field's end, which opened it. */}
+                <div
+                  data-slot="browser-comment-editor"
+                  data-prevent-autofocus
+                  class="absolute end-2 top-2 overflow-y-auto rounded-[6px] shadow-[var(--v2-elevation-raised)]"
+                  style={{
+                    width: `${Math.max(0, Math.min(400, store.size.width - 16))}px`,
+                    "max-height": `${Math.max(0, store.size.height - 16)}px`,
+                  }}
+                >
+                  <LineCommentEditor
+                    value={current().draft}
+                    onInput={(value) => setStore("note", "draft", value)}
+                    onCancel={closeNote}
+                    onSubmit={submitNote}
+                    placeholder={extension.t("page.placeholder")}
+                    mention={{
+                      items: (query) => props.screen.file.search(query, { kind: "any" }),
+                    }}
+                    selection={
+                      <span class="flex min-w-0 items-center gap-1" dir="ltr">
+                        <Icon name="outline-globe" size="small" class="shrink-0" />
+                        <span class="min-w-0 truncate leading-[var(--line-height-tight)]">
+                          {current().title || addressParts(current().url).host || current().url}
+                        </span>
+                      </span>
+                    }
+                  />
+                </div>
+              </div>
+            )}
+          </Show>
+        </embeds.View>
+      </div>
       <p class="sr-only" role="status" aria-live="polite">
         {picking() ? extension.t("inspect.active") : ""}
       </p>

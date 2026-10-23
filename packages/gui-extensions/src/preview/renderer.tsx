@@ -3,7 +3,7 @@ import { createMemo, lazy, mapArray, onCleanup, Suspense } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Command, createKeyed, onIdle, Panel, type PanelTab, type SessionRef, type Setup } from "../sdk"
 import { Preview } from "./contract"
-import { detectURL } from "./detect"
+import { detectURL, serverOrigin } from "./detect"
 import type definition from "./index"
 
 // How often a running shell's output is read while it has not announced an address yet.
@@ -19,14 +19,27 @@ const FRESH_MS = 2 * 60_000
 // An address can arrive split across output pages.
 const TAIL = 8_192
 
+// Announcements of one server this close together (a shell and a terminal both printing it, a quick restart) show it
+// once, so a burst never opens a pile of tabs.
+const SETTLE_MS = 10_000
+
 const setup: Setup<typeof definition> = (ctx) => {
   const sessions = ctx.sessions
   const layout = ctx.layout
   const PreviewPane = lazy(() => import("./pane"))
   onCleanup(onIdle(() => void PreviewPane.preload()))
 
-  // The last address each session's dev server announced, keyed by `session.key`.
-  const [found, setFound] = createStore<Record<string, string>>({})
+  const [state, setState] = createStore<{
+    // The last address each session's dev server announced, keyed by `session.key`.
+    found: Record<string, string>
+    // An address the desktop browser pane shows once it attaches to the session, keyed by `session.key`.
+    pending: Record<string, string | undefined>
+  }>({ found: {}, pending: {} })
+
+  // Shells whose address was already announced, per session key, so returning to a session never opens it again.
+  const announced = new Map<string, Set<string>>()
+  // The server last shown per session key, and when.
+  const shown = new Map<string, { origin: string | undefined; at: number }>()
 
   const routed = () => {
     const view = sessions.current()
@@ -36,25 +49,53 @@ const setup: Setup<typeof definition> = (ctx) => {
     return sessions.list().find((item) => item.key === view.key)
   }
 
-  // The desktop's browser pane shows the app with devtools and agent control; elsewhere this extension's own panel
-  // shows it in a frame.
+  // On desktop the browser pane shows the app, with devtools and agent control, and reuses the tab on the same server.
+  // Until the pane attaches the address waits for it; a frame there would leave the app window. Only windows without
+  // the pane (the web, or the browser extension turned off) show the app in this extension's own panel.
   const show = (session: SessionRef, url: string) => {
+    const origin = serverOrigin(url)
+    const last = shown.get(session.key)
+
+    if (last && last.origin === origin && Date.now() - last.at < SETTLE_MS) return
+    shown.set(session.key, { origin, at: Date.now() })
     const browser = ctx.uses.browser()
 
     if (browser.status === "active" && browser.value.attached(session)) return browser.value.show(session, url)
+
+    if (browser.status === "active" || browser.status === "pending") return setState("pending", session.key, url)
     layout.open(`${ctx.id}:app`, session, { tab: "select" })
   }
 
+  // Syncs a waiting address with the desktop browser pane once it attaches to the routed session.
+  createKeyed(
+    () => {
+      const session = routed()
+      const browser = ctx.uses.browser()
+      const url = session && state.pending[session.key]
+
+      if (!session || !url || browser.status !== "active" || !browser.value.attached(session)) return undefined
+
+      return { session, url, browser: browser.value }
+    },
+    (input) => {
+      setState("pending", input.session.key, undefined)
+      input.browser.show(input.session, input.url)
+    },
+    { equals: (previous, next) => previous.session.key === next.session.key && previous.url === next.url },
+  )
+
   const announce = (session: SessionRef, url: string, open: boolean) => {
-    setFound(session.key, url)
+    setState("found", session.key, url)
 
     if (open && ctx.stores.prefs.value.auto) show(session, url)
   }
 
   const watch = (session: SessionRef, id: string) => {
+    const seen = announced.get(session.key) ?? new Set<string>()
+    announced.set(session.key, seen)
     const shell = session.server.data.shell.get(id)
 
-    if (!shell) return
+    if (!shell || seen.has(id)) return
     const open = Date.now() - shell.time.started < FRESH_MS
     const controller = new AbortController()
     onCleanup(() => controller.abort())
@@ -72,7 +113,12 @@ const setup: Setup<typeof definition> = (ctx) => {
       const text = (tail + (page?.data.output ?? "")).slice(-TAIL)
       const url = detectURL(text)
 
-      if (url) return announce(session, url, open)
+      if (url) {
+        seen.add(id)
+
+        return announce(session, url, open)
+      }
+
       await new Promise((resolve) => setTimeout(resolve, POLL_MS))
 
       return read(page?.data.cursor ?? cursor, text)
@@ -82,22 +128,40 @@ const setup: Setup<typeof definition> = (ctx) => {
   }
 
   // The routed session's running shells, the agent's and the composer's shell mode alike. Each one is read until it
-  // announces an address, exits, or stays quiet past `SCAN_MS`.
-  createKeyed(routed, (session) => {
-    if (session.location) void session.server.data.shell.sync(session.location)
+  // announces an address, exits, or stays quiet past `SCAN_MS`. Keyed by the session's key, so a new session object for
+  // the same session keeps the shells it already reads.
+  createKeyed(
+    () => routed()?.key,
+    (key) => {
+      const session = () => sessions.list().find((item) => item.key === key)
+      const first = session()
 
-    const running = createMemo(
-      () =>
-        session.server.data.shell
-          .listBySession(session.id)
-          .filter((shell) => shell.status === "running")
-          .map((shell) => shell.id),
-      [],
-      { equals: (previous, next) => previous.join("\n") === next.join("\n") },
-    )
+      if (first?.location) void first.server.data.shell.sync(first.location)
 
-    createMemo(mapArray(running, (id) => watch(session, id)))
-  })
+      const running = createMemo(
+        () => {
+          const current = session()
+
+          if (!current) return []
+
+          return current.server.data.shell
+            .listBySession(current.id)
+            .filter((shell) => shell.status === "running")
+            .map((shell) => shell.id)
+        },
+        [],
+        { equals: (previous, next) => previous.join("\n") === next.join("\n") },
+      )
+
+      createMemo(
+        mapArray(running, (id) => {
+          const current = session()
+
+          if (current) watch(current, id)
+        }),
+      )
+    },
+  )
 
   ctx.provide(Preview, {
     scan(input) {
@@ -118,7 +182,7 @@ const setup: Setup<typeof definition> = (ctx) => {
     const session = routed()
 
     if (!session) return undefined
-    const url = found[session.key]
+    const url = state.found[session.key]
 
     return {
       id: "open",
@@ -165,7 +229,7 @@ const setup: Setup<typeof definition> = (ctx) => {
     list: (input) => (input.open.includes(tab.id) ? [tab] : []),
     render: (props) => (
       <Suspense>
-        <PreviewPane url={found[props.session.key]} />
+        <PreviewPane url={state.found[props.session.key]} />
       </Suspense>
     ),
   })

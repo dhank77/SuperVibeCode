@@ -391,11 +391,9 @@ export function createModel(ctx: SetupContext<typeof definition>) {
   // A dev server prints its address again after each restart; the tab already on that origin reloads instead of a
   // new tab piling up.
   const showURL = (session: SessionRef, url: string) => {
-    const origin = URL.canParse(url) ? new URL(url).origin : undefined
+    const origin = serverOrigin(url)
 
-    const existing = attachment(session)?.browser?.tabs.find(
-      (item) => !!origin && URL.canParse(item.url) && new URL(item.url).origin === origin,
-    )
+    const existing = attachment(session)?.browser?.tabs.find((item) => !!origin && serverOrigin(item.url) === origin)
 
     if (!existing) return openURL(session, url)
     layout.open(key(existing.id), session, { tab: "select" })
@@ -557,4 +555,17 @@ export function createModel(ctx: SetupContext<typeof definition>) {
       return () => setPanes((list) => list.filter((item) => item !== handle))
     },
   }
+}
+
+// One dev server answers on every loopback name: `localhost:8000` and `127.0.0.1:8000` are the same tab.
+function serverOrigin(input: string) {
+  if (!URL.canParse(input)) return
+
+  const url = new URL(input)
+
+  const host = /^(?:localhost|127(?:\.\d{1,3}){3}|0\.0\.0\.0|\[::1?\])$/i.test(url.hostname)
+    ? "localhost"
+    : url.hostname
+
+  return `${url.protocol}//${host}:${url.port}`
 }
