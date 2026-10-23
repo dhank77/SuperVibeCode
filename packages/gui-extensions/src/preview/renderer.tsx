@@ -5,6 +5,7 @@ import { createStore } from "solid-js/store"
 import {
   Command,
   createKeyed,
+  createLatest,
   LinkHandler,
   MenuItem,
   onIdle,
@@ -16,6 +17,7 @@ import {
 } from "../sdk"
 import { Preview } from "./contract"
 import { detectURL, isLocalServer, serverOrigin } from "./detect"
+import { guessPlan, type Plan } from "./guess"
 import type definition from "./index"
 
 // How often a running shell's output is read while it has not announced an address yet.
@@ -27,6 +29,12 @@ const SCAN_MS = 3 * 60_000
 // A shell that started this long before the window saw it announced its address to an earlier window: remember the
 // address, but do not move the user's panel.
 const FRESH_MS = 2 * 60_000
+
+// How long dependencies may take to install before the server starts anyway, and how long their command may take to
+// show up as running.
+const INSTALL_MS = 15 * 60_000
+
+const APPEAR_MS = 15_000
 
 // An address can arrive split across output pages.
 const TAIL = 8_192
@@ -112,28 +120,108 @@ const setup: Setup<typeof definition> = (ctx) => {
     if (open && ctx.stores.prefs.value.auto) show(session, url)
   }
 
-  // Runs the session's last dev server again through the composer's shell mode, so it shows in the timeline and the
-  // preview opens once it announces its address.
-  const start = (session: SessionRef) => {
-    const dev = ctx.stores.dev(session).value
-
-    if (!dev?.command) return
-    const directory = session.location?.directory
-
-    const command =
-      dev.cwd && directory && trim(dev.cwd) !== trim(directory) ? `cd ${quote(dev.cwd)} && ${dev.command}` : dev.command
-
-    void session.server.client.session
-      .shell({ sessionID: session.id, command })
-      .catch(() => showToast({ title: ctx.t("common.requestFailed") }))
-  }
-
   const running = (session: SessionRef, command: string) =>
     session.server.data.shell
       .listBySession(session.id)
       .some(
         (shell) => shell.status === "running" && (shell.command === command || shell.command.endsWith(`&& ${command}`)),
       )
+
+  // What the routed session's workspace would run, read from its root, for sessions that never started a server. Read
+  // again after each agent turn, which may have created the project.
+  const guessed = createLatest(
+    () => {
+      const session = routed()
+
+      if (!session?.location) return undefined
+
+      return `${session.key}\n${session.location.directory}\n${session.server.data.session.status(session.id)}`
+    },
+    async (key, signal) => {
+      const session = routed()
+      const directory = session?.location?.directory
+
+      if (!session || !directory || !key.startsWith(`${session.key}\n`)) return undefined
+
+      const client = session.server.client
+      const location = { directory }
+      const listing = await client.file.list({ location }, { signal })
+      const files = listing.data.map((entry) => entry.path.replace(/[\\/]+$/, ""))
+
+      const packageJson = files.includes("package.json")
+        ? new TextDecoder().decode(await client.file.read({ location, path: "package.json" }, { signal }))
+        : undefined
+
+      return { session: session.key, plan: guessPlan({ files, packageJson }) }
+    },
+  )
+
+  // The server to start: the one this session ran before, else the workspace's likely one.
+  const plan = (session: SessionRef): Plan | undefined => {
+    const dev = ctx.stores.dev(session).value
+    const directory = session.location?.directory
+
+    if (dev?.command)
+      return {
+        command:
+          dev.cwd && directory && trim(dev.cwd) !== trim(directory)
+            ? `cd ${quote(dev.cwd)} && ${dev.command}`
+            : dev.command,
+      }
+
+    const latest = guessed.latest
+
+    return latest?.session === session.key ? latest.plan : undefined
+  }
+
+  const shell = (session: SessionRef, command: string) =>
+    session.server.client.session.shell({ sessionID: session.id, command })
+
+  // Waits for a command the session started to finish, so the server starts after its dependencies installed. Gives up
+  // when it never shows up as running, or runs longer than an install should.
+  const settle = async (session: SessionRef, command: string) => {
+    const started = Date.now()
+    const appeared = { seen: false }
+
+    const poll = async (): Promise<void> => {
+      if (ctx.signal.aborted || Date.now() - started > INSTALL_MS) return
+
+      const busy = running(session, command)
+
+      if (busy) appeared.seen = true
+
+      if (!busy && (appeared.seen || Date.now() - started > APPEAR_MS)) return
+
+      await new Promise((resolve) => setTimeout(resolve, POLL_MS))
+
+      return poll()
+    }
+
+    await poll()
+  }
+
+  // Runs the dev server through the composer's shell mode, installing dependencies first when they are missing, so
+  // each step shows in the timeline and the preview opens once the server announces its address.
+  const start = async (session: SessionRef) => {
+    const next = plan(session)
+
+    if (!next) return
+
+    const failed = () => showToast({ title: ctx.t("common.requestFailed") })
+
+    if (next.install) {
+      const installing = await shell(session, next.install).then(
+        () => true,
+        () => false,
+      )
+
+      if (!installing) return failed()
+
+      await settle(session, next.install)
+    }
+
+    await shell(session, next.command).catch(failed)
+  }
 
   const watch = (session: SessionRef, id: string) => {
     const seen = announced.get(session.key) ?? new Set<string>()
@@ -272,14 +360,14 @@ const setup: Setup<typeof definition> = (ctx) => {
     const session = routed()
 
     if (!session) return undefined
-    const dev = ctx.stores.dev(session).value
+    const next = plan(session)
 
     return {
       id: "start",
       title: ctx.t("command.start"),
       group: ctx.t("command.category.view"),
-      enabled: !!dev?.command && !running(session, dev.command),
-      run: () => start(session),
+      enabled: !!next && !running(session, next.command),
+      run: () => void start(session),
     }
   })
 
@@ -318,13 +406,13 @@ const setup: Setup<typeof definition> = (ctx) => {
     at: "session.header",
     order: 30,
     render: (input) => (
-      <Show when={ctx.stores.dev(input.session).value?.command}>
-        {(command) => (
+      <Show when={plan(input.session)}>
+        {(next) => (
           <Suspense>
             <DevServerButton
-              command={command()}
-              running={running(input.session, command())}
-              onStart={() => start(input.session)}
+              command={next().install ? `${next().install} && ${next().command}` : next().command}
+              running={running(input.session, next().command)}
+              onStart={() => void start(input.session)}
               onShow={() => {
                 const url = state.found[input.session.key]
 
