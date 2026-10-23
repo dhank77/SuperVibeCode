@@ -11,6 +11,7 @@ import { browserFailure } from "./errors"
 import { createBrowserNetwork, type BrowserNetwork } from "./network"
 import { destinationOrigin, fileURLWithin, refusal } from "./policy"
 import { createRefs } from "./refs"
+import { createSystemScheme } from "./scheme"
 import type { PaneEvent } from "./ipc"
 import { createBrowserRestoreStore } from "./restore"
 
@@ -59,6 +60,11 @@ export function createBrowserPane(input: {
   // Keep long-lived RPC requests off Chromium's shared HTTP connection pool.
   const runtime = ManagedRuntime.make(NodeHttpClient.layerNodeHttp)
   let disposed = false
+
+  // Pages follow the computer's light or dark appearance, not the app's theme, so sites look as they do in a browser.
+  const scheme = createSystemScheme((value) =>
+    entries.forEach((entry) => entry.pages.forEach((page) => void page.scheme(value).catch(() => undefined))),
+  )
 
   return {
     async register(window: number, binding: string, target: Target) {
@@ -354,6 +360,7 @@ export function createBrowserPane(input: {
      */
     async dispose() {
       disposed = true
+      scheme.dispose()
       entries.forEach((entry) => close(entry, "browser.pane.suspended"))
       await Promise.all(releasing)
       await runtime.dispose()
@@ -487,6 +494,7 @@ export function createBrowserPane(input: {
       fileRoots: () => entry.fileRoots,
       shared,
       embeds: input.embeds,
+      scheme: scheme.current,
       fail,
       publish: (error) => {
         if (entry.pages.has(id)) publishState(entry, error)

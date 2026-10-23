@@ -90,6 +90,9 @@ const zoomSteps = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.7
 /** A page's icon as a data URL, and its zoom factor, 1 at 100%. */
 export type PageDetail = { icon?: string; zoom: number }
 
+/** The computer's light or dark appearance, which pages see as prefers-color-scheme. */
+export type Scheme = "light" | "dark"
+
 /** The zoom a key press asks for: the system browser's zoom keys, with the platform's modifier already checked. */
 function zoomKey(input: Electron.Input) {
   if (input.key === "=" || input.key === "+" || input.code === "NumpadAdd") return "in"
@@ -146,6 +149,8 @@ export function createBrowserPage(
     fileRoots?: () => ReadonlyArray<string>
     shared: Shared
     embeds: Embeds
+    /** The color scheme the page's media queries see, when known. */
+    scheme?: () => Scheme | undefined
   },
 ) {
   const policy: Policy = {
@@ -524,8 +529,26 @@ export function createBrowserPage(
   // whether there is a document worth exposing over the themed background.
   const updateVisibility = () => embed.show(content)
 
+  /**
+   * Electron gives every page the app's theme as its prefers-color-scheme, so a site in a dark app could never show its
+   * light design, nor switch to it with its own toggle. Pages see the computer's appearance instead, as in a browser.
+   * The emulation lasts across the tab's navigations; no scheme leaves the page on Electron's.
+   */
+  function applyScheme(scheme: Scheme | undefined) {
+    const features = scheme ? [{ name: "prefers-color-scheme", value: scheme }] : []
+
+    return cdp.send("Emulation.setEmulatedMedia", { features }).then(
+      () => undefined,
+      () => undefined,
+    )
+  }
+
+  // Sent before the first document loads, so a site's startup script reads the same scheme its CSS shows.
+  const initialScheme = applyScheme(options.scheme?.())
+
   const ready = Promise.all([
     files.ready,
+    initialScheme,
     ...(options.initialize === false
       ? []
       : [
@@ -564,6 +587,12 @@ export function createBrowserPage(
     },
     zoom(direction: "in" | "out" | "reset") {
       if (!closed) zoom(direction)
+    },
+    /** Updates the color scheme the page's media queries see, such as after the computer's appearance changed. */
+    async scheme(scheme: Scheme | undefined) {
+      if (closed) return
+      await ready
+      await applyScheme(scheme)
     },
     async site() {
       const url = contents.getURL()

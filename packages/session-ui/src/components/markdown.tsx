@@ -43,7 +43,7 @@ import {
   type ReadMarkdownImage,
   type MarkdownLocalFileExists,
 } from "../context/markdown"
-import { createMarkdownImages } from "./markdown-image"
+import { createMarkdownImages, localServerURL } from "./markdown-image"
 import { createImagePreview } from "./image-preview"
 import { markSessionLinks, setupSessionLinks } from "./markdown-session-links"
 
@@ -297,12 +297,14 @@ function markCodeLinks(root: HTMLDivElement) {
   const codeNodes = Array.from(root.querySelectorAll(":not(pre) > code"))
 
   for (const code of codeNodes) {
+    // A link the author wrote around the code, such as [`x`](http://localhost:3000), already goes to the host.
+    if (code.parentElement?.closest("a[data-local-link]:not([data-code-link])")) continue
     const href = codeUrl(code.textContent ?? "")
 
     const parentLink =
       code.parentElement instanceof HTMLAnchorElement &&
       code.parentElement.classList.contains("external-link") &&
-      !code.parentElement.hasAttribute("data-local-link")
+      (!code.parentElement.hasAttribute("data-local-link") || code.parentElement.hasAttribute("data-code-link"))
         ? code.parentElement
         : null
 
@@ -313,6 +315,7 @@ function markCodeLinks(root: HTMLDivElement) {
 
     if (parentLink) {
       parentLink.href = href
+      markLocalServer(parentLink, href)
       continue
     }
 
@@ -321,9 +324,20 @@ function markCodeLinks(root: HTMLDivElement) {
     link.className = "external-link"
     link.target = "_blank"
     link.rel = "noopener noreferrer"
+    link.dataset.codeLink = ""
+    markLocalServer(link, href)
     code.parentNode?.replaceChild(link, code)
     link.appendChild(code)
   }
+}
+
+// A dev server address such as `http://localhost:5173` goes to the host, which can show it in the app's preview. The
+// link keeps its href, so it still opens in a browser where no host handles local links.
+function markLocalServer(link: HTMLAnchorElement, href: string) {
+  const server = localServerURL(href)
+
+  if (server) link.dataset.localLink = server
+  else delete link.dataset.localLink
 }
 
 const publicFaviconHost = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/
