@@ -9,6 +9,7 @@ import type { FitAddon, Terminal as Term } from "ghostty-web"
 import { Option, Predicate, Schema } from "effect"
 import { type ComponentProps, createMemo, onCleanup, onMount, splitProps } from "solid-js"
 import { createKeyed, useExtension, type ServerRef } from "../sdk"
+import type definition from "./index"
 import type { TerminalModel } from "./model"
 import type { LocalPTY } from "./state"
 import { SerializeAddon } from "./serialize"
@@ -181,7 +182,7 @@ const persistTerminal = (input: {
 }
 
 export const Terminal = (props: TerminalProps) => {
-  const extension = useExtension()
+  const extension = useExtension<typeof definition>()
   const appearance = extension.appearance
   const keybinds = extension.keybinds
   const system = extension.system
@@ -238,6 +239,8 @@ export const Terminal = (props: TerminalProps) => {
 
   let cursor = start ?? 0
   let seek = start !== undefined ? start : restore ? -1 : 0
+  // Recent output, so a dev server address split across frames still reaches the app preview.
+  let recent = ""
   let output: ReturnType<typeof terminalWriter> | undefined
   let drop: VoidFunction | undefined
   let reconn: ReturnType<typeof setTimeout> | undefined
@@ -402,6 +405,17 @@ export const Terminal = (props: TerminalProps) => {
     }
 
     focusTerminal()
+  }
+
+  // A dev server started here (npm run dev, php artisan serve, …) opens in the app preview once it prints its address.
+  // Most output never names one, so only frames that could start an address are scanned.
+  const scanPreview = (data: string) => {
+    recent = (recent + data).slice(-4_096)
+
+    if (!/https?:|localhost|127\.0\.0\.1|0\.0\.0\.0|\bport\b|\.test\b/i.test(data)) return
+    const preview = extension.uses.preview()
+
+    if (preview.status === "active" && preview.value.scan({ server: server.id, directory, text: recent })) recent = ""
   }
 
   const handleLinkClick = (event: MouseEvent) => {
@@ -703,6 +717,7 @@ export const Terminal = (props: TerminalProps) => {
 
           if (!data) return
           output?.push(data)
+          scanPreview(data)
 
           if (!revealed) output?.flush(reveal)
           cursor += data.length

@@ -1,8 +1,10 @@
 import { Extension } from "../sdk"
+import { Preview } from "../preview/contract"
 import en from "./i18n/en"
 
 export default Extension.define({
   id: "terminal",
+  uses: { preview: Preview },
   i18n: {
     en,
     am: () => import("./i18n/am"),

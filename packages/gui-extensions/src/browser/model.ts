@@ -388,6 +388,20 @@ export function createModel(ctx: SetupContext<typeof definition>) {
 
   const openURL = (session: Session, url: string) => command(session, { type: "tabs.open", url })
 
+  // A dev server prints its address again after each restart; the tab already on that origin reloads instead of a
+  // new tab piling up.
+  const showURL = (session: SessionRef, url: string) => {
+    const origin = URL.canParse(url) ? new URL(url).origin : undefined
+
+    const existing = attachment(session)?.browser?.tabs.find(
+      (item) => !!origin && URL.canParse(item.url) && new URL(item.url).origin === origin,
+    )
+
+    if (!existing) return openURL(session, url)
+    layout.open(key(existing.id), session, { tab: "select" })
+    command(session, { type: "reload", tabID: existing.id })
+  }
+
   // Only the routed session has a file model to resolve workspace paths with: the session screen's.
   const files = (session: Session) => {
     const screen = ctx.screen.current()
@@ -432,6 +446,7 @@ export function createModel(ctx: SetupContext<typeof definition>) {
     canOpen,
     openFile,
     openURL,
+    showURL,
     command,
     tab,
     /** Opens a blank tab for the user, whose pane then focuses the address field. */
