@@ -43,6 +43,8 @@ const description = (shell?: string) =>
     "Rely on automatic truncation unless filtering the output is more useful.",
     "Commands accept an optional timeout, background commands have no timeout by default.",
     "Background commands return immediately, and you will be notified when they complete.",
+    "Start dev servers in the background: once one prints its local address, the app shows it to the user in a preview panel automatically.",
+    "Never open that address in an external browser yourself (no `open`, `xdg-open`, `start`, or `--open` flags).",
   ].join(" ")
 
 export const Input = Schema.Struct({

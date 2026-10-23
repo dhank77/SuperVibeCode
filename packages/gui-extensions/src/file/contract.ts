@@ -7,8 +7,8 @@ export interface FileTreeProps {
   /** The session screen that owns the rendered files. */
   readonly screen: SessionScreen
   readonly session: MountedSession
-  /** The files to show, as a tree of only these paths. */
-  readonly allowed: readonly string[]
+  /** The files to show, as a tree of only these paths. Omit it for the whole workspace, listed as folders open. */
+  readonly allowed?: readonly string[]
   readonly kinds?: ReadonlyMap<string, ChangeKind>
   readonly active?: string
   onFileClick(path: string): void
@@ -26,10 +26,20 @@ export interface FileListProps {
   onFileClick(path: string): void
 }
 
+export interface FileViewProps {
+  /** The session screen that owns the shown file. */
+  readonly screen: SessionScreen
+  readonly session: MountedSession
+  /** The workspace file to show, relative to the workspace root. */
+  readonly path: string
+}
+
 /** The file browser's virtualized tree and flat list, for other panels that list workspace files. */
 export interface FileTree {
   Tree(props: FileTreeProps): JSX.Element
   List(props: FileListProps): JSX.Element
+  /** One file's content as a file tab shows it: highlighted code with line comments, or its media preview. */
+  View(props: FileViewProps): JSX.Element
 }
 
 export const FileTree = Contract.define<FileTree, "file.tree">("file.tree")

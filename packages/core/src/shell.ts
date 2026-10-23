@@ -279,6 +279,9 @@ const layer = () =>
             ...baseEnv,
             TERM: "xterm-256color",
             OPENCODE_TERMINAL: "1",
+            // These commands have no screen of their own: dev servers (Vite, CRA, …) must not open a system browser,
+            // the app shows them in its preview panel instead.
+            BROWSER: "none",
           },
         }
         yield* hooks.trigger("shell", "create.before", invocation)

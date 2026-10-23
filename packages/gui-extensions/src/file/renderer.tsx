@@ -243,6 +243,7 @@ const setup: Setup<typeof File> = (ctx) => {
   const Sidebar = lazy(() => styled(import("./sidebar")))
   const Tree = lazy(() => styled(import("./tree-v2")))
   const List = lazy(() => styled(import("./list")))
+  const FileView = lazy(() => styled(import("./view").then((module) => ({ default: module.SessionFileView }))))
 
   onCleanup(
     onIdle(() => {
@@ -479,6 +480,21 @@ const setup: Setup<typeof File> = (ctx) => {
         </Suspense>
       </FileProvider>
     )),
+    View: bindExtension((props) => {
+      // A file tab loads its file when it is focused; this view loads it whenever it shows another one.
+      createKeyed(
+        () => props.path,
+        (path) => void props.screen.file.sync(path, { silent: true }),
+      )
+
+      return (
+        <FileProvider>
+          <Suspense>
+            <FileView session={props.session} screen={props.screen} id={fileTabId(props.screen.file, props.path)} />
+          </Suspense>
+        </FileProvider>
+      )
+    }),
   })
 
   /**
@@ -643,8 +659,7 @@ const setup: Setup<typeof File> = (ctx) => {
 
     const id = focused.get(screen)
 
-    if (id && active(session, id))
-      void screen.file.sync(fileTabPath(screen.file, id), { force: true, silent: true })
+    if (id && active(session, id)) void screen.file.sync(fileTabPath(screen.file, id), { force: true, silent: true })
   })
 }
 

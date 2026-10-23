@@ -1,7 +1,8 @@
 import { Icon } from "@opencode/ui/icon"
-import { createMemo, lazy, mapArray, onCleanup, Suspense } from "solid-js"
+import { showToast } from "@opencode/ui/toast"
+import { createMemo, lazy, mapArray, onCleanup, Show, Suspense } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Command, createKeyed, onIdle, Panel, type PanelTab, type SessionRef, type Setup } from "../sdk"
+import { Command, createKeyed, MenuItem, onIdle, Panel, Slot, type PanelTab, type SessionRef, type Setup } from "../sdk"
 import { Preview } from "./contract"
 import { detectURL, serverOrigin } from "./detect"
 import type definition from "./index"
@@ -27,14 +28,24 @@ const setup: Setup<typeof definition> = (ctx) => {
   const sessions = ctx.sessions
   const layout = ctx.layout
   const PreviewPane = lazy(() => import("./pane"))
-  onCleanup(onIdle(() => void PreviewPane.preload()))
+  const CodePane = lazy(() => import("./code"))
+  const DevServerButton = lazy(() => import("./header"))
+  onCleanup(
+    onIdle(() => {
+      void PreviewPane.preload()
+      void CodePane.preload()
+      void DevServerButton.preload()
+    }),
+  )
 
   const [state, setState] = createStore<{
     // The last address each session's dev server announced, keyed by `session.key`.
     found: Record<string, string>
     // An address the desktop browser pane shows once it attaches to the session, keyed by `session.key`.
     pending: Record<string, string | undefined>
-  }>({ found: {}, pending: {} })
+    // The file the code view shows, keyed by `session.key`.
+    code: Record<string, string | undefined>
+  }>({ found: {}, pending: {}, code: {} })
 
   // Shells whose address was already announced, per session key, so returning to a session never opens it again.
   const announced = new Map<string, Set<string>>()
@@ -52,11 +63,11 @@ const setup: Setup<typeof definition> = (ctx) => {
   // On desktop the browser pane shows the app, with devtools and agent control, and reuses the tab on the same server.
   // Until the pane attaches the address waits for it; a frame there would leave the app window. Only windows without
   // the pane (the web, or the browser extension turned off) show the app in this extension's own panel.
-  const show = (session: SessionRef, url: string) => {
+  const show = (session: SessionRef, url: string, force = false) => {
     const origin = serverOrigin(url)
     const last = shown.get(session.key)
 
-    if (last && last.origin === origin && Date.now() - last.at < SETTLE_MS) return
+    if (!force && last && last.origin === origin && Date.now() - last.at < SETTLE_MS) return
     shown.set(session.key, { origin, at: Date.now() })
     const browser = ctx.uses.browser()
 
@@ -87,8 +98,35 @@ const setup: Setup<typeof definition> = (ctx) => {
   const announce = (session: SessionRef, url: string, open: boolean) => {
     setState("found", session.key, url)
 
-    if (open && ctx.stores.prefs.value.auto) show(session, url)
+    if (!open || !ctx.stores.prefs.value.auto) return
+
+    // Like an app builder: the code sits beside the running app.
+    if (layout.state(`${ctx.id}:code`, session) === "closed") layout.open(`${ctx.id}:code`, session, { tab: "append" })
+    show(session, url)
   }
+
+  // Runs the session's last dev server again through the composer's shell mode, so it shows in the timeline and the
+  // preview opens once it announces its address.
+  const start = (session: SessionRef) => {
+    const dev = ctx.stores.dev(session).value
+
+    if (!dev?.command) return
+    const directory = session.location?.directory
+
+    const command =
+      dev.cwd && directory && trim(dev.cwd) !== trim(directory) ? `cd ${quote(dev.cwd)} && ${dev.command}` : dev.command
+
+    void session.server.client.session
+      .shell({ sessionID: session.id, command })
+      .catch(() => showToast({ title: ctx.t("common.requestFailed") }))
+  }
+
+  const running = (session: SessionRef, command: string) =>
+    session.server.data.shell
+      .listBySession(session.id)
+      .some(
+        (shell) => shell.status === "running" && (shell.command === command || shell.command.endsWith(`&& ${command}`)),
+      )
 
   const watch = (session: SessionRef, id: string) => {
     const seen = announced.get(session.key) ?? new Set<string>()
@@ -115,6 +153,7 @@ const setup: Setup<typeof definition> = (ctx) => {
 
       if (url) {
         seen.add(id)
+        void ctx.stores.dev(session).set({ command: shell.command, cwd: shell.cwd })
 
         return announce(session, url, open)
       }
@@ -208,6 +247,106 @@ const setup: Setup<typeof definition> = (ctx) => {
     }),
   )
 
+  ctx.add(Command, (): Command | undefined => {
+    const session = routed()
+
+    if (!session) return undefined
+    const dev = ctx.stores.dev(session).value
+
+    return {
+      id: "start",
+      title: ctx.t("command.start"),
+      group: ctx.t("command.category.view"),
+      enabled: !!dev?.command && !running(session, dev.command),
+      run: () => start(session),
+    }
+  })
+
+  const openCode = (session: SessionRef) => layout.open(`${ctx.id}:code`, session, { tab: "select" })
+
+  ctx.add(Command, (): Command | undefined => {
+    const session = routed()
+
+    if (!session) return undefined
+
+    return {
+      id: "code",
+      title: ctx.t("command.code"),
+      group: ctx.t("command.category.view"),
+      run: () => openCode(session),
+    }
+  })
+
+  ctx.add(MenuItem, {
+    menu: "session.panel",
+    id: "code",
+    get title() {
+      return ctx.t("code.title")
+    },
+    icon: "code-slash",
+    order: 15,
+    run() {
+      const session = routed()
+
+      if (session) openCode(session)
+    },
+  })
+
+  // The timeline title row starts the session's last dev server again, e.g. after opening it from the history.
+  ctx.add(Slot, {
+    at: "session.header",
+    order: 30,
+    render: (input) => (
+      <Show when={ctx.stores.dev(input.session).value?.command}>
+        {(command) => (
+          <Suspense>
+            <DevServerButton
+              command={command()}
+              running={running(input.session, command())}
+              onStart={() => start(input.session)}
+              onShow={() => {
+                const url = state.found[input.session.key]
+
+                if (url) show(input.session, url, true)
+              }}
+            />
+          </Suspense>
+        )}
+      </Show>
+    ),
+  })
+
+  const codeTab: PanelTab = {
+    id: "code",
+    get title() {
+      return ctx.t("code.title")
+    },
+    closable: "hover",
+    label: () => (
+      <div class="flex items-center gap-1.5">
+        <Icon name="code-slash" size="small" />
+        <span class="truncate">{ctx.t("code.title")}</span>
+      </div>
+    ),
+  }
+
+  ctx.add(Panel, {
+    id: "code",
+    region: "side",
+    wide: true,
+    list: (input) => (input.open.includes(codeTab.id) ? [codeTab] : []),
+    render: (props) => (
+      <Suspense>
+        <CodePane
+          session={props.session}
+          screen={props.screen}
+          path={state.code[props.session.key]}
+          onSelect={(path) => setState("code", props.session.key, path)}
+        />
+      </Suspense>
+    ),
+  })
+
   const tab: PanelTab = {
     id: "app",
     get title() {
@@ -236,5 +375,8 @@ const setup: Setup<typeof definition> = (ctx) => {
 }
 
 const trim = (directory: string) => directory.replace(/[\\/]+$/, "")
+
+// A POSIX shell word: the composer's shell mode runs commands through the user's shell.
+const quote = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`
 
 export default setup
