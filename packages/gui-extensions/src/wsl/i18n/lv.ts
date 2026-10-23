@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Instalējiet Linux distribūciju no WSL kataloga",
   "onboarding.wslNotInstalled.title": "WSL nav instalēts",
   "onboarding.wslNotInstalled.description":
-    "Pirms OpenCode var pievienot WSL serveri, nepieciešams WSL (Windows Subsystem for Linux)",
+    "Pirms SuperVibeCode var pievienot WSL serveri, nepieciešams WSL (Windows Subsystem for Linux)",
   "onboarding.wslUnavailable.title": "WSL nav pieejams",
-  "onboarding.wslUnavailable.description": "OpenCode neizdevās pārbaudīt WSL šajā datorā.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode neizdevās pārbaudīt WSL šajā datorā.",
   "onboarding.installWsl": "Instalēt WSL",
   "onboarding.windowsRestartRequired":
-    "Restartējiet Windows, lai pabeigtu WSL instalēšanu, pēc tam atveriet OpenCode no jauna.",
+    "Restartējiet Windows, lai pabeigtu WSL instalēšanu, pēc tam atveriet SuperVibeCode no jauna.",
   "onboarding.allDistrosAdded": "Visas instalētās distribūcijas jau ir pievienotas.",
   "onboarding.noDistros": "Distribūcijas vēl nav atrastas.",
   "onboarding.installDistro": "Instalēt distribūciju",

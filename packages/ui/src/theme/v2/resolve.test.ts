@@ -16,9 +16,9 @@ describe("icon emphasis", () => {
 })
 
 describe("contrast icon-button tokens", () => {
-  test("OC-2 dark mode uses a light background and an inverse icon matching the base surface", () => {
+  test("OC-2 dark mode uses the SuperVibeCode violet and an inverse icon matching the base surface", () => {
     const tokens = resolveThemeV2(theme).dark
-    expect(tokens["v2-background-bg-icon-button-contrast"]).toBe("var(--v2-grey-400)")
+    expect(tokens["v2-background-bg-icon-button-contrast"]).toBe("var(--v2-purple-500)")
     expect(tokens["v2-grey-400"]).toBe("#dbdbdbff")
     expect(tokens["v2-icon-icon-inverse"]).toBe(tokens["v2-background-bg-base"])
     expect(tokens["v2-grey-1100"]).toBe("#161616ff")
@@ -26,9 +26,9 @@ describe("contrast icon-button tokens", () => {
     expect(tokens["v2-text-text-contrast"]).toBe("var(--v2-grey-50)")
   })
 
-  test("OC-2 light mode retains the existing contrast background and foreground", () => {
+  test("OC-2 light mode uses the SuperVibeCode violet with the existing contrast foreground", () => {
     const tokens = resolveThemeV2(theme).light
-    expect(tokens["v2-background-bg-icon-button-contrast"]).toBe("var(--v2-background-bg-contrast)")
+    expect(tokens["v2-background-bg-icon-button-contrast"]).toBe("var(--v2-purple-600)")
     expect(tokens["v2-background-bg-contrast"]).toBe("var(--v2-grey-1000)")
     expect(tokens["v2-text-text-contrast"]).toBe("var(--v2-grey-50)")
   })

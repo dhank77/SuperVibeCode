@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "WSL ကတ်တလောက်မှ Linux ဖြန့်ဖြူးမှုကို ထည့်သွင်းပါ။",
   "onboarding.wslNotInstalled.title": "WSL ကို ထည့်သွင်းမထားပါ။",
   "onboarding.wslNotInstalled.description":
-    "WSL (Linux အတွက် Windows Subsystem) ကို OpenCode မှ WSL ဆာဗာ မထည့်မီတွင် လိုအပ်ပါသည်။",
+    "WSL (Linux အတွက် Windows Subsystem) ကို SuperVibeCode မှ WSL ဆာဗာ မထည့်မီတွင် လိုအပ်ပါသည်။",
   "onboarding.wslUnavailable.title": "WSL မရနိုင်ပါ။",
-  "onboarding.wslUnavailable.description": "OpenCode သည် ဤစက်ပေါ်ရှိ WSL ကို အတည်မပြုနိုင်ပါ။",
+  "onboarding.wslUnavailable.description": "SuperVibeCode သည် ဤစက်ပေါ်ရှိ WSL ကို အတည်မပြုနိုင်ပါ။",
   "onboarding.installWsl": "WSL ကို ထည့်သွင်းပါ။",
   "onboarding.windowsRestartRequired":
-    "WSL ထည့်သွင်းခြင်း အပြီးသတ်ရန် Windows ကို ပြန်လည်စတင်ပါ၊ ထို့နောက် OpenCode ကို ပြန်လည်ဖွင့်ပါ။",
+    "WSL ထည့်သွင်းခြင်း အပြီးသတ်ရန် Windows ကို ပြန်လည်စတင်ပါ၊ ထို့နောက် SuperVibeCode ကို ပြန်လည်ဖွင့်ပါ။",
   "onboarding.allDistrosAdded": "ထည့်သွင်းထားသည့် distros အားလုံးကို ထည့်သွင်းပြီးဖြစ်သည်။",
   "onboarding.noDistros": "မည်သည့် distros မှ ရှာမတွေ့သေးပါ။",
   "onboarding.installDistro": "distro ကို ထည့်သွင်းပါ။",

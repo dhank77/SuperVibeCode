@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Asenna Linux-jakelu WSL-luettelosta",
   "onboarding.wslNotInstalled.title": "WSL:ää ei ole asennettu",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows Subsystem for Linux) vaaditaan ennen kuin OpenCode voi lisätä WSL-palvelimen",
+    "WSL (Windows Subsystem for Linux) vaaditaan ennen kuin SuperVibeCode voi lisätä WSL-palvelimen",
   "onboarding.wslUnavailable.title": "WSL ei ole käytettävissä",
-  "onboarding.wslUnavailable.description": "OpenCode ei voinut vahvistaa WSL:ää tällä koneella.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode ei voinut vahvistaa WSL:ää tällä koneella.",
   "onboarding.installWsl": "Asenna WSL",
   "onboarding.windowsRestartRequired":
-    "Viimeistele WSL:n asennus käynnistämällä Windows uudelleen ja avaa sitten OpenCode uudelleen.",
+    "Viimeistele WSL:n asennus käynnistämällä Windows uudelleen ja avaa sitten SuperVibeCode uudelleen.",
   "onboarding.allDistrosAdded": "Kaikki asennetut jakelut on jo lisätty.",
   "onboarding.noDistros": "Jakeluja ei ole vielä havaittu.",
   "onboarding.installDistro": "Asenna jakelu",

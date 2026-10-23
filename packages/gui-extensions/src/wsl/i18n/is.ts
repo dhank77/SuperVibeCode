@@ -21,11 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Settu upp Linux dreifingu úr WSL vörulistanum",
   "onboarding.wslNotInstalled.title": "WSL ekki uppsett",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows undirkerfi fyrir Linux) þarf áður en OpenCode getur bætt við WSL netþjóni",
+    "WSL (Windows undirkerfi fyrir Linux) þarf áður en SuperVibeCode getur bætt við WSL netþjóni",
   "onboarding.wslUnavailable.title": "WSL ekki í boði",
-  "onboarding.wslUnavailable.description": "OpenCode gat ekki staðfest WSL á þessari vél.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode gat ekki staðfest WSL á þessari vél.",
   "onboarding.installWsl": "Settu upp WSL",
-  "onboarding.windowsRestartRequired": "Endurræstu Windows til að klára að setja upp WSL, opnaðu síðan OpenCode aftur.",
+  "onboarding.windowsRestartRequired":
+    "Endurræstu Windows til að klára að setja upp WSL, opnaðu síðan SuperVibeCode aftur.",
   "onboarding.allDistrosAdded": "Öllum uppsettum dreifingum er þegar bætt við.",
   "onboarding.noDistros": "Engin dreifing hefur fundist ennþá.",
   "onboarding.installDistro": "Settu upp distro",

@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "WSL kataloqundan Linux paylamasını quraşdırın",
   "onboarding.wslNotInstalled.title": "WSL quraşdırılmayıb",
   "onboarding.wslNotInstalled.description":
-    "OpenCode WSL serveri əlavə etməzdən əvvəl WSL (Linux üçün Windows alt sistemi) tələb olunur",
+    "SuperVibeCode WSL serveri əlavə etməzdən əvvəl WSL (Linux üçün Windows alt sistemi) tələb olunur",
   "onboarding.wslUnavailable.title": "WSL mövcud deyil",
-  "onboarding.wslUnavailable.description": "OpenCode bu maşında WSL-i doğrulaya bilmədi.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode bu maşında WSL-i doğrulaya bilmədi.",
   "onboarding.installWsl": "WSL quraşdırın",
   "onboarding.windowsRestartRequired":
-    "WSL-nin quraşdırılmasını başa çatdırmaq üçün Windows-u yenidən başladın, sonra OpenCode-u yenidən açın.",
+    "WSL-nin quraşdırılmasını başa çatdırmaq üçün Windows-u yenidən başladın, sonra SuperVibeCode-u yenidən açın.",
   "onboarding.allDistrosAdded": "Bütün quraşdırılmış distribütivlər artıq əlavə edilib.",
   "onboarding.noDistros": "Hələ distribütiv aşkarlanmayıb.",
   "onboarding.installDistro": "Distribütiv quraşdırın",

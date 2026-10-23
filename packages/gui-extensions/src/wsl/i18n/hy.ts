@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Տեղադրեք Linux բաշխումը WSL կատալոգից",
   "onboarding.wslNotInstalled.title": "WSL տեղադրված չէ",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows Ենթահամակարգը Linux-ի համար) անհրաժեշտ է, որպեսզի OpenCode-ը կարողանա ավելացնել WSL սերվեր",
+    "WSL (Windows Ենթահամակարգը Linux-ի համար) անհրաժեշտ է, որպեսզի SuperVibeCode-ը կարողանա ավելացնել WSL սերվեր",
   "onboarding.wslUnavailable.title": "WSL անհասանելի է",
-  "onboarding.wslUnavailable.description": "OpenCode-ը չկարողացավ հաստատել WSL-ն այս մեքենայի վրա։",
+  "onboarding.wslUnavailable.description": "SuperVibeCode-ը չկարողացավ հաստատել WSL-ն այս մեքենայի վրա։",
   "onboarding.installWsl": "Տեղադրեք WSL",
   "onboarding.windowsRestartRequired":
-    "Վերագործարկեք Windows՝ WSL-ի տեղադրումն ավարտելու համար, այնուհետև նորից բացեք OpenCode։",
+    "Վերագործարկեք Windows՝ WSL-ի տեղադրումն ավարտելու համար, այնուհետև նորից բացեք SuperVibeCode։",
   "onboarding.allDistrosAdded": "Բոլոր տեղադրված բաշխումները արդեն ավելացված են։",
   "onboarding.noDistros": "Դեռևս տարածումներ չեն հայտնաբերվել։",
   "onboarding.installDistro": "Տեղադրել դիստրիբուտիվը",

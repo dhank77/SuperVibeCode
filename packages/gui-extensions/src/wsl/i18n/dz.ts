@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "WSL ཐོ་གཞུང་ལས་ Linux བགོ་བཀྲམ་ཅིག་གཞི་བཙུགས་འབད།",
   "onboarding.wslNotInstalled.title": "WSL གཞི་བཙུགས་མ་འབད་བས།",
   "onboarding.wslNotInstalled.description":
-    "WSL (WindowsLinuxཡན་ལག་རིམ་ལུགས་)འདི་ OpenCodeགིས་ WSLསར་བར་ཁ་སྐོང་མ་འབད་བའི་ཧེ་མ་དགོཔ་ཨིན།",
+    "WSL (WindowsLinuxཡན་ལག་རིམ་ལུགས་)འདི་ SuperVibeCodeགིས་ WSLསར་བར་ཁ་སྐོང་མ་འབད་བའི་ཧེ་མ་དགོཔ་ཨིན།",
   "onboarding.wslUnavailable.title": "WSL ཐོབ་མི་ཚུགས།",
-  "onboarding.wslUnavailable.description": "OpenCodeགིས་ འཕྲུལ་ཆས་འདི་གུ་ WSL བདེན་སྦྱོར་འབད་མ་ཚུགས།",
+  "onboarding.wslUnavailable.description": "SuperVibeCodeགིས་ འཕྲུལ་ཆས་འདི་གུ་ WSL བདེན་སྦྱོར་འབད་མ་ཚུགས།",
   "onboarding.installWsl": "WSLགཞི་བཙུགས་འབད།",
   "onboarding.windowsRestartRequired":
-    "WSL གཞི་བཙུགས་འབད་ནི་མཇུག་བསྡུ་ནིའི་དོན་ལུ་ Windows ལོག་འགོ་བཙུགསཔ་དང་ དེ་ལས་ OpenCode ལོག་ཁ་ཕྱེ།",
+    "WSL གཞི་བཙུགས་འབད་ནི་མཇུག་བསྡུ་ནིའི་དོན་ལུ་ Windows ལོག་འགོ་བཙུགསཔ་དང་ དེ་ལས་ SuperVibeCode ལོག་ཁ་ཕྱེ།",
   "onboarding.allDistrosAdded": "གཞི་བཙུགས་འབད་ཡོད་པའི་ཌིསི་ཊོ་ཚུ་ཆ་མཉམ་ཧེ་མ་ལས་ཁ་སྐོང་བརྐྱབ་ཡོདཔ་ཨིན།",
   "onboarding.noDistros": "ད་ལྟོ་ཡང་ བཀྲམ་སྤེལ་འབད་མི་ཚུ་ ཤེས་རྟོགས་མ་བྱུང་པས།",
   "onboarding.installDistro": "ཌི་སི་ཊོ་གཞི་བཙུགས་འབད།",

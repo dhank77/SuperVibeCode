@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Аз каталоги WSL тақсимоти Linux насб кунед",
   "onboarding.wslNotInstalled.title": "WSL насб нашудааст",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows Subsystem for Linux) лозим аст, то OpenCode сервери WSL илова карда шавад",
+    "WSL (Windows Subsystem for Linux) лозим аст, то SuperVibeCode сервери WSL илова карда шавад",
   "onboarding.wslUnavailable.title": "WSL дастрас нест",
-  "onboarding.wslUnavailable.description": "OpenCode WSL-ро дар ин мошин тафтиш карда натавонист.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode WSL-ро дар ин мошин тафтиш карда натавонист.",
   "onboarding.installWsl": "Насб кунед WSL",
   "onboarding.windowsRestartRequired":
-    "Барои анҷом додани насби WSL Windows-ро аз нав оғоз кунед, сипас OpenCode-ро боз кунед.",
+    "Барои анҷом додани насби WSL Windows-ро аз нав оғоз кунед, сипас SuperVibeCode-ро боз кунед.",
   "onboarding.allDistrosAdded": "Ҳама дистрибюторҳои насбшуда аллакай илова карда шудаанд.",
   "onboarding.noDistros": "То ҳол ягон паҳнкунӣ ошкор нашудааст.",
   "onboarding.installDistro": "Дистро насб кунед",

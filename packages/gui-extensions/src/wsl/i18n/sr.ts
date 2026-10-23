@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Инсталирајте Linux дистрибуцију из каталога WSL",
   "onboarding.wslNotInstalled.title": "WSL није инсталиран",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows Subsystem for Linux) је потребан да би OpenCode могао да дода WSL сервер",
+    "WSL (Windows Subsystem for Linux) је потребан да би SuperVibeCode могао да дода WSL сервер",
   "onboarding.wslUnavailable.title": "WSL недоступан",
-  "onboarding.wslUnavailable.description": "OpenCode није могао да потврди WSL на овој машини.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode није могао да потврди WSL на овој машини.",
   "onboarding.installWsl": "Инсталирај WSL",
   "onboarding.windowsRestartRequired":
-    "Поново покрените Windows да бисте завршили инсталирање WSL, а затим поново отворите OpenCode.",
+    "Поново покрените Windows да бисте завршили инсталирање WSL, а затим поново отворите SuperVibeCode.",
   "onboarding.allDistrosAdded": "Све инсталиране дистрибуције су већ додате.",
   "onboarding.noDistros": "Још нису откривене дистрибуције.",
   "onboarding.installDistro": "Инсталирајте дистро",

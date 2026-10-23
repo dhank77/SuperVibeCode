@@ -21,11 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "WSL ক্যাটালগ থেকে একটি Linux বিতরণ ইনস্টল করুন",
   "onboarding.wslNotInstalled.title": "WSL ইনস্টল করা হয়নি",
   "onboarding.wslNotInstalled.description":
-    "WSL (Linux এর জন্য Windows সাবসিস্টেম) OpenCode একটি WSL সার্ভার যোগ করার আগে প্রয়োজন",
+    "WSL (Linux এর জন্য Windows সাবসিস্টেম) SuperVibeCode একটি WSL সার্ভার যোগ করার আগে প্রয়োজন",
   "onboarding.wslUnavailable.title": "WSL অনুপলব্ধ",
-  "onboarding.wslUnavailable.description": "OpenCode এই মেশিনে WSL যাচাই করতে পারেনি।",
+  "onboarding.wslUnavailable.description": "SuperVibeCode এই মেশিনে WSL যাচাই করতে পারেনি।",
   "onboarding.installWsl": "WSL ইনস্টল করুন",
-  "onboarding.windowsRestartRequired": "WSL ইনস্টল করা শেষ করতে Windows পুনরায় চালু করুন, তারপর OpenCode আবার খুলুন।",
+  "onboarding.windowsRestartRequired":
+    "WSL ইনস্টল করা শেষ করতে Windows পুনরায় চালু করুন, তারপর SuperVibeCode আবার খুলুন।",
   "onboarding.allDistrosAdded": "সমস্ত ইনস্টল করা ডিস্ট্রো ইতিমধ্যেই যোগ করা হয়েছে।",
   "onboarding.noDistros": "কোন ডিস্ট্রো এখনও সনাক্ত করা হয়নি.",
   "onboarding.installDistro": "ডিস্ট্রো ইনস্টল করুন",

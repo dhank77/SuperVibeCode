@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "WSL کیٹلاگ سے Linux ڈسٹری بیوشن انسٹال کریں۔",
   "onboarding.wslNotInstalled.title": "WSL انسٹال نہیں ہے۔",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows سب سسٹم برائے Linux) کی ضرورت ہے اس سے پہلے کہ OpenCode WSL سرور شامل کر سکے۔",
+    "WSL (Windows سب سسٹم برائے Linux) کی ضرورت ہے اس سے پہلے کہ SuperVibeCode WSL سرور شامل کر سکے۔",
   "onboarding.wslUnavailable.title": "WSL دستیاب نہیں ہے۔",
-  "onboarding.wslUnavailable.description": "OpenCode اس مشین پر WSL کی تصدیق نہیں کر سکا۔",
+  "onboarding.wslUnavailable.description": "SuperVibeCode اس مشین پر WSL کی تصدیق نہیں کر سکا۔",
   "onboarding.installWsl": "WSL انسٹال کریں۔",
   "onboarding.windowsRestartRequired":
-    "WSL انسٹال کرنے کے لیے Windows کو دوبارہ شروع کریں، پھر OpenCode کو دوبارہ کھولیں۔",
+    "WSL انسٹال کرنے کے لیے Windows کو دوبارہ شروع کریں، پھر SuperVibeCode کو دوبارہ کھولیں۔",
   "onboarding.allDistrosAdded": "تمام انسٹال شدہ ڈسٹرو پہلے ہی شامل کر دیے گئے ہیں۔",
   "onboarding.noDistros": "ابھی تک کسی ڈسٹرو کا پتہ نہیں چلا۔",
   "onboarding.installDistro": "ڈسٹرو انسٹال کریں۔",

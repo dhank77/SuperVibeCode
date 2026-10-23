@@ -13,9 +13,9 @@ import { CLI_BINARIES, nodePtyPackage } from "./scripts/utils"
 const { FileMatcher } = createRequire(import.meta.resolve("electron-builder"))("app-builder-lib/out/fileMatcher")
 
 const channels = [
-  { channel: "dev", appId: "ai.opencode.desktop.dev" },
-  { channel: "beta", appId: "ai.opencode.desktop.beta" },
-  { channel: "prod", appId: "ai.opencode.desktop" },
+  { channel: "dev", appId: "ai.supervibecode.desktop.dev" },
+  { channel: "beta", appId: "ai.supervibecode.desktop.beta" },
+  { channel: "prod", appId: "ai.supervibecode.desktop" },
 ] as const
 
 function load(channel: string, target?: string): Configuration {

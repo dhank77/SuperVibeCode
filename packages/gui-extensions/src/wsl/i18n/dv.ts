@@ -23,10 +23,10 @@ export default {
   "onboarding.wslNotInstalled.description":
     "WSL އަށް WSL ސަރވަރ އެއް އިތުރު ކުރުމުގެ ކުރިން WSL (Windows Subsystem for Linux) ބޭނުންވެއެވެ",
   "onboarding.wslUnavailable.title": "WSL ލިބެން ނެތް",
-  "onboarding.wslUnavailable.description": "މި މެޝިނުގައި OpenCode އަށް WSL ޔަގީން ނުކުރެވުނެވެ.",
+  "onboarding.wslUnavailable.description": "މި މެޝިނުގައި SuperVibeCode އަށް WSL ޔަގީން ނުކުރެވުނެވެ.",
   "onboarding.installWsl": "WSL އިންސްޓޯލް ކުރާށެވެ",
   "onboarding.windowsRestartRequired":
-    "WSL އިންސްޓޯލް ކުރުން ނިންމުމަށް Windows އަލުން ސްޓާޓްކޮށް، ދެން OpenCode އަލުން ހުޅުވާށެވެ.",
+    "WSL އިންސްޓޯލް ކުރުން ނިންމުމަށް Windows އަލުން ސްޓާޓްކޮށް، ދެން SuperVibeCode އަލުން ހުޅުވާށެވެ.",
   "onboarding.allDistrosAdded": "އިންސްޓޯލްކޮށްފައިވާ ހުރިހާ ޑިސްޓްރޯތަކެއް މިހާރުވެސް އިތުރުކޮށްފައިވެއެވެ.",
   "onboarding.noDistros": "އަދި ޑިސްޓްރޯއެއް ހޯދިފައެއް ނުވެއެވެ.",
   "onboarding.installDistro": "ޑިސްޓްރޯ އިންސްޓޯލް ކުރާށެވެ",

@@ -21,11 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "WSL නාමාවලියෙන් Linux බෙදාහැරීමක් ස්ථාපනය කරන්න",
   "onboarding.wslNotInstalled.title": "WSL ස්ථාපනය කර නැත",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows Linux සඳහා උප පද්ධතිය) OpenCode WSL සේවාදායකයක් එක් කිරීමට පෙර අවශ්‍ය වේ",
+    "WSL (Windows Linux සඳහා උප පද්ධතිය) SuperVibeCode WSL සේවාදායකයක් එක් කිරීමට පෙර අවශ්‍ය වේ",
   "onboarding.wslUnavailable.title": "WSL නොමැත",
-  "onboarding.wslUnavailable.description": "OpenCode හට මෙම යන්ත්‍රයේ WSL සත්‍යාපනය කළ නොහැක.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode හට මෙම යන්ත්‍රයේ WSL සත්‍යාපනය කළ නොහැක.",
   "onboarding.installWsl": "WSL ස්ථාපනය කරන්න",
-  "onboarding.windowsRestartRequired": "WSL ස්ථාපනය අවසන් කිරීමට Windows නැවත අරඹන්න, පසුව OpenCode නැවත විවෘත කරන්න.",
+  "onboarding.windowsRestartRequired":
+    "WSL ස්ථාපනය අවසන් කිරීමට Windows නැවත අරඹන්න, පසුව SuperVibeCode නැවත විවෘත කරන්න.",
   "onboarding.allDistrosAdded": "ස්ථාපිත සියලුම බෙදාහැරීම් දැනටමත් එකතු කර ඇත.",
   "onboarding.noDistros": "තවමත් distros අනාවරණය කර ගෙන නොමැත.",
   "onboarding.installDistro": "distro ස්ථාපනය කරන්න",

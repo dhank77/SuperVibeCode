@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Telepítsen egy Linux disztribúciót a WSL katalógusból",
   "onboarding.wslNotInstalled.title": "A WSL nincs telepítve",
   "onboarding.wslNotInstalled.description":
-    "A WSL (Windows alrendszer a Linux számára) szükséges ahhoz, hogy a OpenCode hozzáadhasson egy WSL szervert",
+    "A WSL (Windows alrendszer a Linux számára) szükséges ahhoz, hogy a SuperVibeCode hozzáadhasson egy WSL szervert",
   "onboarding.wslUnavailable.title": "A WSL nem elérhető",
-  "onboarding.wslUnavailable.description": "A OpenCode nem tudta ellenőrizni a WSL jelet ezen a gépen.",
+  "onboarding.wslUnavailable.description": "A SuperVibeCode nem tudta ellenőrizni a WSL jelet ezen a gépen.",
   "onboarding.installWsl": "Telepítse a WSL-t",
   "onboarding.windowsRestartRequired":
-    "Indítsa újra a Windows programot a WSL telepítésének befejezéséhez, majd nyissa meg újra a OpenCode programot.",
+    "Indítsa újra a Windows programot a WSL telepítésének befejezéséhez, majd nyissa meg újra a SuperVibeCode programot.",
   "onboarding.allDistrosAdded": "Az összes telepített disztribúció már hozzáadva van.",
   "onboarding.noDistros": "Még nem észleltek disztribúciót.",
   "onboarding.installDistro": "Telepítse a disztribúciót",

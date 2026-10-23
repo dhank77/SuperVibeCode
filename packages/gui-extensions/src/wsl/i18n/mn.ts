@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "WSL каталогоос Linux түгээлтийг суулгана уу",
   "onboarding.wslNotInstalled.title": "WSL суулгаагүй байна",
   "onboarding.wslNotInstalled.description":
-    "OpenCode WSL сервер нэмэхийн өмнө WSL (Windows Subsystem for Linux) шаардлагатай",
+    "SuperVibeCode WSL сервер нэмэхийн өмнө WSL (Windows Subsystem for Linux) шаардлагатай",
   "onboarding.wslUnavailable.title": "WSL боломжгүй",
-  "onboarding.wslUnavailable.description": "OpenCode энэ машин дээр WSL-г баталгаажуулж чадсангүй.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode энэ машин дээр WSL-г баталгаажуулж чадсангүй.",
   "onboarding.installWsl": "WSL суулгах",
   "onboarding.windowsRestartRequired":
-    "WSL-г суулгаж дуусгахын тулд Windows-г дахин эхлүүлээд OpenCode-г дахин нээнэ үү.",
+    "WSL-г суулгаж дуусгахын тулд Windows-г дахин эхлүүлээд SuperVibeCode-г дахин нээнэ үү.",
   "onboarding.allDistrosAdded": "Бүх суулгасан түгээлтүүд аль хэдийн нэмэгдсэн байна.",
   "onboarding.noDistros": "Одоогоор ямар ч түгээлт илрээгүй байна.",
   "onboarding.installDistro": "Дистро суулгана уу",

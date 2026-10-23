@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Set upp Linux útbreiðslu frá WSL kataloginum",
   "onboarding.wslNotInstalled.title": "WSL ikki innstillað",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows Undirskipan til Linux) er kravd áðrenn OpenCode kann leggja ein WSL ambætara til",
+    "WSL (Windows Undirskipan til Linux) er kravd áðrenn SuperVibeCode kann leggja ein WSL ambætara til",
   "onboarding.wslUnavailable.title": "WSL ikki tøkt",
-  "onboarding.wslUnavailable.description": "OpenCode kundi ikki staðfesta WSL á hesi maskinuni.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode kundi ikki staðfesta WSL á hesi maskinuni.",
   "onboarding.installWsl": "Set upp WSL",
   "onboarding.windowsRestartRequired":
-    "Endurbyrja Windows fyri at klára at seta upp WSL, og opna síðani OpenCode aftur.",
+    "Endurbyrja Windows fyri at klára at seta upp WSL, og opna síðani SuperVibeCode aftur.",
   "onboarding.allDistrosAdded": "Allar uppsettar distros eru longu lagdar afturat.",
   "onboarding.noDistros": "Ongar útbreiðslur eru funnar enn.",
   "onboarding.installDistro": "Set distro upp",

@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Instal·leu una distribució Linux del catàleg WSL.",
   "onboarding.wslNotInstalled.title": "WSL no instal·lat",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows Subsistema per a Linux) és necessari abans que OpenCode pugui afegir un WSL servidor",
+    "WSL (Windows Subsistema per a Linux) és necessari abans que SuperVibeCode pugui afegir un WSL servidor",
   "onboarding.wslUnavailable.title": "WSL no disponible",
-  "onboarding.wslUnavailable.description": "OpenCode no ha pogut verificar WSL en aquesta màquina.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode no ha pogut verificar WSL en aquesta màquina.",
   "onboarding.installWsl": "Instal·la WSL",
   "onboarding.windowsRestartRequired":
-    "Reinicieu Windows per acabar d'instal·lar WSL i, a continuació, torneu a obrir OpenCode.",
+    "Reinicieu Windows per acabar d'instal·lar WSL i, a continuació, torneu a obrir SuperVibeCode.",
   "onboarding.allDistrosAdded": "Totes les distribucions instal·lades ja s'han afegit.",
   "onboarding.noDistros": "Encara no s'ha detectat cap distribució.",
   "onboarding.installDistro": "Instal·leu la distribució",

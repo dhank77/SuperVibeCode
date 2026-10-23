@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "WSLカタログからLinuxディストリビューションをインストール",
   "onboarding.wslNotInstalled.title": "WSLがインストールされていません",
   "onboarding.wslNotInstalled.description":
-    "OpenCodeでWSLサーバーを追加するには、WSL (Windows Subsystem for Linux) が必要です",
+    "SuperVibeCodeでWSLサーバーを追加するには、WSL (Windows Subsystem for Linux) が必要です",
   "onboarding.wslUnavailable.title": "WSLを利用できません",
   "onboarding.wslUnavailable.description": "このマシンのWSLを確認できませんでした。",
   "onboarding.installWsl": "WSLをインストール",
   "onboarding.windowsRestartRequired":
-    "WSLのインストールを完了するにはWindowsを再起動し、OpenCodeをもう一度開いてください。",
+    "WSLのインストールを完了するにはWindowsを再起動し、SuperVibeCodeをもう一度開いてください。",
   "onboarding.allDistrosAdded": "インストール済みのディストリビューションはすべて追加済みです。",
   "onboarding.noDistros": "ディストリビューションはまだ検出されていません。",
   "onboarding.installDistro": "ディストリビューションをインストール",

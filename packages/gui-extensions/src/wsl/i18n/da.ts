@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Installer en Linux-distribution fra WSL-kataloget",
   "onboarding.wslNotInstalled.title": "WSL er ikke installeret",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows Subsystem for Linux) er påkrævet, før OpenCode kan tilføje en WSL-server",
+    "WSL (Windows Subsystem for Linux) er påkrævet, før SuperVibeCode kan tilføje en WSL-server",
   "onboarding.wslUnavailable.title": "WSL er ikke tilgængelig",
-  "onboarding.wslUnavailable.description": "OpenCode kunne ikke bekræfte WSL på denne maskine.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode kunne ikke bekræfte WSL på denne maskine.",
   "onboarding.installWsl": "Installer WSL",
   "onboarding.windowsRestartRequired":
-    "Genstart Windows for at fuldføre installationen af WSL, og åbn derefter OpenCode igen.",
+    "Genstart Windows for at fuldføre installationen af WSL, og åbn derefter SuperVibeCode igen.",
   "onboarding.allDistrosAdded": "Alle installerede distributioner er allerede tilføjet.",
   "onboarding.noDistros": "Ingen distributioner fundet endnu.",
   "onboarding.installDistro": "Installer distribution",

@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Instal distribusi Linux dari katalog WSL",
   "onboarding.wslNotInstalled.title": "WSL belum terinstal",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows Subsystem for Linux) diperlukan sebelum OpenCode dapat menambahkan server WSL",
+    "WSL (Windows Subsystem for Linux) diperlukan sebelum SuperVibeCode dapat menambahkan server WSL",
   "onboarding.wslUnavailable.title": "WSL tidak tersedia",
-  "onboarding.wslUnavailable.description": "OpenCode tidak dapat memverifikasi WSL di komputer ini.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode tidak dapat memverifikasi WSL di komputer ini.",
   "onboarding.installWsl": "Instal WSL",
   "onboarding.windowsRestartRequired":
-    "Mulai ulang Windows untuk menyelesaikan instalasi WSL, lalu buka kembali OpenCode.",
+    "Mulai ulang Windows untuk menyelesaikan instalasi WSL, lalu buka kembali SuperVibeCode.",
   "onboarding.allDistrosAdded": "Semua distro yang terinstal sudah ditambahkan.",
   "onboarding.noDistros": "Belum ada distro terdeteksi.",
   "onboarding.installDistro": "Instal distro",

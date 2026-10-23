@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Įdiekite Linux paskirstymą iš WSL katalogo",
   "onboarding.wslNotInstalled.title": "WSL neįdiegtas",
   "onboarding.wslNotInstalled.description":
-    "Kad OpenCode galėtų pridėti WSL serverį, reikalingas WSL (Windows posistemis, skirtas Linux)",
+    "Kad SuperVibeCode galėtų pridėti WSL serverį, reikalingas WSL (Windows posistemis, skirtas Linux)",
   "onboarding.wslUnavailable.title": "WSL nepasiekiamas",
-  "onboarding.wslUnavailable.description": "OpenCode nepavyko patikrinti WSL šiame įrenginyje.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode nepavyko patikrinti WSL šiame įrenginyje.",
   "onboarding.installWsl": "Įdiekite WSL",
   "onboarding.windowsRestartRequired":
-    "Iš naujo paleiskite Windows, kad užbaigtumėte WSL diegimą, tada iš naujo atidarykite OpenCode.",
+    "Iš naujo paleiskite Windows, kad užbaigtumėte WSL diegimą, tada iš naujo atidarykite SuperVibeCode.",
   "onboarding.allDistrosAdded": "Visos įdiegtos distribucijos jau pridėtos.",
   "onboarding.noDistros": "Dar neaptikta jokių paskirstymų.",
   "onboarding.installDistro": "Įdiekite distro",

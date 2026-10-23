@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "ติดตั้งดิสทริบิวชัน Linux จากแค็ตตาล็อก WSL",
   "onboarding.wslNotInstalled.title": "ยังไม่ได้ติดตั้ง WSL",
   "onboarding.wslNotInstalled.description":
-    "ต้องมี WSL (Windows Subsystem for Linux) ก่อนที่ OpenCode จะเพิ่มเซิร์ฟเวอร์ WSL ได้",
+    "ต้องมี WSL (Windows Subsystem for Linux) ก่อนที่ SuperVibeCode จะเพิ่มเซิร์ฟเวอร์ WSL ได้",
   "onboarding.wslUnavailable.title": "WSL ไม่พร้อมใช้งาน",
-  "onboarding.wslUnavailable.description": "OpenCode ไม่สามารถตรวจสอบ WSL บนเครื่องนี้ได้",
+  "onboarding.wslUnavailable.description": "SuperVibeCode ไม่สามารถตรวจสอบ WSL บนเครื่องนี้ได้",
   "onboarding.installWsl": "ติดตั้ง WSL",
   "onboarding.windowsRestartRequired":
-    "รีสตาร์ท Windows เพื่อให้การติดตั้ง WSL เสร็จสมบูรณ์ แล้วเปิด OpenCode อีกครั้ง",
+    "รีสตาร์ท Windows เพื่อให้การติดตั้ง WSL เสร็จสมบูรณ์ แล้วเปิด SuperVibeCode อีกครั้ง",
   "onboarding.allDistrosAdded": "เพิ่มดิสโทรที่ติดตั้งไว้ทั้งหมดแล้ว",
   "onboarding.noDistros": "ยังไม่พบดิสโทร",
   "onboarding.installDistro": "ติดตั้งดิสโทร",

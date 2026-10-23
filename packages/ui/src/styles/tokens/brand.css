@@ -1,0 +1,66 @@
+/*
+ * SuperVibeCode's look on the default theme: a violet accent (links, focus, the Build agent) and a violet send button.
+ * Neutral surfaces stay as they are. Other themes set these tokens inline, which outranks this layer, so they keep
+ * their own colors.
+ */
+@layer theme {
+  :root,
+  [data-color-scheme="light"] {
+    --v2-background-bg-accent: var(--v2-purple-600);
+    --v2-background-bg-icon-button-contrast: var(--v2-purple-600);
+    --v2-text-text-accent: var(--v2-purple-600);
+    --v2-text-text-accent-hover: var(--v2-purple-700);
+    --v2-icon-icon-accent: var(--v2-purple-600);
+    --v2-icon-icon-accent-hover: var(--v2-purple-700);
+    --v2-border-border-focus: var(--v2-purple-500);
+    --v2-agent-build-solid: var(--v2-purple-800);
+    --v2-agent-build-border: rgba(82, 48, 194, 0.12);
+    --v2-agent-build-background: rgba(235, 236, 254, 0.1);
+
+    --text-interactive-base: #7152f4;
+    --border-interactive-base: #b9b8f5;
+    --border-interactive-hover: #9e99f7;
+    --border-interactive-active: #7152f4;
+    --border-interactive-selected: #7152f4;
+    --border-interactive-focus: #7152f4;
+    --border-weak-selected: rgba(113, 82, 244, 0.24);
+    --border-weaker-selected: rgba(113, 82, 244, 0.16);
+    --icon-interactive-base: #7152f4;
+    --icon-agent-build-base: #7152f4;
+  }
+
+  [data-color-scheme="dark"] {
+    --v2-background-bg-accent: var(--v2-purple-600);
+    --v2-background-bg-icon-button-contrast: var(--v2-purple-500);
+    --v2-text-text-accent: var(--v2-purple-400);
+    --v2-text-text-accent-hover: var(--v2-purple-300);
+    --v2-icon-icon-accent: var(--v2-purple-400);
+    --v2-icon-icon-accent-hover: var(--v2-purple-300);
+    --v2-border-border-focus: var(--v2-purple-500);
+    --v2-agent-build-solid: var(--v2-purple-300);
+    --v2-agent-build-border: rgba(185, 184, 245, 0.2);
+    --v2-agent-build-background: rgba(54, 31, 131, 0.08);
+
+    --text-interactive-base: #9e99f7;
+    --border-interactive-base: #5230c2;
+    --border-interactive-hover: #623be2;
+    --border-interactive-active: #8271f8;
+    --border-interactive-selected: #8271f8;
+    --border-interactive-focus: #8271f8;
+    --border-weak-selected: rgba(113, 82, 244, 0.62);
+    --border-weaker-selected: rgba(113, 82, 244, 0.32);
+    --icon-interactive-base: #9e99f7;
+    --icon-agent-build-base: #9e99f7;
+  }
+}
+
+@layer components {
+  /* The send button is violet in both schemes, so its label stays light where the default scheme darkens it. */
+  [data-color-scheme="dark"]
+    :is(
+      [data-component="button-v2"][data-variant="submit"],
+      [data-component="icon-button-v2"]:is([data-variant="submit"], [data-variant="contrast"])
+    ) {
+    color: var(--v2-grey-50);
+  }
+}

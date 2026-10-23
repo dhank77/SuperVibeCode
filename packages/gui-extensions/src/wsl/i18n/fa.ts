@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "توزیع Linux را از کاتالوگ WSL نصب کنید",
   "onboarding.wslNotInstalled.title": "WSL نصب نشده است",
   "onboarding.wslNotInstalled.description":
-    "WSL (زیر سیستم Windows برای Linux) قبل از اینکه OpenCode بتواند یک سرور WSL اضافه کند لازم است",
+    "WSL (زیر سیستم Windows برای Linux) قبل از اینکه SuperVibeCode بتواند یک سرور WSL اضافه کند لازم است",
   "onboarding.wslUnavailable.title": "WSL در دسترس نیست",
-  "onboarding.wslUnavailable.description": "OpenCode نتوانست WSL را در این دستگاه تأیید کند.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode نتوانست WSL را در این دستگاه تأیید کند.",
   "onboarding.installWsl": "WSL را نصب کنید",
   "onboarding.windowsRestartRequired":
-    "Windows را مجددا راه اندازی کنید تا نصب WSL به پایان برسد، سپس OpenCode را دوباره باز کنید.",
+    "Windows را مجددا راه اندازی کنید تا نصب WSL به پایان برسد، سپس SuperVibeCode را دوباره باز کنید.",
   "onboarding.allDistrosAdded": "همه توزیع‌های نصب‌شده قبلاً اضافه شده‌اند.",
   "onboarding.noDistros": "هنوز هیچ توزیعی شناسایی نشده است.",
   "onboarding.installDistro": "توزیع را نصب کنید",

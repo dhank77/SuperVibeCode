@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Nainštalujte linuxovú distribúciu z katalógu WSL",
   "onboarding.wslNotInstalled.title": "WSL nie je nainštalovaný",
   "onboarding.wslNotInstalled.description":
-    "Pred pridaním WSL servera cez OpenCode je potrebné mať nainštalovaný WSL (Windows Subsystem for Linux).",
+    "Pred pridaním WSL servera cez SuperVibeCode je potrebné mať nainštalovaný WSL (Windows Subsystem for Linux).",
   "onboarding.wslUnavailable.title": "WSL nie je dostupný",
-  "onboarding.wslUnavailable.description": "OpenCode nemohol overiť WSL na tomto zariadení.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode nemohol overiť WSL na tomto zariadení.",
   "onboarding.installWsl": "Nainštalovať WSL",
   "onboarding.windowsRestartRequired":
-    "Reštartujte Windows, aby ste dokončili inštaláciu WSL, potom znova otvorte OpenCode.",
+    "Reštartujte Windows, aby ste dokončili inštaláciu WSL, potom znova otvorte SuperVibeCode.",
   "onboarding.allDistrosAdded": "Všetky nainštalované distribúcie sú už pridané.",
   "onboarding.noDistros": "Zatiaľ neboli zistené žiadne distribúcie.",
   "onboarding.installDistro": "Inštalovať distribúciu",

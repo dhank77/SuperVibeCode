@@ -9,7 +9,7 @@ export function Wordmark(
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 720 129"
+      viewBox="0 0 366 42"
       fill="none"
       classList={{
         [props.class ?? ""]: !!props.class,
@@ -26,44 +26,61 @@ export function Wordmark(
           >
             <path
               pathLength={props.outline ? 1 : undefined}
-              d="M55.3846 36.4286H18.4615V91.7143H55.3846V36.4286ZM73.8462 110.143H0V18H73.8462V110.143Z"
+              d="M6 6L6 12L24 12L24 36L0 36L0 30L18 30L18 18L0 18L0 0L24 0L24 6Z"
+            />
+            <path pathLength={props.outline ? 1 : undefined} d="M30 6L36 6L36 30L48 30L48 6L54 6L54 36L30 36Z" />
+            <path
+              pathLength={props.outline ? 1 : undefined}
+              d="M60 6L84 6L84 36L66 36L66 42L60 42ZM66 30L78 30L78 12L66 12Z"
             />
             <path
               pathLength={props.outline ? 1 : undefined}
-              d="M110.462 91.7143H147.385V36.4286H110.462V91.7143ZM165.846 110.143H110.462V128.571H92V18H165.846V110.143Z"
+              d="M90 6L114 6L114 24L96 24L96 30L114 30L114 36L90 36ZM108 12L96 12L96 18L108 18Z"
             />
             <path
               pathLength={props.outline ? 1 : undefined}
-              d="M258.846 73.2857H203.462V91.7143H258.846V110.143H185V18H258.846V73.2857ZM203.462 54.8571H240.385V36.4286H203.462V54.8571Z"
+              d="M120 6L144 6L144 18L138 18L138 12L126 12L126 36L120 36Z"
             />
             <path
               pathLength={props.outline ? 1 : undefined}
-              d="M332.385 36.4286H295.462V110.143H277V18H332.385V36.4286ZM350.846 110.143H332.385V36.4286H350.846V110.143Z"
+              d="M156 30L150 30L150 0L156 0ZM156 30L168 30L168 0L174 0L174 30L168 30L168 36L156 36Z"
             />
             <path
               pathLength={props.outline ? 1 : undefined}
-              d="M442.846 36.4286H387.462V91.7143H442.846V110.143H369V18H442.846V36.4286Z"
+              d="M186 36L180 36L180 12L186 12ZM180 0L186 0L186 6L180 6Z"
             />
             <path
               pathLength={props.outline ? 1 : undefined}
-              d="M517.385 36.4286H480.462V91.7143H517.385V36.4286ZM535.846 110.143H462V18H535.846V110.143Z"
+              d="M192 0L198 0L198 6L216 6L216 36L192 36ZM198 30L210 30L210 12L198 12Z"
             />
             <path
               pathLength={props.outline ? 1 : undefined}
-              d="M609.385 36.8571H572.462V92.1429H609.385V36.8571ZM627.846 110.571H554V18.4286H609.385V0H627.846V110.571Z"
+              d="M222 6L246 6L246 24L228 24L228 30L246 30L246 36L222 36ZM240 12L228 12L228 18L240 18Z"
             />
             <path
               pathLength={props.outline ? 1 : undefined}
-              d="M664.462 36.4286V54.8571H701.385V36.4286H664.462ZM719.846 73.2857H664.462V91.7143H719.846V110.143H646V18H719.846V73.2857Z"
+              d="M258 6L258 30L276 30L276 36L252 36L252 0L276 0L276 6Z"
+            />
+            <path
+              pathLength={props.outline ? 1 : undefined}
+              d="M282 6L306 6L306 36L282 36ZM288 30L300 30L300 12L288 12Z"
+            />
+            <path
+              pathLength={props.outline ? 1 : undefined}
+              d="M312 6L330 6L330 0L336 0L336 36L312 36ZM318 30L330 30L330 12L318 12Z"
+            />
+            <path
+              pathLength={props.outline ? 1 : undefined}
+              d="M342 6L366 6L366 24L348 24L348 30L366 30L366 36L342 36ZM360 12L348 12L348 18L360 18Z"
             />
           </g>
         </g>
       </g>
       <defs>
-        <mask id={mask} style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="720" height="129">
-          <rect width="720" height="129" fill={`url(#${maskGradient})`} />
+        <mask id={mask} style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="366" height="42">
+          <rect width="366" height="42" fill={`url(#${maskGradient})`} />
         </mask>
-        <linearGradient id={maskGradient} x1="360" y1="68" x2="360" y2="129" gradientUnits="userSpaceOnUse">
+        <linearGradient id={maskGradient} x1="183" y1="22" x2="183" y2="42" gradientUnits="userSpaceOnUse">
           <stop stop-color="white" stop-opacity="0.7" />
           <stop offset="1" stop-color="white" stop-opacity="0" />
         </linearGradient>

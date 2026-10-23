@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Εγκαταστήστε μια διανομή Linux από τον κατάλογο WSL",
   "onboarding.wslNotInstalled.title": "WSL δεν έχει εγκατασταθεί",
   "onboarding.wslNotInstalled.description":
-    "WSL (Windows Υποσύστημα για Linux) απαιτείται για να μπορέσει ο OpenCode να προσθέσει έναν διακομιστή WSL",
+    "WSL (Windows Υποσύστημα για Linux) απαιτείται για να μπορέσει ο SuperVibeCode να προσθέσει έναν διακομιστή WSL",
   "onboarding.wslUnavailable.title": "WSL μη διαθέσιμο",
-  "onboarding.wslUnavailable.description": "OpenCode δεν μπόρεσε να επαληθεύσει το WSL σε αυτό το μηχάνημα.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode δεν μπόρεσε να επαληθεύσει το WSL σε αυτό το μηχάνημα.",
   "onboarding.installWsl": "Εγκατάσταση WSL",
   "onboarding.windowsRestartRequired":
-    "Επανεκκινήστε το Windows για να ολοκληρώσετε την εγκατάσταση του WSL και μετά ανοίξτε ξανά το OpenCode.",
+    "Επανεκκινήστε το Windows για να ολοκληρώσετε την εγκατάσταση του WSL και μετά ανοίξτε ξανά το SuperVibeCode.",
   "onboarding.allDistrosAdded": "Όλες οι εγκατεστημένες διανομές έχουν ήδη προστεθεί.",
   "onboarding.noDistros": "Δεν έχουν εντοπιστεί ακόμη διανομές.",
   "onboarding.installDistro": "Εγκατάσταση διανομής",

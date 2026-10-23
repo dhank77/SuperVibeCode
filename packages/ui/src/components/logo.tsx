@@ -1,5 +1,8 @@
 import { type ComponentProps } from "solid-js"
 
+// The SuperVibeCode marks: a block "S" whose softened corners read as its curves, and the "SuperVibeCode" wordmark in
+// the same 6px block letters, with "Vibe" in the accent color.
+
 export const Mark = (props: { class?: string }) => {
   return (
     <svg
@@ -9,8 +12,12 @@ export const Mark = (props: { class?: string }) => {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path data-slot="logo-logo-mark-shadow" d="M12 16H4V8H12V16Z" fill="var(--icon-weak-base)" />
-      <path data-slot="logo-logo-mark-o" d="M12 4H4V16H12V4ZM16 20H0V0H16V20Z" fill="var(--icon-strong-base)" />
+      <path data-slot="logo-logo-mark-shadow" d="M0 0h4v4h-4ZM12 16h4v4h-4Z" fill="var(--icon-weak-base)" />
+      <path
+        data-slot="logo-logo-mark-o"
+        d="M4 0h4v4h-4ZM8 0h4v4h-4ZM12 0h4v4h-4ZM0 4h4v4h-4ZM0 8h4v4h-4ZM4 8h4v4h-4ZM8 8h4v4h-4ZM12 8h4v4h-4ZM12 12h4v4h-4ZM0 16h4v4h-4ZM4 16h4v4h-4ZM8 16h4v4h-4Z"
+        fill="var(--icon-strong-base)"
+      />
     </svg>
   )
 }
@@ -25,8 +32,11 @@ export const Splash = (props: Pick<ComponentProps<"svg">, "ref" | "class">) => {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path d="M60 80H20V40H60V80Z" fill="var(--icon-base)" />
-      <path d="M60 20H20V80H60V20ZM80 100H0V0H80V100Z" fill="var(--icon-strong-base)" />
+      <path d="M0 0h20v20h-20ZM60 80h20v20h-20Z" fill="var(--icon-base)" />
+      <path
+        d="M20 0h20v20h-20ZM40 0h20v20h-20ZM60 0h20v20h-20ZM0 20h20v20h-20ZM0 40h20v20h-20ZM20 40h20v20h-20ZM40 40h20v20h-20ZM60 40h20v20h-20ZM60 60h20v20h-20ZM0 80h20v20h-20ZM20 80h20v20h-20ZM40 80h20v20h-20Z"
+        fill="var(--icon-strong-base)"
+      />
     </svg>
   )
 }
@@ -35,27 +45,35 @@ export const Logo = (props: { class?: string }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 234 42"
+      viewBox="0 0 366 42"
       fill="none"
       classList={{ [props.class ?? ""]: !!props.class }}
     >
       <g>
-        <path d="M18 30H6V18H18V30Z" fill="var(--icon-weak-base)" />
-        <path d="M18 12H6V30H18V12ZM24 36H0V6H24V36Z" fill="var(--icon-base)" />
-        <path d="M48 30H36V18H48V30Z" fill="var(--icon-weak-base)" />
-        <path d="M36 30H48V12H36V30ZM54 36H36V42H30V6H54V36Z" fill="var(--icon-base)" />
-        <path d="M84 24V30H66V24H84Z" fill="var(--icon-weak-base)" />
-        <path d="M84 24H66V30H84V36H60V6H84V24ZM66 18H78V12H66V18Z" fill="var(--icon-base)" />
-        <path d="M108 36H96V18H108V36Z" fill="var(--icon-weak-base)" />
-        <path d="M108 12H96V36H90V6H108V12ZM114 36H108V12H114V36Z" fill="var(--icon-base)" />
-        <path d="M144 30H126V18H144V30Z" fill="var(--icon-weak-base)" />
-        <path d="M144 12H126V30H144V36H120V6H144V12Z" fill="var(--icon-strong-base)" />
-        <path d="M168 30H156V18H168V30Z" fill="var(--icon-weak-base)" />
-        <path d="M168 12H156V30H168V12ZM174 36H150V6H174V36Z" fill="var(--icon-strong-base)" />
-        <path d="M198 30H186V18H198V30Z" fill="var(--icon-weak-base)" />
-        <path d="M198 12H186V30H198V12ZM204 36H180V6H198V0H204V36Z" fill="var(--icon-strong-base)" />
-        <path d="M234 24V30H216V24H234Z" fill="var(--icon-weak-base)" />
-        <path d="M216 12V18H228V12H216ZM234 24H216V30H234V36H210V6H234V24Z" fill="var(--icon-strong-base)" />
+        <path
+          d="M0 18h6v6h-6ZM6 18h6v6h-6ZM12 18h6v6h-6ZM0 24h6v6h-6ZM6 24h6v6h-6ZM12 24h6v6h-6ZM36 18h6v6h-6ZM42 18h6v6h-6ZM36 24h6v6h-6ZM42 24h6v6h-6ZM66 18h6v6h-6ZM72 18h6v6h-6ZM66 24h6v6h-6ZM72 24h6v6h-6ZM96 24h6v6h-6ZM102 24h6v6h-6ZM108 24h6v6h-6Z"
+          fill="var(--icon-weak-base)"
+        />
+        <path
+          d="M0 0h6v6h-6ZM6 0h6v6h-6ZM12 0h6v6h-6ZM18 0h6v6h-6ZM0 6h6v6h-6ZM0 12h6v6h-6ZM6 12h6v6h-6ZM12 12h6v6h-6ZM18 12h6v6h-6ZM18 18h6v6h-6ZM18 24h6v6h-6ZM0 30h6v6h-6ZM6 30h6v6h-6ZM12 30h6v6h-6ZM18 30h6v6h-6ZM30 6h6v6h-6ZM48 6h6v6h-6ZM30 12h6v6h-6ZM48 12h6v6h-6ZM30 18h6v6h-6ZM48 18h6v6h-6ZM30 24h6v6h-6ZM48 24h6v6h-6ZM30 30h6v6h-6ZM36 30h6v6h-6ZM42 30h6v6h-6ZM48 30h6v6h-6ZM60 6h6v6h-6ZM66 6h6v6h-6ZM72 6h6v6h-6ZM78 6h6v6h-6ZM60 12h6v6h-6ZM78 12h6v6h-6ZM60 18h6v6h-6ZM78 18h6v6h-6ZM60 24h6v6h-6ZM78 24h6v6h-6ZM60 30h6v6h-6ZM66 30h6v6h-6ZM72 30h6v6h-6ZM78 30h6v6h-6ZM60 36h6v6h-6ZM90 6h6v6h-6ZM96 6h6v6h-6ZM102 6h6v6h-6ZM108 6h6v6h-6ZM90 12h6v6h-6ZM108 12h6v6h-6ZM90 18h6v6h-6ZM96 18h6v6h-6ZM102 18h6v6h-6ZM108 18h6v6h-6ZM90 24h6v6h-6ZM90 30h6v6h-6ZM96 30h6v6h-6ZM102 30h6v6h-6ZM108 30h6v6h-6ZM120 6h6v6h-6ZM126 6h6v6h-6ZM132 6h6v6h-6ZM138 6h6v6h-6ZM120 12h6v6h-6ZM138 12h6v6h-6ZM120 18h6v6h-6ZM120 24h6v6h-6ZM120 30h6v6h-6Z"
+          fill="var(--icon-base)"
+        />
+        <path
+          d="M156 18h6v6h-6ZM162 18h6v6h-6ZM156 24h6v6h-6ZM162 24h6v6h-6ZM198 18h6v6h-6ZM204 18h6v6h-6ZM198 24h6v6h-6ZM204 24h6v6h-6ZM228 24h6v6h-6ZM234 24h6v6h-6ZM240 24h6v6h-6Z"
+          fill="var(--icon-weak-base)"
+        />
+        <path
+          d="M150 0h6v6h-6ZM168 0h6v6h-6ZM150 6h6v6h-6ZM168 6h6v6h-6ZM150 12h6v6h-6ZM168 12h6v6h-6ZM150 18h6v6h-6ZM168 18h6v6h-6ZM150 24h6v6h-6ZM168 24h6v6h-6ZM156 30h6v6h-6ZM162 30h6v6h-6ZM180 0h6v6h-6ZM180 12h6v6h-6ZM180 18h6v6h-6ZM180 24h6v6h-6ZM180 30h6v6h-6ZM192 0h6v6h-6ZM192 6h6v6h-6ZM198 6h6v6h-6ZM204 6h6v6h-6ZM210 6h6v6h-6ZM192 12h6v6h-6ZM210 12h6v6h-6ZM192 18h6v6h-6ZM210 18h6v6h-6ZM192 24h6v6h-6ZM210 24h6v6h-6ZM192 30h6v6h-6ZM198 30h6v6h-6ZM204 30h6v6h-6ZM210 30h6v6h-6ZM222 6h6v6h-6ZM228 6h6v6h-6ZM234 6h6v6h-6ZM240 6h6v6h-6ZM222 12h6v6h-6ZM240 12h6v6h-6ZM222 18h6v6h-6ZM228 18h6v6h-6ZM234 18h6v6h-6ZM240 18h6v6h-6ZM222 24h6v6h-6ZM222 30h6v6h-6ZM228 30h6v6h-6ZM234 30h6v6h-6ZM240 30h6v6h-6Z"
+          fill="var(--v2-icon-icon-accent, #7152f4)"
+        />
+        <path
+          d="M258 18h6v6h-6ZM264 18h6v6h-6ZM270 18h6v6h-6ZM258 24h6v6h-6ZM264 24h6v6h-6ZM270 24h6v6h-6ZM288 18h6v6h-6ZM294 18h6v6h-6ZM288 24h6v6h-6ZM294 24h6v6h-6ZM318 18h6v6h-6ZM324 18h6v6h-6ZM318 24h6v6h-6ZM324 24h6v6h-6ZM348 24h6v6h-6ZM354 24h6v6h-6ZM360 24h6v6h-6Z"
+          fill="var(--icon-weak-base)"
+        />
+        <path
+          d="M252 0h6v6h-6ZM258 0h6v6h-6ZM264 0h6v6h-6ZM270 0h6v6h-6ZM252 6h6v6h-6ZM252 12h6v6h-6ZM252 18h6v6h-6ZM252 24h6v6h-6ZM252 30h6v6h-6ZM258 30h6v6h-6ZM264 30h6v6h-6ZM270 30h6v6h-6ZM282 6h6v6h-6ZM288 6h6v6h-6ZM294 6h6v6h-6ZM300 6h6v6h-6ZM282 12h6v6h-6ZM300 12h6v6h-6ZM282 18h6v6h-6ZM300 18h6v6h-6ZM282 24h6v6h-6ZM300 24h6v6h-6ZM282 30h6v6h-6ZM288 30h6v6h-6ZM294 30h6v6h-6ZM300 30h6v6h-6ZM330 0h6v6h-6ZM312 6h6v6h-6ZM318 6h6v6h-6ZM324 6h6v6h-6ZM330 6h6v6h-6ZM312 12h6v6h-6ZM330 12h6v6h-6ZM312 18h6v6h-6ZM330 18h6v6h-6ZM312 24h6v6h-6ZM330 24h6v6h-6ZM312 30h6v6h-6ZM318 30h6v6h-6ZM324 30h6v6h-6ZM330 30h6v6h-6ZM342 6h6v6h-6ZM348 6h6v6h-6ZM354 6h6v6h-6ZM360 6h6v6h-6ZM342 12h6v6h-6ZM360 12h6v6h-6ZM342 18h6v6h-6ZM348 18h6v6h-6ZM354 18h6v6h-6ZM360 18h6v6h-6ZM342 24h6v6h-6ZM342 30h6v6h-6ZM348 30h6v6h-6ZM354 30h6v6h-6ZM360 30h6v6h-6Z"
+          fill="var(--icon-strong-base)"
+        />
       </g>
     </svg>
   )

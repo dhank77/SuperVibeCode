@@ -21,11 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "Instalează o distribuție Linux din catalogul WSL",
   "onboarding.wslNotInstalled.title": "WSL nu este instalat",
   "onboarding.wslNotInstalled.description":
-    "WSL (Subsistemul Windows pentru Linux) este necesar înainte ca OpenCode să poată adăuga un server WSL",
+    "WSL (Subsistemul Windows pentru Linux) este necesar înainte ca SuperVibeCode să poată adăuga un server WSL",
   "onboarding.wslUnavailable.title": "WSL indisponibil",
-  "onboarding.wslUnavailable.description": "OpenCode nu a putut verifica WSL pe acest calculator.",
+  "onboarding.wslUnavailable.description": "SuperVibeCode nu a putut verifica WSL pe acest calculator.",
   "onboarding.installWsl": "Instalează WSL",
-  "onboarding.windowsRestartRequired": "Repornește Windows pentru a finaliza instalarea WSL, apoi redeschide OpenCode.",
+  "onboarding.windowsRestartRequired":
+    "Repornește Windows pentru a finaliza instalarea WSL, apoi redeschide SuperVibeCode.",
   "onboarding.allDistrosAdded": "Toate distro-urile instalate sunt deja adăugate.",
   "onboarding.noDistros": "Nu a fost detectat niciun distro încă.",
   "onboarding.installDistro": "Instalează distro",

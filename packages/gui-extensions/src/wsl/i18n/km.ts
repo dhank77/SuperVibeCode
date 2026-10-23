@@ -21,12 +21,12 @@ export default {
   "onboarding.needAnotherDistroHint": "ដំឡើងការចែកចាយលីនុចពីកាតាឡុក WSL",
   "onboarding.wslNotInstalled.title": "WSL មិនត្រូវបានដំឡើងទេ។",
   "onboarding.wslNotInstalled.description":
-    "WSL (ប្រព័ន្ធរងវីនដូសម្រាប់លីនុច) ត្រូវបានទាមទារ មុនពេល OpenCode អាចបន្ថែមម៉ាស៊ីនមេ WSL",
+    "WSL (ប្រព័ន្ធរងវីនដូសម្រាប់លីនុច) ត្រូវបានទាមទារ មុនពេល SuperVibeCode អាចបន្ថែមម៉ាស៊ីនមេ WSL",
   "onboarding.wslUnavailable.title": "WSL មិនអាចប្រើបានទេ។",
-  "onboarding.wslUnavailable.description": "OpenCode មិនអាចផ្ទៀងផ្ទាត់ WSL នៅលើម៉ាស៊ីននេះបានទេ។",
+  "onboarding.wslUnavailable.description": "SuperVibeCode មិនអាចផ្ទៀងផ្ទាត់ WSL នៅលើម៉ាស៊ីននេះបានទេ។",
   "onboarding.installWsl": "ដំឡើង WSL",
   "onboarding.windowsRestartRequired":
-    "ចាប់ផ្ដើម Windows ឡើងវិញ ដើម្បីបញ្ចប់ការដំឡើង WSL បន្ទាប់មកបើក OpenCode ឡើងវិញ។",
+    "ចាប់ផ្ដើម Windows ឡើងវិញ ដើម្បីបញ្ចប់ការដំឡើង WSL បន្ទាប់មកបើក SuperVibeCode ឡើងវិញ។",
   "onboarding.allDistrosAdded": "ការចែកចាយដែលបានដំឡើងទាំងអស់ត្រូវបានបន្ថែមរួចហើយ។",
   "onboarding.noDistros": "មិនបានរកឃើញការចែកចាយនៅឡើយទេ។",
   "onboarding.installDistro": "ដំឡើង distro",
