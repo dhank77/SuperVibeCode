@@ -50,7 +50,7 @@ function knownThemes() {
 }
 
 const names: Record<string, string> = {
-  "oc-2": "SuperVibeCode",
+  "oc-2": "SuperVibeCode Classic",
   amoled: "AMOLED",
   aura: "Aura",
   ayu: "Ayu",
@@ -81,6 +81,7 @@ const names: Record<string, string> = {
   rosepine: "Rose Pine",
   shadesofpurple: "Shades of Purple",
   solarized: "Solarized",
+  supervibecode: "SuperVibeCode",
   synthwave84: "Synthwave '84",
   tokyonight: "Tokyonight",
   vercel: "Vercel",

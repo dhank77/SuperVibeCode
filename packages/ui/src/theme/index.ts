@@ -73,6 +73,7 @@ export {
   shadesOfPurpleTheme,
   solarizedTheme,
   synthwave84Theme,
+  supervibecodeTheme,
   tokyonightTheme,
   vercelTheme,
   vesperTheme,

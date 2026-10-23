@@ -56,6 +56,7 @@ export function AppBaseProviders(
     <MetaProvider>
       <Font />
       <ThemeProvider
+        defaultTheme="supervibecode"
         onThemeApplied={(_, mode, scheme) => {
           props.onThemeApplied?.(mode, scheme)
         }}
