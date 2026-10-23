@@ -733,7 +733,7 @@ export const dict = {
   "settings.about.otherContributor.other": "ອີກ {{count}} ຄົນ",
   "settings.about.firstPublished": "ພິມ​ເຜີຍ​ແຜ່​ຄັ້ງ​ທຳ​ອິດ​ຢູ່​ລັດ Missouri, ສະ​ຫະ​ລັດ",
   "settings.about.firstIllustrated": "ຮູບ​ພາບ​ຄັ້ງ​ທໍາ​ອິດ​ໃນ​ລອນ​ດອນ​, ປະ​ເທດ​ອັງ​ກິດ​",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, ຕົວແທນລະຫັດແຫຼ່ງເປີດ",
   "settings.about.trademark": "OpenCode ເປັນເຄື່ອງໝາຍການຄ້າທີ່ຈົດທະບຽນຂອງ Anomaly Innovations, Inc.",
   "settings.about.typeset": "Typeset ໃນ Inter ແລະ IBM Plex Mono",

@@ -752,7 +752,7 @@ export const dict = {
   "settings.about.otherContributor.other": "އެހެން \u2068{{count}}\u2069",
   "settings.about.firstPublished": "ފުރަތަމަ ޗާޕުކުރީ އެމެރިކާގެ މިޒޫރީގައެވެ",
   "settings.about.firstIllustrated": "ފުރަތަމަ ކުރެހީ އިނގިރޭސިވިލާތުގެ ލަންޑަންގައެވެ",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode، އޯޕަން ސޯސް ކޯޑިންގ އޭޖެންޓް",
   "settings.about.trademark": "OpenCode އަކީ Anomaly Innovations, Inc. ގެ ރަޖިސްޓަރޑް ޓްރޭޑްމާކެވެ.",
   "settings.about.typeset": "Inter އަދި IBM Plex Mono އިން ޓައިޕްސެޓްކޮށްފައި",

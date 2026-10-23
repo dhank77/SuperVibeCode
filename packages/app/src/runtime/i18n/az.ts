@@ -740,7 +740,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} digər",
   "settings.about.firstPublished": "İlk dəfə Missuri, ABŞ-da nəşr olunub",
   "settings.about.firstIllustrated": "İlk dəfə London, İngiltərədə illüstrasiya olunub",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, açıq mənbəli kodlaşdırma agenti",
   "settings.about.trademark": "OpenCode, Anomaly Innovations, Inc. şirkətinin qeydiyyatdan keçmiş ticarət nişanıdır.",
   "settings.about.typeset": "Inter və IBM Plex Mono şriftləri ilə tərtib olunub",

@@ -737,7 +737,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} други",
   "settings.about.firstPublished": "Прво објавено во Мисури, САД",
   "settings.about.firstIllustrated": "Прво илустрирано во Лондон, Англија",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, агент за кодирање со отворен код",
   "settings.about.trademark": "OpenCode е регистрирана трговска марка на Anomaly Innovations, Inc.",
   "settings.about.typeset": "Типови во Inter и IBM Plex Mono",

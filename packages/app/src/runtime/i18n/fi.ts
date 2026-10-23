@@ -144,7 +144,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} muuta",
   "settings.about.firstPublished": "Julkaistu ensimmäisen kerran Missourissa, Yhdysvalloissa",
   "settings.about.firstIllustrated": "Kuvitettu ensimmäisen kerran Lontoossa, Englannissa",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, avoimen lähdekoodin koodausagentti",
   "settings.about.trademark": "OpenCode on Anomaly Innovations, Inc:n rekisteröity tavaramerkki.",
   "settings.about.typeset": "Kirjasinlajit Inter ja IBM Plex Mono",

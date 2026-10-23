@@ -730,7 +730,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} teised",
   "settings.about.firstPublished": "Esmakordselt avaldati USA-s Missouris",
   "settings.about.firstIllustrated": "Esmakordselt illustreeritud Londonis, Inglismaal",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, avatud lähtekoodiga kodeerimisagent",
   "settings.about.trademark": "OpenCode on ettevõtte Anomaly Innovations, Inc. registreeritud kaubamärk.",
   "settings.about.typeset": "Sisestatud Inter ja IBM Plex Mono",

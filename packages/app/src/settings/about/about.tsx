@@ -97,7 +97,7 @@ export function SettingsAbout(props: { active: boolean }) {
       </div>
 
       <p class="settings-about-faint">
-        <ExternalLink href="https://github.com/dhank77/openvibecode">
+        <ExternalLink href="https://github.com/dhank77/SuperVibeCode">
           <bdi dir="ltr">{language.t("settings.about.website")}</bdi>
         </ExternalLink>
       </p>

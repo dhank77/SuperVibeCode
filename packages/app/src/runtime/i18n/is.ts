@@ -735,7 +735,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} aðrir",
   "settings.about.firstPublished": "Fyrst gefin út í Missouri í Bandaríkjunum",
   "settings.about.firstIllustrated": "Fyrst myndskreytt í London á Englandi",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, opinn kóðunaraðili",
   "settings.about.trademark": "OpenCode er skráð vörumerki Anomaly Innovations, Inc.",
   "settings.about.typeset": "Tegund í Inter og IBM Plex Mono",

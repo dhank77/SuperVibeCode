@@ -743,7 +743,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} άλλοι",
   "settings.about.firstPublished": "Πρωτοδημοσιεύτηκε στο Μιζούρι των Η.Π.Α",
   "settings.about.firstIllustrated": "Εικονογραφήθηκε για πρώτη φορά στο Λονδίνο της Αγγλίας",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, ο παράγοντας κωδικοποίησης ανοιχτού κώδικα",
   "settings.about.trademark": "Το OpenCode είναι σήμα κατατεθέν της Anomaly Innovations, Inc.",
   "settings.about.typeset": "Δακτυλογράφηση σε Inter και IBM Plex Mono",

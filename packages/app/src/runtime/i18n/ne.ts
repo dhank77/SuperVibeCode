@@ -737,7 +737,7 @@ export const dict = {
   "settings.about.otherContributor.other": "अन्य {{count}}",
   "settings.about.firstPublished": "पहिलो पटक मिसौरी, संयुक्त राज्य अमेरिकामा प्रकाशित",
   "settings.about.firstIllustrated": "पहिलो पटक लन्डन, इङ्ग्ल्यान्डमा चित्रित",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, खुला स्रोत कोडिङ एजेन्ट",
   "settings.about.trademark": "OpenCode, Anomaly Innovations, Inc. को दर्ता गरिएको ट्रेडमार्क हो।",
   "settings.about.typeset": "Inter र IBM Plex Mono मा अक्षर संयोजन",

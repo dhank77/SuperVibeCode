@@ -738,7 +738,7 @@ export const dict = {
   "settings.about.otherContributor.other": "yana {{count}} ta",
   "settings.about.firstPublished": "Ilk bor Missuri, AQSHda nashr etilgan",
   "settings.about.firstIllustrated": "Ilk bor London, Angliyada bezatilgan",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, ochiq manbali kodlash agenti",
   "settings.about.trademark": "OpenCode — Anomaly Innovations, Inc. kompaniyasining ro‘yxatdan o‘tgan savdo belgisi.",
   "settings.about.typeset": "Inter va IBM Plex Mono shriftlarida terilgan",

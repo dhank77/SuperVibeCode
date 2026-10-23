@@ -737,7 +737,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} нафари дигар",
   "settings.about.firstPublished": "Бори аввал дар Миссури, ИМА нашр шудааст",
   "settings.about.firstIllustrated": "Бори аввал дар Лондон, Англия мусаввар шудааст",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, агенти рамзнависии манбаи кушода",
   "settings.about.trademark": "OpenCode тамғаи тиҷории бақайдгирифтаи Anomaly Innovations, Inc. мебошад.",
   "settings.about.typeset": "Бо Inter ва IBM Plex Mono ҳуруфчинӣ шудааст",

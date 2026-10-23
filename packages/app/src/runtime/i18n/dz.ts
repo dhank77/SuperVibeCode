@@ -746,7 +746,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} གཞན།",
   "settings.about.firstPublished": "འགོ་དང་པ་ ཡུ་ཨེས་ཨེ་གི་ མི་སོ་རི་ལུ་ དཔར་བསྐྲུན་འབད་ཡོདཔ།",
   "settings.about.firstIllustrated": "འགོ་དང་པ་ ཨིང་ལེནཌ་གི་ ལོན་ཌོན་ལུ་ པར་རིས་བཀོད་ཡོདཔ།",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, ཁ་ཕྱེ་ཡོད་པའི་ཐོན་ཁུངས་གསང་ཡིག་ལས་ཚབ་པ།",
   "settings.about.trademark": "OpenCode འདི་ Anomaly Innovations, Inc གི་ཐོ་བཀོད་ཚོང་རྟགས་ཅིག་ཨིན།",
   "settings.about.typeset": "ཨིན་ཊར་དང་ཨའི་བི་ཨེམ་པེལེགསི་མོ་ནོ་ནང་ཡིག་དཔར་གཞི་སྒྲིག།",

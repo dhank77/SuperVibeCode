@@ -742,7 +742,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} egyebek",
   "settings.about.firstPublished": "Először az Egyesült Államokban, Missouriban jelent meg",
   "settings.about.firstIllustrated": "Először Londonban, Angliában illusztrálták",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, a nyílt forráskódú kódoló ügynök",
   "settings.about.trademark": "A OpenCode a Anomaly Innovations, Inc. bejegyzett védjegye.",
   "settings.about.typeset": "Betűkészlet Inter és IBM Plex Mono nyelven",

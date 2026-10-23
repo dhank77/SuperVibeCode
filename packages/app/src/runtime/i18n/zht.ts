@@ -786,7 +786,7 @@ export const dict = {
   "settings.about.otherContributor.other": "其他{{count}}人",
   "settings.about.firstPublished": "首次在美國密蘇裏州發佈",
   "settings.about.firstIllustrated": "首次在英國倫敦展出",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode ，開源編碼代理",
   "settings.about.trademark": "OpenCode是Anomaly Innovations, Inc.的註冊商標。",
   "settings.about.typeset": "Inter和IBM Plex Mono中的排版",

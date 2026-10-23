@@ -740,7 +740,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} citi",
   "settings.about.firstPublished": "Pirmo reizi publicēts Misūri štatā, ASV",
   "settings.about.firstIllustrated": "Pirmo reizi ilustrēts Londonā, Anglijā",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, atvērtā koda kodēšanas aģents",
   "settings.about.trademark": "OpenCode ir Anomaly Innovations, Inc. reģistrēta preču zīme.",
   "settings.about.typeset": "Salikums Inter un IBM Plex Mono",

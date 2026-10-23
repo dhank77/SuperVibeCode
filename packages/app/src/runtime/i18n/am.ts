@@ -720,7 +720,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} ሌሎች",
   "settings.about.firstPublished": "መጀመሪያ የታተመው በሚዙሪ፣ አሜሪካ",
   "settings.about.firstIllustrated": "መጀመሪያ ምስል የተሰራለት በለንደን፣ እንግሊዝ",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode፣ ክፍት ምንጭ የኮድ ወኪል",
   "settings.about.trademark": "OpenCode የAnomaly Innovations, Inc. የተመዘገበ የንግድ ምልክት ነው።",
   "settings.about.typeset": "በInter እና IBM Plex Mono ተሰድሯል",

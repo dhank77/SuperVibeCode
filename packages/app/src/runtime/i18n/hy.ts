@@ -734,7 +734,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} այլ",
   "settings.about.firstPublished": "Առաջին անգամ հրատարակվել է Միսուրիում, ԱՄՆ",
   "settings.about.firstIllustrated": "Առաջին անգամ նկարազարդվել է Լոնդոնում, Անգլիա",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode՝ բաց կոդով կոդավորման գործակալ",
   "settings.about.trademark": "OpenCode-ը Anomaly Innovations, Inc.-ի գրանցված ապրանքային նշանն է։",
   "settings.about.typeset": "Շարված է Inter և IBM Plex Mono տառատեսակներով",

@@ -7,7 +7,7 @@ export default {
   "command.commit.off": "Turn off automatic commits",
   "command.push.on": "Turn on automatic push",
   "command.push.off": "Turn off automatic push",
-  "message.fallback": "Update from openvibecode",
+  "message.fallback": "Update from SuperVibeCode",
   "message.manual": "Checkpoint",
   "committed.title": "Changes committed",
   "clean.title": "Nothing to commit",

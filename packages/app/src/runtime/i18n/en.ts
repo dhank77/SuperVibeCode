@@ -693,7 +693,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} others",
   "settings.about.firstPublished": "First published in Missouri, USA",
   "settings.about.firstIllustrated": "First illustrated in London, England",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, the open source coding agent",
   "settings.about.trademark":
     "SuperVibeCode is based on OpenCode, released under the MIT License. OpenCode is a registered trademark of Anomaly Innovations, Inc.",

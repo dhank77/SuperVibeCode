@@ -35,9 +35,9 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
 
   <content_rating type="oars-1.1" />
 
-  <url type="bugtracker">https://github.com/dhank77/openvibecode/issues</url>
-  <url type="homepage">https://github.com/dhank77/openvibecode</url>
-  <url type="vcs-browser">https://github.com/dhank77/openvibecode</url>
+  <url type="bugtracker">https://github.com/dhank77/SuperVibeCode/issues</url>
+  <url type="homepage">https://github.com/dhank77/SuperVibeCode</url>
+  <url type="vcs-browser">https://github.com/dhank77/SuperVibeCode</url>
 
 </component>
 `

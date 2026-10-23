@@ -744,7 +744,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} dalších",
   "settings.about.firstPublished": "Poprvé publikováno v Missouri, USA",
   "settings.about.firstIllustrated": "Poprvé ilustrováno v Londýně, Anglie",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, open source kódovací agent",
   "settings.about.trademark": "OpenCode je registrovaná ochranná známka společnosti Anomaly Innovations, Inc.",
   "settings.about.typeset": "Typová sada v Inter a IBM Plex Mono",

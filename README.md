@@ -56,8 +56,8 @@ SuperVibeCode runs from source for now.
 **Requirements:** [Bun](https://bun.sh) 1.4.4 or newer and [git](https://git-scm.com). Node.js is not required.
 
 ```bash
-git clone https://github.com/dhank77/openvibecode.git
-cd openvibecode
+git clone https://github.com/dhank77/SuperVibeCode.git
+cd SuperVibeCode
 bun install
 
 # the desktop app

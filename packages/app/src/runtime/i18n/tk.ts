@@ -732,7 +732,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} başga",
   "settings.about.firstPublished": "Ilkinji gezek Missuri, ABŞ-da neşir edildi",
   "settings.about.firstIllustrated": "Ilkinji gezek London, Angliýada suratlandyryldy",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, açyk çeşmeli kodlaşdyrma agenti",
   "settings.about.trademark": "OpenCode Anomaly Innovations, Inc. kompaniýasynyň bellige alnan söwda nyşanydyr.",
   "settings.about.typeset": "Inter we IBM Plex Mono bilen düzüldi",

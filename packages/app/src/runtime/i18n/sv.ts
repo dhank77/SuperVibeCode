@@ -148,7 +148,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} andra",
   "settings.about.firstPublished": "Först publicerad i Missouri, USA",
   "settings.about.firstIllustrated": "Först illustrerad i London, England",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, kodningsagenten med öppen källkod",
   "settings.about.trademark": "OpenCode är ett registrerat varumärke som tillhör Anomaly Innovations, Inc.",
   "settings.about.typeset": "Satt med Inter och IBM Plex Mono",

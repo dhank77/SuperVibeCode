@@ -157,7 +157,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} altri",
   "settings.about.firstPublished": "Pubblicato per la prima volta nel Missouri, USA",
   "settings.about.firstIllustrated": "Illustrato per la prima volta a Londra, Inghilterra",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, l’agente di programmazione open source",
   "settings.about.trademark": "OpenCode è un marchio registrato di Anomaly Innovations, Inc.",
   "settings.about.typeset": "Composto in Inter e IBM Plex Mono",

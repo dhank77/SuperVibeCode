@@ -741,7 +741,7 @@ export const dict = {
   "settings.about.otherContributor.other": "{{count}} de alți colaboratori",
   "settings.about.firstPublished": "Prima dată publicată în Missouri, SUA",
   "settings.about.firstIllustrated": "Ilustrat pentru prima dată la Londra, Anglia",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode, agentul de codare open source",
   "settings.about.trademark": "OpenCode este o marcă înregistrată a Anomaly Innovations, Inc.",
   "settings.about.typeset": "Compoziție în Inter și IBM Plex Mono",

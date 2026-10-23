@@ -746,7 +746,7 @@ export const dict = {
   "settings.about.otherContributor.other": "အခြား {{count}} ခု",
   "settings.about.firstPublished": "အမေရိကန်နိုင်ငံ၊ Missouri တွင် ပထမဆုံးထုတ်ဝေသည်။",
   "settings.about.firstIllustrated": "အင်္ဂလန်နိုင်ငံ လန်ဒန်မြို့မှာ ပထမဆုံး သရုပ်ဖော်ခဲ့ပါတယ်။",
-  "settings.about.website": "github.com/dhank77/openvibecode",
+  "settings.about.website": "github.com/dhank77/SuperVibeCode",
   "settings.about.description": "SuperVibeCode၊ ပွင့်လင်းရင်းမြစ် ကုဒ်နံပါတ် အေးဂျင့်",
   "settings.about.trademark": "OpenCode သည် Anomaly Innovations, Inc ၏ မှတ်ပုံတင်ထားသော ကုန်အမှတ်တံဆိပ်တစ်ခုဖြစ်သည်။",
   "settings.about.typeset": "Inter နှင့် IBM Plex Mono တွင် အမျိုးအစားအစုံ",
