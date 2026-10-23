@@ -2260,6 +2260,17 @@ export type VcsDiffInput = {
 export type VcsDiffOutput = { readonly location: Location.PublicRef; readonly data: ReadonlyArray<FileDiff.Info> }
 export type VcsDiffOperation<E = never> = (input: VcsDiffInput) => Effect.Effect<VcsDiffOutput, E>
 
+export type VcsCommitInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly message: string
+}
+export type VcsCommitOutput = { readonly location: Location.PublicRef; readonly data: Vcs.SyncResult }
+export type VcsCommitOperation<E = never> = (input: VcsCommitInput) => Effect.Effect<VcsCommitOutput, E>
+
+export type VcsPushInput = { readonly location?: { readonly directory?: string | undefined } | undefined }
+export type VcsPushOutput = { readonly location: Location.PublicRef; readonly data: Vcs.SyncResult }
+export type VcsPushOperation<E = never> = (input?: VcsPushInput) => Effect.Effect<VcsPushOutput, E>
+
 export interface VcsApi<E = never> {
   readonly init: VcsInitOperation<E>
   readonly get: VcsGetOperation<E>
@@ -2267,6 +2278,8 @@ export interface VcsApi<E = never> {
   readonly status: VcsStatusOperation<E>
   readonly branch: { readonly list: VcsBranchListOperation<E> }
   readonly diff: VcsDiffOperation<E>
+  readonly commit: VcsCommitOperation<E>
+  readonly push: VcsPushOperation<E>
 }
 
 export type DebugHeapDumpInput = { readonly directory?: string | undefined }

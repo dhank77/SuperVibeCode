@@ -122,6 +122,37 @@ export const VcsGroup = HttpApiGroup.make("server.vcs")
         }),
       ),
   )
+  .add(
+    HttpApiEndpoint.post("vcs.commit", "/api/vcs/commit", {
+      query: LocationQuery,
+      payload: Vcs.CommitInput,
+      success: Location.response(Vcs.SyncResult),
+    })
+      .annotateMerge(locationQueryOpenApi)
+      .annotateMerge(
+        OpenApi.annotations({
+          identifier: "vcs.commit",
+          summary: "Commit working copy",
+          description:
+            "Stage every change in the location's git working copy except environment files and private keys, and commit it with the given message. Reports clean, busy (a merge or rebase is in progress) or norepo instead of failing.",
+        }),
+      ),
+  )
+  .add(
+    HttpApiEndpoint.post("vcs.push", "/api/vcs/push", {
+      query: LocationQuery,
+      success: Location.response(Vcs.SyncResult),
+    })
+      .annotateMerge(locationQueryOpenApi)
+      .annotateMerge(
+        OpenApi.annotations({
+          identifier: "vcs.push",
+          summary: "Push current branch",
+          description:
+            "Push the current branch to origin with the user's stored git credentials, setting its upstream the first time. Never prompts: without credentials the outcome is failed.",
+        }),
+      ),
+  )
   .annotateMerge(
     OpenApi.annotations({
       title: "vcs",

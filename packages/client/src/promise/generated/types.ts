@@ -304,6 +304,8 @@ export type VcsFileStatus = {
 
 export type VcsBranchList = Array<string>
 
+export type VcsSyncOutcome = "committed" | "pushed" | "clean" | "busy" | "norepo" | "noremote" | "detached" | "failed"
+
 export type WebSearchID = string
 
 export type WebSearchResult = { url: string; title?: string; content?: string; time: { published?: number } }
@@ -862,6 +864,8 @@ export type FormMultiselectField1 = {
 export type FormAnswer1 = { [x: string]: FormValue1 }
 
 export type VcsInfo = { provider?: string; branch: VcsBranch }
+
+export type VcsSyncResult = { outcome: VcsSyncOutcome; detail?: string }
 
 export type WebSearchProvider = { id: WebSearchID; name: string }
 
@@ -6018,6 +6022,19 @@ export type VcsDiffInput = {
 }
 
 export type VcsDiffOutput = { location: LocationPublicRef; data: Array<FileDiffInfo> }
+
+export type VcsCommitInput = {
+  readonly location?: { readonly location?: { readonly directory?: string | undefined } | undefined }["location"]
+  readonly message: { readonly message: string }["message"]
+}
+
+export type VcsCommitOutput = { location: LocationPublicRef; data: VcsSyncResult }
+
+export type VcsPushInput = {
+  readonly location?: { readonly location?: { readonly directory?: string | undefined } | undefined }["location"]
+}
+
+export type VcsPushOutput = { location: LocationPublicRef; data: VcsSyncResult }
 
 export type DebugHeapDumpInput = { readonly directory?: { readonly directory?: string | undefined }["directory"] }
 

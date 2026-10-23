@@ -9,7 +9,17 @@ describe("external URLs", () => {
     expect(resolveExternalURL("http://example.com")).toBe("http://example.com/")
     expect(resolveExternalURL("mailto:hello@opencode.ai")).toBe("mailto:hello@opencode.ai")
 
-    for (const url of ["file:///tmp/index.html", "javascript:alert(1)", "data:text/html,hello", "not a url"])
+    expect(resolveExternalURL("x-github-client://openLocalRepo/C%3A%5Csite")).toBe(
+      "x-github-client://openLocalRepo/C%3A%5Csite",
+    )
+
+    for (const url of [
+      "file:///tmp/index.html",
+      "javascript:alert(1)",
+      "data:text/html,hello",
+      "not a url",
+      "x-github-client://oauth?code=1",
+    ])
       expect(resolveExternalURL(url)).toBeUndefined()
   })
 

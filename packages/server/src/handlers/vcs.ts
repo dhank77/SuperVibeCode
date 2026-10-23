@@ -1,4 +1,5 @@
 import { Vcs } from "@opencode/core/vcs"
+import { VcsSync } from "@opencode/core/vcs/sync"
 import { Project } from "@opencode/core/project"
 import { Worktree } from "@opencode/core/worktree"
 import { Bus } from "@opencode/core/bus"
@@ -85,6 +86,22 @@ export const VcsHandler = HttpApiBuilder.group(Api, "server.vcs", (handlers) =>
           Effect.gen(function* () {
             const vcs = yield* Vcs.Service
             return yield* vcs.branches({ search: ctx.query.search, limit: Math.min(ctx.query.limit ?? 50, 100) })
+          }),
+        ),
+      )
+      .handle("vcs.commit", (ctx) =>
+        response(
+          Effect.gen(function* () {
+            const sync = yield* VcsSync.Service
+            return yield* sync.commit(ctx.payload.message)
+          }),
+        ),
+      )
+      .handle("vcs.push", () =>
+        response(
+          Effect.gen(function* () {
+            const sync = yield* VcsSync.Service
+            return yield* sync.push()
           }),
         ),
       )

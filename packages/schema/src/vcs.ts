@@ -35,3 +35,37 @@ export const FileStatus = Schema.Struct({
   status: Schema.Literals(["added", "deleted", "modified"]),
 }).annotate({ identifier: "Vcs.FileStatus" })
 export interface FileStatus extends Schema.Schema.Type<typeof FileStatus> {}
+
+/**
+ * How a commit or push of the working copy ended.
+ * - `committed` / `pushed`: done.
+ * - `clean`: nothing to commit.
+ * - `busy`: a merge, rebase or cherry-pick is in progress, so nothing was touched.
+ * - `norepo`: the location is not inside a git repository.
+ * - `noremote`: the repository has no `origin` remote to push to.
+ * - `detached`: no branch is checked out.
+ * - `failed`: git refused, e.g. a commit hook failed or a push had no stored credentials.
+ */
+export const SyncOutcome = Schema.Literals([
+  "committed",
+  "pushed",
+  "clean",
+  "busy",
+  "norepo",
+  "noremote",
+  "detached",
+  "failed",
+]).annotate({ identifier: "Vcs.SyncOutcome" })
+export type SyncOutcome = typeof SyncOutcome.Type
+
+export const SyncResult = Schema.Struct({
+  outcome: SyncOutcome,
+  // Git's own message when it failed, for the user to act on.
+  detail: optional(Schema.String),
+}).annotate({ identifier: "Vcs.SyncResult" })
+export interface SyncResult extends Schema.Schema.Type<typeof SyncResult> {}
+
+export const CommitInput = Schema.Struct({
+  message: Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(4096)),
+}).annotate({ identifier: "Vcs.CommitInput" })
+export interface CommitInput extends Schema.Schema.Type<typeof CommitInput> {}

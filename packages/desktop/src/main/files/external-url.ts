@@ -6,6 +6,9 @@ export function resolveExternalURL(value: string) {
 
   if (url.protocol === "http:" || url.protocol === "https:" || url.protocol === "mailto:") return url.href
 
+  // GitHub Desktop's link that opens a local repository (macOS and Windows register it); nothing else of its scheme.
+  if (url.protocol === "x-github-client:" && url.hostname.toLowerCase() === "openlocalrepo") return url.href
+
   return undefined
 }
 

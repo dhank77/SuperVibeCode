@@ -675,6 +675,7 @@ export const builtins = Extension.compose(
   { ...wsl, main: () => import("./wsl/main") },
   microsoftOffice,
   preview,
+  autogit,
 )
 ```
 
@@ -702,6 +703,7 @@ export const builtins = Extension.compose(
   { ...wsl, renderer: eager(wslRenderer) },
   { ...microsoftOffice, renderer: eager(microsoftOfficeRenderer) },
   { ...preview, renderer: eager(previewRenderer) },
+  { ...autogit, renderer: eager(autogitRenderer) },
 )
 ```
 

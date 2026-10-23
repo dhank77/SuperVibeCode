@@ -26,6 +26,8 @@ import wslRenderer from "./wsl/renderer"
 import microsoftOffice from "./microsoft-office"
 import microsoftOfficeRenderer from "./microsoft-office/renderer"
 import preview from "./preview"
+import autogit from "./autogit"
+import autogitRenderer from "./autogit/renderer"
 import previewRenderer from "./preview/renderer"
 
 // The window renders once every built-in is active, so the small renderer entries load with the app, like the
@@ -52,4 +54,5 @@ export const builtins = Extension.compose(
   { ...wsl, renderer: eager(wslRenderer) },
   { ...microsoftOffice, renderer: eager(microsoftOfficeRenderer) },
   { ...preview, renderer: eager(previewRenderer) },
+  { ...autogit, renderer: eager(autogitRenderer) },
 )

@@ -98,11 +98,7 @@ const setup: Setup<typeof definition> = (ctx) => {
   const announce = (session: SessionRef, url: string, open: boolean) => {
     setState("found", session.key, url)
 
-    if (!open || !ctx.stores.prefs.value.auto) return
-
-    // Like an app builder: the code sits beside the running app.
-    if (layout.state(`${ctx.id}:code`, session) === "closed") layout.open(`${ctx.id}:code`, session, { tab: "append" })
-    show(session, url)
+    if (open && ctx.stores.prefs.value.auto) show(session, url)
   }
 
   // Runs the session's last dev server again through the composer's shell mode, so it shows in the timeline and the
@@ -316,12 +312,13 @@ const setup: Setup<typeof definition> = (ctx) => {
     ),
   })
 
+  // Always in the strip, like an app builder's code view beside the running app.
   const codeTab: PanelTab = {
     id: "code",
     get title() {
       return ctx.t("code.title")
     },
-    closable: "hover",
+    pinned: true,
     label: () => (
       <div class="flex items-center gap-1.5">
         <Icon name="code-slash" size="small" />
@@ -334,7 +331,7 @@ const setup: Setup<typeof definition> = (ctx) => {
     id: "code",
     region: "side",
     wide: true,
-    list: (input) => (input.open.includes(codeTab.id) ? [codeTab] : []),
+    list: () => [codeTab],
     render: (props) => (
       <Suspense>
         <CodePane

@@ -33,7 +33,8 @@ export interface VcsDefinition {
   readonly diff: (input: VcsDiffInput, context: { readonly signal: AbortSignal }) => Promise<readonly FileDiff.Info[]>
 }
 
-export interface VcsDomain extends Omit<VcsApi, "init"> {
+// Committing and pushing the user's working copy belongs to the app, not to plugins.
+export interface VcsDomain extends Omit<VcsApi, "init" | "commit" | "push"> {
   readonly transform: Transform<VcsEditor>
   readonly reload: () => Promise<void>
 }

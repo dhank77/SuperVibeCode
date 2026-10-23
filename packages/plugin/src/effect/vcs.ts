@@ -34,7 +34,8 @@ export interface VcsDefinition {
   readonly diff: (input: VcsDiffInput) => Effect.Effect<readonly FileDiff.Info[], unknown>
 }
 
-export interface VcsDomain extends Omit<VcsApi<unknown>, "init"> {
+// Committing and pushing the user's working copy belongs to the app, not to plugins.
+export interface VcsDomain extends Omit<VcsApi<unknown>, "init" | "commit" | "push"> {
   readonly transform: Transform<VcsEditor>
   readonly reload: () => Effect.Effect<void>
 }
