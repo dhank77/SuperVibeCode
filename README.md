@@ -1,114 +1,112 @@
 <p align="center">
-  <a href="https://opencode.ai">
-    <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
-    </picture>
-  </a>
+  <picture>
+    <source srcset="docs/assets/supervibecode-wordmark-dark.svg" media="(prefers-color-scheme: dark)">
+    <source srcset="docs/assets/supervibecode-wordmark-light.svg" media="(prefers-color-scheme: light)">
+    <img src="docs/assets/supervibecode-wordmark-light.svg" alt="SuperVibeCode" width="420">
+  </picture>
 </p>
-<p align="center">The open source AI coding agent.</p>
+<p align="center"><b>Vibe-code real apps with an AI agent, and watch them run beside the chat.</b></p>
 <p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/@opencode/cli"><img alt="npm" src="https://img.shields.io/npm/v/@opencode/cli?style=flat-square" /></a>
-  <a href="https://github.com/anomalyco/opencode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
+  Built on <a href="https://github.com/anomalyco/opencode">OpenCode</a>, the open source AI coding agent.
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> |
-  <a href="README.zh.md">简体中文</a> |
-  <a href="README.zht.md">繁體中文</a> |
-  <a href="README.ko.md">한국어</a> |
-  <a href="README.de.md">Deutsch</a> |
-  <a href="README.es.md">Español</a> |
-  <a href="README.fr.md">Français</a> |
-  <a href="README.it.md">Italiano</a> |
-  <a href="README.da.md">Dansk</a> |
-  <a href="README.ja.md">日本語</a> |
-  <a href="README.pl.md">Polski</a> |
-  <a href="README.ru.md">Русский</a> |
-  <a href="README.bs.md">Bosanski</a> |
-  <a href="README.ar.md">العربية</a> |
-  <a href="README.no.md">Norsk</a> |
-  <a href="README.br.md">Português (Brasil)</a> |
-  <a href="README.th.md">ไทย</a> |
-  <a href="README.tr.md">Türkçe</a> |
-  <a href="README.uk.md">Українська</a> |
-  <a href="README.bn.md">বাংলা</a> |
-  <a href="README.gr.md">Ελληνικά</a> |
-  <a href="README.vi.md">Tiếng Việt</a>
+  <img src="docs/assets/screenshot-preview.png" alt="SuperVibeCode with a live app preview beside the conversation" width="900">
 </p>
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
-
 ---
 
-### Installation
+## What is SuperVibeCode?
+
+SuperVibeCode is a desktop and web app for building apps by talking to an AI agent, in the spirit of Lovable, but
+running on your own computer, with your own projects, models and git. It is a fork of [OpenCode](https://github.com/anomalyco/opencode)
+that keeps everything OpenCode does (any model provider, agents, terminal, file tools, review) and adds an app-builder
+workflow on top.
+
+### Features
+
+- **Live preview.** When a dev server starts, the app shows up in the panel on the right. It works for servers the
+  agent starts, `!npm run dev` in the composer, and the built-in terminal (`` Ctrl+` ``). Vite, Next.js, Nuxt, Astro,
+  Angular, Create React App, Remix, Bun, Laravel (`php artisan serve`), Django, Rails and Flask are recognized, as is
+  any server that prints the port it listens on.
+- **The agent runs your app.** It installs dependencies and starts the dev server in the background itself, instead of
+  asking you to.
+- **One-click Start.** Open a session from your history and press **Start** in its header. SuperVibeCode remembers the
+  command the session used, or reads it from the project (`package.json` scripts with npm, pnpm, yarn or bun, or
+  Laravel's `artisan`) and installs missing dependencies first.
+- **Code tab.** The project's files and their code sit next to the preview, with line comments you can send to the
+  agent.
+- **Mobile view.** Toggle a phone-sized viewport to check the responsive layout.
+- **Local links open inside the app.** When the agent says "see it at `http://localhost:5174/about`", the link opens
+  in the preview, not in another browser.
+- **Automatic git.** Each agent turn that changes files becomes a commit named after your prompt. Commits push to
+  your branch with the git login already on your computer, and GitHub Desktop sees them at once. Environment files and
+  private keys are never committed.
+- **Cross-platform.** macOS, Windows and Linux.
+
+<p align="center">
+  <img src="docs/assets/screenshot-code.png" alt="The Code tab beside the conversation" width="440">
+  <img src="docs/assets/screenshot-mobile.png" alt="The preview in mobile view" width="440">
+</p>
+
+## Getting started
+
+SuperVibeCode runs from source for now.
+
+**Requirements:** [Bun](https://bun.sh) 1.4.4 or newer and [git](https://git-scm.com). Node.js is not required.
 
 ```bash
-# YOLO
-curl -fsSL https://opencode.ai/v2/install | bash
+git clone https://github.com/dhank77/openvibecode.git
+cd openvibecode
+bun install
 
-# Package managers
-npm i -g @opencode/cli@latest      # or bun/pnpm/yarn
-brew install anomalyco/tap/opencode-v2 # macOS and Linux (recommended, always up to date)
-brew install opencode              # macOS and Linux (official brew formula, updated less)
-sudo pacman -S opencode            # Arch Linux (Stable)
-paru -S opencode-beta              # Arch Linux (Latest from AUR)
-mise use -g opencode               # Any OS
-nix run github:anomalyco/opencode  # Nix
+# the desktop app
+bun run dev:desktop
 ```
 
-> [!TIP]
-> Remove versions older than 0.1.x before installing.
-
-### Desktop App (BETA)
-
-OpenCode is also available as a desktop application. Download it from [opencode.ai/download](https://opencode.ai/download).
-
-| Platform              | Download                           |
-| --------------------- | ---------------------------------- |
-| macOS (Apple Silicon) | `opencode-desktop-mac-arm64.dmg`   |
-| macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
-| Windows               | `opencode-desktop-win-x64.exe`     |
-| Linux                 | `.deb`, `.rpm`, or `.AppImage`     |
+Prefer the browser? Run the server and the web app in two terminals:
 
 ```bash
-# macOS (Homebrew)
-brew install --cask opencode-desktop
+bun dev serve --port 4096                 # from the repository root
+cd packages/app && bun dev -- --port 4444  # then open http://localhost:4444
 ```
 
-#### Installation Directory
+Connect a model provider under **Settings → Providers**, open a folder as a project, and ask for an app. For example:
 
-The install script installs OpenCode to `$HOME/.opencode/bin`.
+> Create a React app with Vite in this folder, run it, and make the home page a landing page for a coffee shop.
 
-### Agents
+### Automatic push
 
-OpenCode includes two built-in agents you can switch between with the `Tab` key.
+Commits push only when git on your computer can push without asking for a password. Sign git in once:
 
-- **build** - Default, full-access agent for development work
-- **plan** - Read-only agent for analysis and code exploration
-  - Denies file edits by default
-  - Asks permission before running bash commands
-  - Ideal for exploring unfamiliar codebases or planning changes
+```bash
+gh auth login && gh auth setup-git
+```
 
-Also included is a **general** subagent for complex searches and multistep tasks.
-This is used internally and can be invoked using `@general` in messages.
+On Windows, Git Credential Manager asks once on the first push instead. Until then, commits stay on your computer and
+you can push them from GitHub Desktop. Turn automatic commits or pushes off from the command palette (`Cmd/Ctrl+K`).
 
-Learn more about [agents](https://opencode.ai/v2/docs/agents).
+## Staying up to date with OpenCode
 
-### Documentation
+SuperVibeCode follows OpenCode's `dev` branch. Its own changes live mostly in new folders
+(`packages/gui-extensions/src/preview`, `packages/gui-extensions/src/autogit`), so merges stay small:
 
-For more info on how to configure OpenCode, [**head over to our docs**](https://opencode.ai/v2/docs).
+```bash
+git remote add upstream https://github.com/anomalyco/opencode.git   # once
+git fetch upstream
+git merge upstream/dev
+bun install
+```
 
-### Contributing
+## Credits and license
 
-If you're interested in contributing to OpenCode, please read our [contributing docs](./CONTRIBUTING.md) before submitting a pull request.
+SuperVibeCode is based on **[OpenCode](https://github.com/anomalyco/opencode)** by Anomaly Innovations, Inc. and its
+contributors. Nearly all of the agent, server, desktop app and terminal UI is their work. Thank you.
 
-### Building on OpenCode
+SuperVibeCode is an independent project. It is **not built by the OpenCode team and is not affiliated with or endorsed
+by them**. OpenCode is a registered trademark of Anomaly Innovations, Inc.
 
-If you are working on a project that's related to OpenCode and is using "opencode" as part of its name, for example "opencode-dashboard" or "opencode-mobile", please add a note to your README to clarify that it is not built by the OpenCode team and is not affiliated with us in any way.
+Like OpenCode, SuperVibeCode is released under the [MIT License](LICENSE). The original copyright notice is kept in
+`LICENSE`, as the license requires.
 
----
-
-**Join our community** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+For OpenCode's own documentation, see [opencode.ai/docs](https://opencode.ai/docs). Most of it applies here too.
