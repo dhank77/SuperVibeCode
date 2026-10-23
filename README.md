@@ -42,6 +42,9 @@ workflow on top.
 - **Automatic git.** Each agent turn that changes files becomes a commit named after your prompt. Commits push to
   your branch with the git login already on your computer, and GitHub Desktop sees them at once. Environment files and
   private keys are never committed.
+- **Design skills built in.** The agent designs with [Taste Skill](https://github.com/Leonxlnx/taste-skill) instead of
+  the generic look AI-made pages tend to have, and four more design skill sets are one `@` away. See
+  [Design skills](#design-skills).
 - **Cross-platform.** macOS, Windows and Linux.
 
 <p align="center">
@@ -86,6 +89,23 @@ gh auth login && gh auth setup-git
 On Windows, Git Credential Manager asks once on the first push instead. Until then, commits stay on your computer and
 you can push them from GitHub Desktop. Turn automatic commits or pushes off from the command palette (`Cmd/Ctrl+K`).
 
+## Design skills
+
+SuperVibeCode ships these skills, ready without installing anything. Only Taste Skill runs on its own; the others run
+when you attach them by typing `@` and the skill's name in the message, so their rules never compete.
+
+| Skill                                                   | Runs                                                             | Use it to                                                                                               |
+| ------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `@taste-skill`                                          | Automatically when the agent builds or restyles a page or screen | Pick an art direction and avoid template-looking design                                                 |
+| `@impeccable`                                           | When you attach it                                               | Critique, audit, polish, or push a design bolder or quieter (`@impeccable audit`, `@impeccable polish`) |
+| `@frontend-design`                                      | When you attach it                                               | Anthropic's guidance for distinctive frontend design                                                    |
+| `@ui-ux-pro-max`                                        | When you attach it                                               | Search palettes, font pairings, UI styles and UX rules (needs Python 3)                                 |
+| `@emil-design-eng`, `@emil-animate` and other `@emil-*` | When you attach them                                             | Animation and interaction polish, mobile feel, stress-testing UI                                        |
+
+A skill of the same name in your own skills folder replaces the bundled one. To turn the bundled skills off, set
+`SUPERVIBECODE_BUILTIN_SKILLS=0`. Running from source, they load from the `skills/` folder; a compiled build downloads
+them once from this repository. Each skill keeps its original license; see [skills/NOTICE.txt](skills/NOTICE.txt).
+
 ## Staying up to date with OpenCode
 
 SuperVibeCode follows OpenCode's `dev` branch. Its own changes live mostly in new folders
@@ -102,6 +122,12 @@ bun install
 
 SuperVibeCode is based on **[OpenCode](https://github.com/anomalyco/opencode)** by Anomaly Innovations, Inc. and its
 contributors. Nearly all of the agent, server, desktop app and terminal UI is their work. Thank you.
+
+The bundled design skills are the work of their authors: [Taste Skill](https://github.com/Leonxlnx/taste-skill) by
+Leon Lin (MIT), [Impeccable](https://github.com/pbakaus/impeccable) by Paul Bakaus (Apache-2.0),
+[frontend-design](https://github.com/anthropics/skills) by Anthropic (Apache-2.0),
+[UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) by Next Level Builder (MIT) and
+[Emil Kowalski's skills](https://github.com/emilkowalski/skills) (MIT).
 
 SuperVibeCode is an independent project. It is **not built by the OpenCode team and is not affiliated with or endorsed
 by them**. OpenCode is a registered trademark of Anomaly Innovations, Inc.

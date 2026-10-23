@@ -1,0 +1,41 @@
+SuperVibeCode bundled skills
+============================
+
+The folders here are third-party agent skills, included so SuperVibeCode can use them without installing anything.
+Each folder keeps its original license file. They are copied from these upstream sources:
+
+taste-skill
+  Source:  https://github.com/Leonxlnx/taste-skill (skills/taste-skill, commit 6010f91)
+  Author:  Leon Lin (Leonxlnx) and contributors
+  License: MIT (taste-skill/LICENSE)
+  Changes: the evals folder is left out.
+
+impeccable
+  Source:  https://github.com/pbakaus/impeccable (.opencode/skills/impeccable, commit 2bb6563)
+  Author:  Paul Bakaus and contributors
+  License: Apache License 2.0 (impeccable/LICENSE, impeccable/NOTICE.md)
+  Changes: SKILL.md adds "disable-model-invocation: true" and a comment saying so.
+
+frontend-design
+  Source:  https://github.com/anthropics/skills (skills/frontend-design, commit dbd4588)
+  Author:  Anthropic
+  License: Apache License 2.0 (frontend-design/LICENSE.txt)
+  Changes: SKILL.md adds "disable-model-invocation: true" and a comment saying so.
+
+ui-ux-pro-max
+  Source:  https://github.com/nextlevelbuilder/ui-ux-pro-max-skill (.claude/skills/ui-ux-pro-max, commit d14efff)
+  Author:  Next Level Builder
+  License: MIT (ui-ux-pro-max/LICENSE)
+  Changes: SKILL.md adds "disable-model-invocation: true"; script paths use <skill> instead of
+           ${CLAUDE_PLUGIN_ROOT}/.claude/skills/ui-ux-pro-max; the scripts/tests folder is left out.
+
+emil-* (emil-design-eng, emil-animate, emil-improve-animations, emil-review-animations, emil-animation-performance,
+        emil-find-animation-opportunities, emil-break-ui, emil-mobile-native, emil-prototype)
+  Source:  https://github.com/emilkowalski/skills (skills/*, commit 2d22863)
+  Author:  Emil Kowalski
+  License: MIT (LICENSE in each folder)
+  Changes: folders other than emil-design-eng are renamed with an "emil-" prefix; each SKILL.md has
+           "disable-model-invocation: true".
+
+index.json lists every skill and file for builds that download the skills. Regenerate it after changing a skill:
+  bun script/skills-index.ts

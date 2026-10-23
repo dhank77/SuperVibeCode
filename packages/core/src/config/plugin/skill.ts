@@ -10,6 +10,7 @@ import { Config } from "../../config.js"
 import { Watcher } from "../../filesystem/watcher.js"
 import { Location } from "../../location.js"
 import { AbsolutePath } from "../../schema.js"
+import { BuiltinSkills } from "./builtin-skills.js"
 import { Skill } from "../../skill.js"
 import { SkillDiscovery } from "../../skill/discovery.js"
 import { SkillFile } from "./skill-file.js"
@@ -83,6 +84,10 @@ export const Plugin = define({
         if (result.some((item) => Skill.Source.equals(item, source))) return
         result.push(source)
       }
+      // Bundled first, so a skill of the same name from the user's own config replaces it.
+      const builtin = BuiltinSkills.source()
+
+      if (builtin) add(builtin)
       const directories = loaded.entries.flatMap((entry) => (entry.type === "directory" ? [entry.path] : []))
       const items = loaded.entries.flatMap((entry) => (entry.type === "document" ? (entry.info.skills ?? []) : []))
       for (const directory of directories) {

@@ -1,0 +1,253 @@
+{
+  "skills": [
+    {
+      "name": "emil-animate",
+      "version": "f37c57cd483b",
+      "files": [
+        "LICENSE",
+        "RECIPES.md",
+        "SKILL.md"
+      ]
+    },
+    {
+      "name": "emil-animation-performance",
+      "version": "24eb5e876feb",
+      "files": [
+        "LICENSE",
+        "SKILL.md"
+      ]
+    },
+    {
+      "name": "emil-break-ui",
+      "version": "b2e70317e9d7",
+      "files": [
+        "CATALOG.md",
+        "LICENSE",
+        "SKILL.md"
+      ]
+    },
+    {
+      "name": "emil-design-eng",
+      "version": "40d8fd3aad74",
+      "files": [
+        "LICENSE",
+        "SKILL.md"
+      ]
+    },
+    {
+      "name": "emil-find-animation-opportunities",
+      "version": "c462475de97f",
+      "files": [
+        "LICENSE",
+        "SKILL.md"
+      ]
+    },
+    {
+      "name": "emil-improve-animations",
+      "version": "b3ee40b8788d",
+      "files": [
+        "AUDIT.md",
+        "LICENSE",
+        "PLAN-TEMPLATE.md",
+        "SKILL.md"
+      ]
+    },
+    {
+      "name": "emil-mobile-native",
+      "version": "265d93b51970",
+      "files": [
+        "LICENSE",
+        "SKILL.md"
+      ]
+    },
+    {
+      "name": "emil-prototype",
+      "version": "bdde6c7e0351",
+      "files": [
+        "LICENSE",
+        "PICKER.md",
+        "SKILL.md"
+      ]
+    },
+    {
+      "name": "emil-review-animations",
+      "version": "8e7c624636a1",
+      "files": [
+        "LICENSE",
+        "SKILL.md",
+        "STANDARDS.md"
+      ]
+    },
+    {
+      "name": "frontend-design",
+      "version": "ec16a0b43263",
+      "files": [
+        "LICENSE.txt",
+        "SKILL.md"
+      ]
+    },
+    {
+      "name": "impeccable",
+      "version": "3f2cdbd2a866",
+      "files": [
+        "LICENSE",
+        "NOTICE.md",
+        "SKILL.md",
+        "reference/adapt.md",
+        "reference/adapt.native.md",
+        "reference/android.md",
+        "reference/animate.md",
+        "reference/audit.md",
+        "reference/audit.native.md",
+        "reference/bolder.md",
+        "reference/clarify.md",
+        "reference/colorize.md",
+        "reference/component-review.md",
+        "reference/craft-floor.md",
+        "reference/craft.md",
+        "reference/critique.md",
+        "reference/degraded/asset-producer.md",
+        "reference/degraded/documenter.md",
+        "reference/degraded/finish-reviewer.md",
+        "reference/degraded/manual-edit-applier.md",
+        "reference/delight.md",
+        "reference/distill.md",
+        "reference/doctor.md",
+        "reference/document.md",
+        "reference/extract.md",
+        "reference/generate.md",
+        "reference/harden.md",
+        "reference/hooks.md",
+        "reference/init.md",
+        "reference/ios.md",
+        "reference/layout.md",
+        "reference/live-setup.md",
+        "reference/live.md",
+        "reference/mode-operate.md",
+        "reference/mode-persuade.md",
+        "reference/mode-read.md",
+        "reference/new-work.md",
+        "reference/onboard.md",
+        "reference/operate.md",
+        "reference/optimize.md",
+        "reference/overdrive.md",
+        "reference/polish.md",
+        "reference/quieter.md",
+        "reference/region-map.md",
+        "reference/routing.md",
+        "reference/shape.md",
+        "reference/typeset.md",
+        "reference/visualize.md",
+        "scripts/VERSION",
+        "scripts/command-metadata.json",
+        "scripts/data/font-index-failures.json",
+        "scripts/data/font-index.json",
+        "scripts/impeccable",
+        "scripts/impeccable.cmd",
+        "scripts/live-browser-dom.js",
+        "scripts/live-browser-ignores.js",
+        "scripts/live-browser-session.js",
+        "scripts/live-browser.js",
+        "scripts/modern-screenshot.umd.js"
+      ]
+    },
+    {
+      "name": "taste-skill",
+      "version": "a74bba4c05c6",
+      "files": [
+        "LICENSE",
+        "README.md",
+        "SKILL.md",
+        "assets/app.css",
+        "assets/base.css",
+        "assets/base.js",
+        "assets/charts.js",
+        "assets/scenes/stage.css",
+        "assets/scenes/stage.js",
+        "library/app.json",
+        "library/directions.json",
+        "library/heroes.json",
+        "library/motions.json",
+        "library/palettes.json",
+        "library/photos.json",
+        "library/sections.json",
+        "library/sites.json",
+        "library/type.json",
+        "references/app-screens.md",
+        "references/colour.md",
+        "references/copy.md",
+        "references/critique.md",
+        "references/imagery.md",
+        "references/layout.md",
+        "references/motion.md",
+        "references/research.md",
+        "references/scenes.md",
+        "references/tells.md",
+        "references/type.md",
+        "scripts/assets.mjs",
+        "scripts/draw.mjs",
+        "scripts/inspect.mjs",
+        "scripts/lib/app-draw.mjs",
+        "scripts/lib/cdp.mjs",
+        "scripts/lib/probe.mjs",
+        "scripts/lib/rules.mjs",
+        "scripts/lint.mjs",
+        "scripts/scenes.mjs"
+      ]
+    },
+    {
+      "name": "ui-ux-pro-max",
+      "version": "9a5b659c7c56",
+      "files": [
+        "LICENSE",
+        "SKILL.md",
+        "data/app-interface.csv",
+        "data/catalog-summary.json",
+        "data/charts.csv",
+        "data/colors.csv",
+        "data/data-provenance.json",
+        "data/google-font-licenses.json",
+        "data/google-fonts.csv",
+        "data/icons.csv",
+        "data/landing.csv",
+        "data/motion.csv",
+        "data/phosphor-icons-upstream.json",
+        "data/products.csv",
+        "data/react-performance.csv",
+        "data/stacks/angular.csv",
+        "data/stacks/astro.csv",
+        "data/stacks/avalonia.csv",
+        "data/stacks/flutter.csv",
+        "data/stacks/html-tailwind.csv",
+        "data/stacks/javafx.csv",
+        "data/stacks/jetpack-compose.csv",
+        "data/stacks/laravel.csv",
+        "data/stacks/nextjs.csv",
+        "data/stacks/nuxt-ui.csv",
+        "data/stacks/nuxtjs.csv",
+        "data/stacks/react-native.csv",
+        "data/stacks/react.csv",
+        "data/stacks/shadcn.csv",
+        "data/stacks/svelte.csv",
+        "data/stacks/swiftui.csv",
+        "data/stacks/threejs.csv",
+        "data/stacks/uno.csv",
+        "data/stacks/uwp.csv",
+        "data/stacks/vue.csv",
+        "data/stacks/winui.csv",
+        "data/stacks/wpf.csv",
+        "data/styles.csv",
+        "data/typography.csv",
+        "data/ui-reasoning.csv",
+        "data/ux-guidelines.csv",
+        "references/pro-rules.md",
+        "references/quick-reference.md",
+        "scripts/core.py",
+        "scripts/design_system.py",
+        "scripts/reasoning_contract.py",
+        "scripts/search.py",
+        "scripts/validate_data.py"
+      ]
+    }
+  ]
+}
