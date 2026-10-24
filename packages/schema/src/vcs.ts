@@ -38,7 +38,7 @@ export interface FileStatus extends Schema.Schema.Type<typeof FileStatus> {}
 
 /**
  * How a commit or push of the working copy ended.
- * - `committed` / `pushed`: done.
+ * - `committed` / `pushed` / `restored`: done.
  * - `clean`: nothing to commit.
  * - `busy`: a merge, rebase or cherry-pick is in progress, so nothing was touched.
  * - `norepo`: the location is not inside a git repository.
@@ -49,6 +49,7 @@ export interface FileStatus extends Schema.Schema.Type<typeof FileStatus> {}
 export const SyncOutcome = Schema.Literals([
   "committed",
   "pushed",
+  "restored",
   "clean",
   "busy",
   "norepo",
@@ -69,3 +70,26 @@ export const CommitInput = Schema.Struct({
   message: Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(4096)),
 }).annotate({ identifier: "Vcs.CommitInput" })
 export interface CommitInput extends Schema.Schema.Type<typeof CommitInput> {}
+
+/** A commit on the current branch, newest first in a history. */
+export const Version = Schema.Struct({
+  hash: Schema.String,
+  // The commit message's first line; an automatic commit's is the prompt that made it.
+  subject: Schema.String,
+  // Commit time in milliseconds since the epoch.
+  time: Schema.Finite,
+  author: Schema.String,
+}).annotate({ identifier: "Vcs.Version" })
+export interface Version extends Schema.Schema.Type<typeof Version> {}
+
+export const History = Schema.Struct({
+  versions: Schema.Array(Version),
+  // The repository's page on its host, when origin is a GitHub, GitLab or Bitbucket remote.
+  web: optional(Schema.String),
+}).annotate({ identifier: "Vcs.History" })
+export interface History extends Schema.Schema.Type<typeof History> {}
+
+export const RestoreInput = Schema.Struct({
+  hash: Schema.String.check(Schema.isPattern(/^[0-9a-f]{7,64}$/)),
+}).annotate({ identifier: "Vcs.RestoreInput" })
+export interface RestoreInput extends Schema.Schema.Type<typeof RestoreInput> {}

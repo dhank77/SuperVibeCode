@@ -268,6 +268,10 @@ import type {
   VcsCommitOutput,
   VcsPushInput,
   VcsPushOutput,
+  VcsHistoryInput,
+  VcsHistoryOutput,
+  VcsRestoreInput,
+  VcsRestoreOutput,
   DebugHeapDumpInput,
   DebugHeapDumpOutput,
   DebugLocationListOutput,
@@ -2243,6 +2247,31 @@ export function make(options: ClientOptions) {
             method: "POST",
             path: `/api/vcs/push`,
             query: { location: input?.["location"] },
+            successStatus: 200,
+            declaredStatuses: [400, 401, 404],
+            empty: false,
+          },
+          requestOptions,
+        ),
+      history: (input?: VcsHistoryInput, requestOptions?: RequestOptions) =>
+        request<VcsHistoryOutput>(
+          {
+            method: "GET",
+            path: `/api/vcs/history`,
+            query: { location: input?.["location"] },
+            successStatus: 200,
+            declaredStatuses: [400, 401, 404],
+            empty: false,
+          },
+          requestOptions,
+        ),
+      restore: (input: VcsRestoreInput, requestOptions?: RequestOptions) =>
+        request<VcsRestoreOutput>(
+          {
+            method: "POST",
+            path: `/api/vcs/restore`,
+            query: { location: input["location"] },
+            body: { hash: input["hash"] },
             successStatus: 200,
             declaredStatuses: [400, 401, 404],
             empty: false,

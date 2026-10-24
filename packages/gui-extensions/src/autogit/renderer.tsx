@@ -1,15 +1,18 @@
 import type { VcsSyncOutcome } from "@opencode/client/promise"
+import { Icon } from "@opencode/ui/icon"
 import { showToast, type ToastAction } from "@opencode/ui/toast"
-import { createMemo, mapArray, onCleanup } from "solid-js"
-import { Command, createKeyed, type SessionRef, type Setup } from "../sdk"
+import { createMemo, createSignal, lazy, mapArray, onCleanup, Suspense } from "solid-js"
+import { Command, createKeyed, MenuItem, Panel, type PanelTab, type SessionRef, type Setup } from "../sdk"
 import { commitMessage, desktopLink } from "./git"
 import type definition from "./index"
 
 // Commits from one burst of agent turns go out in one push.
 const PUSH_DELAY_MS = 20_000
 
+const HistoryPane = lazy(() => import("./history"))
+
 // Outcomes worth a word only when the user asked for the commit or push themselves.
-const quiet: readonly VcsSyncOutcome[] = ["committed", "clean", "pushed", "norepo"]
+const quiet: readonly VcsSyncOutcome[] = ["committed", "clean", "pushed", "norepo", "restored"]
 
 // Outcomes whose toast says what to do next.
 const explained: readonly VcsSyncOutcome[] = ["busy", "norepo", "noremote", "detached", "failed"]
@@ -23,10 +26,12 @@ const setup: Setup<typeof definition> = (ctx) => {
   const pushes = new Map<string, ReturnType<typeof setTimeout>>()
   // Problems already reported per workspace in this window, so the same one does not toast after every turn.
   const told = new Set<string>()
+  // Bumped after each commit or restore, so an open history shows the new version.
+  const [revision, setRevision] = createSignal(0)
   onCleanup(() => pushes.forEach((timer) => clearTimeout(timer)))
 
   // The server runs git itself, without a shell, with the user's own git configuration and stored credentials.
-  const run = (session: SessionRef, operation: "commit" | "push", message = "") => {
+  const run = (session: SessionRef, operation: "commit" | "push" | "restore", value = "") => {
     const directory = session.location?.directory
 
     if (!directory) return Promise.resolve<VcsSyncOutcome>("failed")
@@ -35,11 +40,13 @@ const setup: Setup<typeof definition> = (ctx) => {
     const previous = queues.get(directory) ?? Promise.resolve()
 
     const next = previous
-      .then(() =>
-        operation === "commit"
-          ? client.vcs.commit({ location, message }, { signal: ctx.signal })
-          : client.vcs.push({ location }, { signal: ctx.signal }),
-      )
+      .then(() => {
+        if (operation === "commit") return client.vcs.commit({ location, message: value }, { signal: ctx.signal })
+
+        if (operation === "restore") return client.vcs.restore({ location, hash: value }, { signal: ctx.signal })
+
+        return client.vcs.push({ location }, { signal: ctx.signal })
+      })
       .then((response): VcsSyncOutcome => response.data.outcome)
       .catch((): VcsSyncOutcome => "failed")
 
@@ -98,7 +105,22 @@ const setup: Setup<typeof definition> = (ctx) => {
 
     tell(session, outcome, asked)
 
+    if (outcome === "committed") setRevision((value) => value + 1)
+
     if (outcome === "committed" && prefs.value.push) schedulePush(session)
+  }
+
+  // A restore is a new commit on top, so it pushes like any other: GitHub gets it without a force push.
+  const restore = async (session: SessionRef, hash: string) => {
+    const outcome = await run(session, "restore", hash)
+
+    tell(session, outcome, true)
+
+    if (outcome === "restored") setRevision((value) => value + 1)
+
+    if (outcome === "restored" && prefs.value.push) void push(session, false)
+
+    return outcome
   }
 
   // The user's latest prompt names the work the agent just did.
@@ -187,6 +209,52 @@ const setup: Setup<typeof definition> = (ctx) => {
         }),
     }),
   )
+
+  // Beside Code and Preview: every version the agent made, each one click from coming back.
+  const historyTab: PanelTab = {
+    id: "history",
+    get title() {
+      return ctx.t("history.title")
+    },
+    pinned: true,
+    label: () => (
+      <div class="flex items-center gap-1.5">
+        <Icon name="outline-undo" size="small" />
+        <span class="truncate">{ctx.t("history.title")}</span>
+      </div>
+    ),
+  }
+
+  ctx.add(Panel, {
+    id: "history",
+    region: "side",
+    list: () => [historyTab],
+    render: (props) => (
+      <Suspense>
+        <HistoryPane
+          session={props.session}
+          revision={revision()}
+          restore={(hash) => restore(props.session, hash)}
+          open={(url) => ctx.system.openExternal(url)}
+        />
+      </Suspense>
+    ),
+  })
+
+  ctx.add(MenuItem, {
+    menu: "session.panel",
+    id: "history",
+    get title() {
+      return ctx.t("history.title")
+    },
+    icon: "outline-undo",
+    order: 16,
+    run() {
+      const session = routed()
+
+      if (session) ctx.layout.open("history", session)
+    },
+  })
 }
 
 export default setup

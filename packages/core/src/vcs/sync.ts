@@ -3,7 +3,7 @@ export * as VcsSync from "./sync.js"
 import path from "path"
 import { Context, Duration, Effect, Layer } from "effect"
 import { ChildProcess } from "effect/process"
-import type { SyncResult } from "@opencode/schema/vcs"
+import type { History, SyncResult, Version } from "@opencode/schema/vcs"
 import { makeLocationNode } from "@opencode/util/effect/app-node"
 import { FSUtil } from "@opencode/util/fs-util"
 import { AppProcess } from "@opencode/util/process"
@@ -28,6 +28,8 @@ const noPrompt = {
 
 const PUSH_TIMEOUT = Duration.minutes(2)
 
+const HISTORY_LIMIT = 100
+
 /**
  * Commits and pushes the location's working copy with the user's own git, as a person would from a terminal. Runs git
  * directly, without a shell, so it behaves the same on macOS, Linux and Windows.
@@ -37,6 +39,13 @@ export interface Interface {
   readonly commit: (message: string) => Effect.Effect<SyncResult>
   /** Pushes the current branch to `origin`, setting its upstream the first time. */
   readonly push: () => Effect.Effect<SyncResult>
+  /** The current branch's latest commits, newest first, and the repository's web page. */
+  readonly history: () => Effect.Effect<History>
+  /**
+   * Makes the files match the commit `hash` again, as a new commit on top, so the history and any pushed branch only
+   * move forward. Unsaved changes are committed first, so nothing is lost.
+   */
+  readonly restore: (hash: string) => Effect.Effect<SyncResult>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/VcsSync") {}
@@ -106,6 +115,64 @@ const layer = Layer.effect(
 
         return pushed.ok ? { outcome: "pushed" } : failed(pushed.err)
       }),
+      history: Effect.fn("VcsSync.history")(function* () {
+        const log = yield* git(["log", "-n", String(HISTORY_LIMIT), "--format=%H%x1f%s%x1f%ct%x1f%an%x1e"])
+        const versions = log.ok
+          ? log.out
+              .split("\x1e")
+              .map((record) => record.trim().split("\x1f"))
+              .flatMap(([hash, subject, time, author]): Version[] =>
+                hash && time ? [{ hash, subject: subject ?? "", time: Number(time) * 1000, author: author ?? "" }] : [],
+              )
+          : []
+        const remote = yield* git(["remote", "get-url", "origin"])
+        const web = remote.ok ? webPage(remote.out) : undefined
+
+        return web ? { versions, web } : { versions }
+      }),
+      restore: Effect.fn("VcsSync.restore")(function* (hash: string) {
+        const reason = yield* blocked()
+
+        if (reason) return { outcome: reason }
+        const target = yield* git(["rev-parse", "--verify", "-q", `${hash}^{commit}`])
+
+        if (!target.ok) return failed(`Unknown version ${hash}`)
+        const subject = (yield* git(["log", "-1", "--format=%s", target.out])).out
+        const saved = yield* git(["add", "-A", "--", ".", ...secrets])
+
+        if (!saved.ok) return failed(saved.err)
+
+        if (!(yield* git(["diff", "--cached", "--quiet"])).ok) {
+          const kept = yield* git(["commit", "-q", "-m", "Save changes before restoring a version"])
+
+          if (!kept.ok) return failed(kept.err || kept.out)
+        }
+
+        // Files the version did not have are removed; untracked and ignored files, such as dependencies, stay.
+        const restored = yield* git([
+          "restore",
+          `--source=${target.out}`,
+          "--staged",
+          "--worktree",
+          "--",
+          ".",
+          ...secrets,
+        ])
+
+        if (!restored.ok) return failed(restored.err)
+
+        if ((yield* git(["diff", "--cached", "--quiet"])).ok) return { outcome: "clean" }
+        const committed = yield* git([
+          "commit",
+          "-q",
+          "-m",
+          `Restore "${subject}"`.slice(0, 200),
+          "-m",
+          `Restores the files to ${target.out.slice(0, 7)}.`,
+        ])
+
+        return committed.ok ? { outcome: "restored" } : failed(committed.err || committed.out)
+      }),
     })
   }),
 )
@@ -115,3 +182,13 @@ export const node = makeLocationNode({
   layer,
   deps: [Location.node, AppProcess.node, FSUtil.node],
 })
+
+/** The repository's page for a GitHub, GitLab or Bitbucket remote, in any of git's URL forms. */
+export function webPage(remote: string) {
+  const match =
+    /^(?:https?:\/\/(?:[^@/]+@)?|ssh:\/\/(?:[^@/]+@)?|[^@/]+@)(github\.com|gitlab\.com|bitbucket\.org)[:/](.+?)(?:\.git)?\/?$/.exec(
+      remote.trim(),
+    )
+
+  return match ? `https://${match[1]}/${match[2]}` : undefined
+}

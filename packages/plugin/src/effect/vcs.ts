@@ -35,7 +35,7 @@ export interface VcsDefinition {
 }
 
 // Committing and pushing the user's working copy belongs to the app, not to plugins.
-export interface VcsDomain extends Omit<VcsApi<unknown>, "init" | "commit" | "push"> {
+export interface VcsDomain extends Omit<VcsApi<unknown>, "init" | "commit" | "push" | "history" | "restore"> {
   readonly transform: Transform<VcsEditor>
   readonly reload: () => Effect.Effect<void>
 }

@@ -1,4 +1,5 @@
 import { batch, createRoot, createSignal, getOwner, onCleanup } from "solid-js"
+import type { PageIssue } from "./issues"
 import { createStore, reconcile } from "solid-js/store"
 import { makeEventListener } from "@solid-primitives/event-listener"
 import type { Browser } from "@opencode/plugin-browser/rpc"
@@ -50,7 +51,7 @@ type ModelState = {
 }
 
 /** A page's icon as a data URL, and its zoom factor, 1 at 100%. */
-type PageDetail = { icon?: string; zoom: number }
+type PageDetail = { icon?: string; zoom: number; issue?: PageIssue }
 
 /** A mounted pane; the newest one answers the reload and inspect commands. */
 type PaneHandle = {
@@ -200,10 +201,12 @@ export function createModel(ctx: SetupContext<typeof definition>) {
         preview: (path) => preview(entry, path),
         inspect: (event) => inspectors.get(id)?.forEach((listener) => listener(event)),
         page: (event) => {
-          setState("pages", id, (pages) => ({
-            ...pages,
-            [event.tabID]: event.icon ? { icon: event.icon, zoom: event.zoom } : { zoom: event.zoom },
-          }))
+          const detail: PageDetail = { zoom: event.zoom }
+
+          if (event.icon) detail.icon = event.icon
+
+          if (event.issue) detail.issue = event.issue
+          setState("pages", id, (pages) => ({ ...pages, [event.tabID]: detail }))
           const url = tab({ key: id }, event.tabID)?.url
           const visits = url && event.icon ? withIcon(history.value.visits, url, event.icon) : undefined
 

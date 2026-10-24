@@ -304,7 +304,18 @@ export type VcsFileStatus = {
 
 export type VcsBranchList = Array<string>
 
-export type VcsSyncOutcome = "committed" | "pushed" | "clean" | "busy" | "norepo" | "noremote" | "detached" | "failed"
+export type VcsSyncOutcome =
+  | "committed"
+  | "pushed"
+  | "restored"
+  | "clean"
+  | "busy"
+  | "norepo"
+  | "noremote"
+  | "detached"
+  | "failed"
+
+export type VcsVersion = { hash: string; subject: string; time: number; author: string }
 
 export type WebSearchID = string
 
@@ -866,6 +877,8 @@ export type FormAnswer1 = { [x: string]: FormValue1 }
 export type VcsInfo = { provider?: string; branch: VcsBranch }
 
 export type VcsSyncResult = { outcome: VcsSyncOutcome; detail?: string }
+
+export type VcsHistory = { versions: Array<VcsVersion>; web?: string }
 
 export type WebSearchProvider = { id: WebSearchID; name: string }
 
@@ -6035,6 +6048,19 @@ export type VcsPushInput = {
 }
 
 export type VcsPushOutput = { location: LocationPublicRef; data: VcsSyncResult }
+
+export type VcsHistoryInput = {
+  readonly location?: { readonly location?: { readonly directory?: string | undefined } | undefined }["location"]
+}
+
+export type VcsHistoryOutput = { location: LocationPublicRef; data: VcsHistory }
+
+export type VcsRestoreInput = {
+  readonly location?: { readonly location?: { readonly directory?: string | undefined } | undefined }["location"]
+  readonly hash: { readonly hash: string }["hash"]
+}
+
+export type VcsRestoreOutput = { location: LocationPublicRef; data: VcsSyncResult }
 
 export type DebugHeapDumpInput = { readonly directory?: { readonly directory?: string | undefined }["directory"] }
 

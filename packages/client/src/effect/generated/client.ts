@@ -270,6 +270,10 @@ import type {
   VcsCommitOutput,
   VcsPushInput,
   VcsPushOutput,
+  VcsHistoryInput,
+  VcsHistoryOutput,
+  VcsRestoreInput,
+  VcsRestoreOutput,
   DebugHeapDumpInput,
   DebugHeapDumpOutput,
   DebugLocationListOutput,
@@ -1633,6 +1637,18 @@ const EndpointVcsPush = (raw: RawClient["server.vcs"]) => (input?: VcsPushInput)
     raw["vcs.push"]({ query: { location: input?.["location"] } }).pipe(Effect.mapError(mapClientError)),
   )
 
+const EndpointVcsHistory = (raw: RawClient["server.vcs"]) => (input?: VcsHistoryInput) =>
+  preserveEffect<VcsHistoryOutput>()(
+    raw["vcs.history"]({ query: { location: input?.["location"] } }).pipe(Effect.mapError(mapClientError)),
+  )
+
+const EndpointVcsRestore = (raw: RawClient["server.vcs"]) => (input: VcsRestoreInput) =>
+  preserveEffect<VcsRestoreOutput>()(
+    raw["vcs.restore"]({ query: { location: input["location"] }, payload: { hash: input["hash"] } }).pipe(
+      Effect.mapError(mapClientError),
+    ),
+  )
+
 const adaptGroupVcs = (raw: RawClient["server.vcs"]) => ({
   init: EndpointVcsInit(raw),
   get: EndpointVcsGet(raw),
@@ -1642,6 +1658,8 @@ const adaptGroupVcs = (raw: RawClient["server.vcs"]) => ({
   diff: EndpointVcsDiff(raw),
   commit: EndpointVcsCommit(raw),
   push: EndpointVcsPush(raw),
+  history: EndpointVcsHistory(raw),
+  restore: EndpointVcsRestore(raw),
 })
 
 const EndpointDebugHeapDump = (raw: RawClient["server.debug"]) => (input?: DebugHeapDumpInput) =>

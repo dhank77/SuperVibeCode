@@ -19,3 +19,14 @@ export function commitMessage(prompt: string | undefined, fallback: string) {
 export function desktopLink(directory: string) {
   return `x-github-client://openLocalRepo/${encodeURIComponent(directory)}`
 }
+
+/** A commit's page on the repository's host: GitHub, GitLab or Bitbucket. */
+export function commitPage(repository: string, hash: string) {
+  const host = new URL(repository).hostname
+
+  if (host === "gitlab.com") return `${repository}/-/commit/${hash}`
+
+  if (host === "bitbucket.org") return `${repository}/commits/${hash}`
+
+  return `${repository}/commit/${hash}`
+}

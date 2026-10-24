@@ -24,4 +24,16 @@ export default {
   "failed.description":
     "Your work is safe on this computer. Push from GitHub Desktop, or sign git in once (for example with gh auth login).",
   "action.desktop": "Open GitHub Desktop",
+  "restored.title": "Version restored",
+  "history.title": "History",
+  "history.hint": "Every agent turn is a version. Restoring one adds a new commit, so nothing is lost.",
+  "history.repository": "Open on GitHub",
+  "history.view": "View",
+  "history.current": "Current",
+  "history.restore": "Restore",
+  "history.restoring": "Restoring…",
+  "history.confirm": "Restore this version",
+  "history.cancel": "Cancel",
+  "history.loading": "Loading versions…",
+  "history.empty": "No versions yet. They appear after the agent changes files in a git repository.",
 }

@@ -3,6 +3,7 @@ import electron, { type BrowserWindow, type WebContents } from "electron"
 import type { Protocol } from "devtools-protocol"
 import { Schema } from "effect"
 import type { Embeds } from "../sdk/main"
+import { createIssues, type PageIssue } from "./issues"
 import { createCdp, abortError, waitFor } from "./cdp"
 import { createBrowserFiles } from "./files"
 import { createDiagnostics } from "./diagnostics"
@@ -87,8 +88,8 @@ const inspectOff = { mode: "none", highlightConfig: inspectHighlight }
 // Chromium's zoom presets, so a step lands where it would in the system browser.
 const zoomSteps = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5]
 
-/** A page's icon as a data URL, and its zoom factor, 1 at 100%. */
-export type PageDetail = { icon?: string; zoom: number }
+/** A page's icon as a data URL, its zoom factor (1 at 100%), and what is wrong with it, if anything. */
+export type PageDetail = { icon?: string; zoom: number; issue?: PageIssue }
 
 /** The computer's light or dark appearance, which pages see as prefers-color-scheme. */
 export type Scheme = "light" | "dark"
@@ -241,7 +242,10 @@ export function createBrowserPage(
     const next: PageDetail = { zoom: Math.min(5, Math.max(0.25, contents.getZoomFactor())) }
 
     if (icon) next.icon = icon
-    const key = `${next.zoom}:${next.icon ?? ""}`
+    const issue = issues.current()
+
+    if (issue) next.issue = issue
+    const key = `${next.zoom}:${next.icon ?? ""}:${issue?.kind ?? ""}:${issue?.message ?? ""}`
 
     if (key === reported) return
     reported = key
@@ -257,6 +261,7 @@ export function createBrowserPage(
     })
   })
   const cdp = createCdp(contents)
+  const issues = createIssues(cdp, () => detail())
   const documents = new Map<string, string>()
   const sourceURLs = () => [...new Set([contents.getURL(), ...documents.values()])].sort()
   const files = createBrowserFiles(sourceURLs)
@@ -341,6 +346,7 @@ export function createBrowserPage(
     // The server-network proxy answers an unreachable HTTP target with an empty 502. Other
     // error statuses are real documents from the user's server and stay visible.
     if (status === 502) failure = { url, message: `${status} ${statusText}`.trim().slice(0, 2_048) }
+    issues.navigated(url, status, statusText)
 
     // Another site's icon arrives with its document; the same site keeps its icon meanwhile, as tabs do. Files and blank
     // pages have no shared origin, so each keeps none.
@@ -559,6 +565,7 @@ export function createBrowserPage(
           }),
         ]),
     diagnostics.enable(),
+    issues.enable(),
     cdp.send("Page.enable"),
     cdp.send("DOM.enable"),
     cdp.send("Target.setAutoAttach", {

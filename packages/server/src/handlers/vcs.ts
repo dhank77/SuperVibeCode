@@ -105,6 +105,22 @@ export const VcsHandler = HttpApiBuilder.group(Api, "server.vcs", (handlers) =>
           }),
         ),
       )
+      .handle("vcs.history", () =>
+        response(
+          Effect.gen(function* () {
+            const sync = yield* VcsSync.Service
+            return yield* sync.history()
+          }),
+        ),
+      )
+      .handle("vcs.restore", (ctx) =>
+        response(
+          Effect.gen(function* () {
+            const sync = yield* VcsSync.Service
+            return yield* sync.restore(ctx.payload.hash)
+          }),
+        ),
+      )
       .handle("vcs.diff", (ctx) =>
         response(
           Effect.gen(function* () {

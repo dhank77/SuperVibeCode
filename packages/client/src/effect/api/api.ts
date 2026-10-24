@@ -2271,6 +2271,17 @@ export type VcsPushInput = { readonly location?: { readonly directory?: string |
 export type VcsPushOutput = { readonly location: Location.PublicRef; readonly data: Vcs.SyncResult }
 export type VcsPushOperation<E = never> = (input?: VcsPushInput) => Effect.Effect<VcsPushOutput, E>
 
+export type VcsHistoryInput = { readonly location?: { readonly directory?: string | undefined } | undefined }
+export type VcsHistoryOutput = { readonly location: Location.PublicRef; readonly data: Vcs.History }
+export type VcsHistoryOperation<E = never> = (input?: VcsHistoryInput) => Effect.Effect<VcsHistoryOutput, E>
+
+export type VcsRestoreInput = {
+  readonly location?: { readonly directory?: string | undefined } | undefined
+  readonly hash: string
+}
+export type VcsRestoreOutput = { readonly location: Location.PublicRef; readonly data: Vcs.SyncResult }
+export type VcsRestoreOperation<E = never> = (input: VcsRestoreInput) => Effect.Effect<VcsRestoreOutput, E>
+
 export interface VcsApi<E = never> {
   readonly init: VcsInitOperation<E>
   readonly get: VcsGetOperation<E>
@@ -2280,6 +2291,8 @@ export interface VcsApi<E = never> {
   readonly diff: VcsDiffOperation<E>
   readonly commit: VcsCommitOperation<E>
   readonly push: VcsPushOperation<E>
+  readonly history: VcsHistoryOperation<E>
+  readonly restore: VcsRestoreOperation<E>
 }
 
 export type DebugHeapDumpInput = { readonly directory?: string | undefined }

@@ -41,6 +41,8 @@ type PaneState = {
   dismissed: boolean
   /** Tabs shown at a phone's viewport size, so the page's mobile layout shows. Keyed by tab id. */
   mobile: Record<string, boolean>
+  /** The issue message the user dismissed or already sent to the agent, by tab id, so the bar stays away until another. */
+  handled: Record<string, string | undefined>
   /** The tab whose element picker is on. */
   picking: { sessionKey: string; tabID: Browser.TabID } | undefined
   /** A picked element awaiting its comment. The page stays frozen as a still until it closes. */
@@ -106,6 +108,7 @@ export default function SessionBrowserPane(props: {
     size: { width: 0, height: 0 },
     editorHeight: 0,
     mobile: {},
+    handled: {},
   })
 
   // Finished loads, counted. A submitted address that lands on the URL the page already had (say "example.com" on
@@ -328,6 +331,33 @@ export default function SessionBrowserPane(props: {
   }
 
   const zoomed = () => !!address() && (page()?.zoom ?? 1) !== 1
+
+  const issue = () => {
+    const tab = state()
+    const value = page()?.issue
+
+    if (!tab || !value || failed() || store.handled[tab.id] === value.message) return
+
+    return value
+  }
+
+  // Sends the error to the session as the user's next message, so the agent can fix it without a copy and paste.
+  const fixIssue = () => {
+    const tab = state()
+    const current = issue()
+
+    if (!tab || !current) return
+    setStore("handled", tab.id, current.message)
+    props.session.server.client.session
+      .prompt({
+        sessionID: props.session.id,
+        text: extension.t(`issue.prompt.${current.kind}`, { url: tab.url, message: current.message }),
+      })
+      .catch(() => {
+        setStore("handled", tab.id, undefined)
+        showToast({ variant: "error", title: extension.t("issue.failed") })
+      })
+  }
 
   const zoomPage = (direction: "in" | "out" | "reset") => {
     const tab = state()
@@ -884,6 +914,33 @@ export default function SessionBrowserPane(props: {
         >
           {error()}
         </div>
+      </Show>
+      <Show when={issue()}>
+        {(current) => (
+          <div
+            class="shrink-0 flex items-center gap-2 px-3 py-1.5 border-b border-v2-border-border-muted bg-v2-state-bg-danger"
+            role="alert"
+          >
+            <Icon name="outline-hexagonal-warning" size="small" class="shrink-0 text-v2-state-fg-danger" />
+            <span class="min-w-0 flex-1 truncate text-12-regular text-v2-state-fg-danger" title={current().message}>
+              {extension.t(`issue.${current().kind}`)}: {current().message.split("\n")[0]}
+            </span>
+            <Button size="small" variant="neutral" onClick={fixIssue}>
+              {extension.t("issue.fix")}
+            </Button>
+            <IconButton
+              variant="ghost-muted"
+              size="small"
+              aria-label={extension.t("issue.dismiss")}
+              icon={<Icon name="outline-xmark" size="small" />}
+              onClick={() => {
+                const tab = state()
+
+                if (tab) setStore("handled", tab.id, current().message)
+              }}
+            />
+          </div>
+        )}
       </Show>
       {/* The native page fills the box it is measured from, so a phone-sized box gives the page a phone's viewport. */}
       <div

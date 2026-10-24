@@ -1,6 +1,7 @@
 import { Browser } from "@opencode/plugin-browser/rpc"
 import { Schema } from "effect"
 import { Ipc } from "../sdk"
+import { MAX_ISSUE } from "./issues"
 
 const text = (maximum: number) => Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(maximum))
 
@@ -42,13 +43,19 @@ export const PaneEvent = Schema.Union([
     active: Schema.Boolean,
     element: Schema.optionalKey(PaneElement),
   }),
-  // Details only this desktop shows, kept out of the server's tab state: the page's icon as a data URL, and its zoom
-  // factor, 1 at 100%.
+  // Details only this desktop shows, kept out of the server's tab state: the page's icon as a data URL, its zoom
+  // factor (1 at 100%), and an error the user may want the agent to fix.
   Schema.Struct({
     type: Schema.Literal("page"),
     tabID: Browser.TabID,
     icon: Schema.optionalKey(detail(MAX_ICON_URL).check(Schema.isStartingWith("data:image/"))),
     zoom: Schema.Finite.check(Schema.isBetween({ minimum: 0.25, maximum: 5 })),
+    issue: Schema.optionalKey(
+      Schema.Struct({
+        kind: Schema.Literals(["exception", "overlay", "http"]),
+        message: Schema.String.check(Schema.isMaxLength(MAX_ISSUE)),
+      }),
+    ),
   }),
   // The page asked for the address field, with the platform's address shortcut.
   Schema.Struct({ type: Schema.Literal("address"), tabID: Browser.TabID }),

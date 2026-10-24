@@ -55,4 +55,16 @@ export default {
   "zoom.percent": "{{percent}}%",
   "link.copy": "Copy link",
   "history.clear": "Clear browsing history",
+  "issue.exception": "This page has an error",
+  "issue.overlay": "The dev server reports an error",
+  "issue.http": "The server returned an error",
+  "issue.fix": "Fix with AI",
+  "issue.dismiss": "Dismiss",
+  "issue.failed": "Couldn't send the error to the agent",
+  "issue.prompt.exception":
+    "The page at {{url}} throws this error in the preview. Find the cause and fix it, then reload the page and check that the error is gone.\n\n```\n{{message}}\n```",
+  "issue.prompt.overlay":
+    "The dev server shows this error for {{url}} in the preview. Find the cause and fix it, then check that the page loads again.\n\n```\n{{message}}\n```",
+  "issue.prompt.http":
+    "The server answers {{url}} with an error ({{message}}). Find the cause in the server code or its logs and fix it, then reload the page and check that it works.",
 }

@@ -153,6 +153,37 @@ export const VcsGroup = HttpApiGroup.make("server.vcs")
         }),
       ),
   )
+  .add(
+    HttpApiEndpoint.get("vcs.history", "/api/vcs/history", {
+      query: LocationQuery,
+      success: Location.response(Vcs.History),
+    })
+      .annotateMerge(locationQueryOpenApi)
+      .annotateMerge(
+        OpenApi.annotations({
+          identifier: "vcs.history",
+          summary: "List versions",
+          description:
+            "The current branch's latest commits, newest first, and the repository's web page when origin is a GitHub, GitLab or Bitbucket remote.",
+        }),
+      ),
+  )
+  .add(
+    HttpApiEndpoint.post("vcs.restore", "/api/vcs/restore", {
+      query: LocationQuery,
+      payload: Vcs.RestoreInput,
+      success: Location.response(Vcs.SyncResult),
+    })
+      .annotateMerge(locationQueryOpenApi)
+      .annotateMerge(
+        OpenApi.annotations({
+          identifier: "vcs.restore",
+          summary: "Restore a version",
+          description:
+            "Make the working copy's files match a commit again, as a new commit on top of the current branch. Unsaved changes are committed first; environment files, private keys, untracked and ignored files are left alone.",
+        }),
+      ),
+  )
   .annotateMerge(
     OpenApi.annotations({
       title: "vcs",
