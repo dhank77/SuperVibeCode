@@ -41,7 +41,7 @@ export default function HistoryPane(props: {
   }
 
   const message = (text: string) => (
-    <div class="flex flex-1 items-center justify-center px-6 text-center text-13-regular text-v2-text-text-subtle">
+    <div class="flex flex-1 items-center justify-center px-6 text-center text-13-regular text-v2-text-text-faint">
       {text}
     </div>
   )
@@ -68,7 +68,7 @@ export default function HistoryPane(props: {
           <ol class="min-h-0 flex-1 overflow-y-auto py-1">
             <For each={current().versions}>
               {(version, index) => (
-                <li class="group flex items-start gap-3 px-3 py-2 hover:bg-v2-background-bg-subtle">
+                <li class="group flex items-start gap-3 px-3 py-2 hover:bg-v2-overlay-simple-overlay-hover">
                   <Icon
                     name={index() === 0 ? "outline-rotate-clockwise" : "outline-undo"}
                     size="small"
@@ -78,7 +78,7 @@ export default function HistoryPane(props: {
                     <span class="text-13-regular text-v2-text-text-base" title={version.subject}>
                       {version.subject || version.hash.slice(0, 7)}
                     </span>
-                    <span class="text-12-regular text-v2-text-text-subtle">
+                    <span class="text-12-regular text-v2-text-text-faint">
                       {date.format(version.time)} · {version.author} · {version.hash.slice(0, 7)}
                     </span>
                   </div>
@@ -97,7 +97,7 @@ export default function HistoryPane(props: {
                     <Show
                       when={index() > 0}
                       fallback={
-                        <span class="px-2 text-12-regular text-v2-text-text-subtle">
+                        <span class="px-2 text-12-regular text-v2-text-text-faint">
                           {extension.t("history.current")}
                         </span>
                       }

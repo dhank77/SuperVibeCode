@@ -19,7 +19,7 @@ export default function CodePane(props: {
   }
 
   const message = (text: string) => (
-    <div class="flex flex-1 items-center justify-center px-6 text-center text-13-regular text-v2-text-text-subtle">
+    <div class="flex flex-1 items-center justify-center px-6 text-center text-13-regular text-v2-text-text-faint">
       {text}
     </div>
   )

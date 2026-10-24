@@ -23,6 +23,7 @@ export function HomeProjects(props: {
       hasUnread={props.projects.project.hasUnread}
       onWheel={props.scroll.viewport.containWheel}
       onChooseProject={props.projects.project.choose}
+      onNewFromTemplate={props.projects.project.fromTemplate}
       onFocusServer={props.projects.server.focus}
       onAuthenticateServer={props.projects.server.authenticate}
       onToggleCollapsed={props.projects.server.toggleCollapsed}

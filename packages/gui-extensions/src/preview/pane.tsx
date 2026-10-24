@@ -18,7 +18,7 @@ export default function PreviewPane(props: { url: string | undefined }) {
       <Show
         when={props.url}
         fallback={
-          <div class="flex flex-1 items-center justify-center px-6 text-center text-13-regular text-v2-text-text-subtle">
+          <div class="flex flex-1 items-center justify-center px-6 text-center text-13-regular text-v2-text-text-faint">
             {extension.t("empty")}
           </div>
         }

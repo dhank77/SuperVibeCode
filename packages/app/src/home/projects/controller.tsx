@@ -16,6 +16,8 @@ import { Persistence } from "@/runtime/persistence/schema"
 import type { HomeController } from "../model"
 import { useGlobal } from "@/runtime/server/runtime"
 import { useRevealProject } from "./reveal"
+import { TemplateDialog, type TemplateChoice } from "./template-dialog"
+import { projectDirectory, projectTemplates } from "./templates"
 
 export const HomeServersSchema = Schema.Struct({
   collapsed: Persistence.record(Persistence.fallback(Schema.Boolean, () => false)),
@@ -54,6 +56,68 @@ export function createHomeProjectsController(home: HomeController) {
     edit(conn, onConnected)
 
     return true
+  }
+
+  // A new project from a template: write its skeleton, open it, and start a session whose message asks the agent to set
+  // it up, ready for the user to add what to build.
+  function fromTemplate(conn: ServerConnection.Any, initial?: TemplateChoice) {
+    const homedir = home.project.homedir()
+
+    const choice = initial ?? {
+      template: "react" as const,
+      name: "my-app",
+      parent: homedir ? projectDirectory(homedir, "SuperVibeCode") : "",
+    }
+
+    void dialog.show(() => (
+      <TemplateDialog
+        initial={choice}
+        onBrowse={(current) =>
+          pickDirectory({
+            server: conn,
+            title: language.t("home.template.folder"),
+            onSelect: (result) => {
+              const folder = Array.isArray(result) ? result[0] : result
+
+              fromTemplate(conn, folder ? { ...current, parent: folder } : current)
+            },
+          })
+        }
+        onCreate={(current) => createFromTemplate(conn, current)}
+      />
+    ))
+  }
+
+  async function createFromTemplate(conn: ServerConnection.Any, choice: TemplateChoice) {
+    const template = projectTemplates.find((item) => item.id === choice.template)
+
+    if (!template) return language.t("common.requestFailed")
+    const api = home.server.context(conn).sdk.api
+    const directory = projectDirectory(choice.parent, choice.name)
+
+    // A folder that already holds files is someone's work: never write a template over it.
+    const existing = await api.file
+      .list({ location: { directory }, path: "." })
+      .then((response) => response.data.length)
+      .catch(() => 0)
+
+    if (existing > 0) return language.t("home.template.exists", { path: directory })
+    const files = Object.entries(template.files(choice.name))
+
+    try {
+      for (const [file, content] of files)
+        await api.file.write({
+          path: projectDirectory(directory, file),
+          payload: new TextEncoder().encode(content),
+        })
+    } catch (cause) {
+      return errorMessage(cause, language.t("common.requestFailed"))
+    }
+
+    home.project.add(conn, [directory])
+    home.project.openProjectNewSession(conn, directory, `${template.setup} ${language.t("home.template.prompt")} `)
+
+    return undefined
   }
 
   function directories(project: LocalProject) {
@@ -156,6 +220,12 @@ export function createHomeProjectsController(home: HomeController) {
       clearNotifications: (conn: ServerConnection.Any, project: LocalProject) => {
         const notification = global.ensureServerCtx(conn).notification
         directories(project).forEach((directory) => notification.project.markViewed(directory))
+      },
+      fromTemplate: (conn: ServerConnection.Any) => {
+        if (authenticate(conn, (next) => fromTemplate(next))) return
+
+        if (home.server.health(conn)?.healthy === false) return
+        fromTemplate(conn)
       },
       choose: (conn: ServerConnection.Any) => {
         if (authenticate(conn, (next) => choose(next))) return
