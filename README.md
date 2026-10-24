@@ -42,6 +42,15 @@ workflow on top.
 - **Automatic git.** Each agent turn that changes files becomes a commit named after your prompt. Commits push to
   your branch with the git login already on your computer, and GitHub Desktop sees them at once. Environment files and
   private keys are never committed.
+- **Start from a template.** **New from template** on the home screen creates a React + Vite, Next.js, Vue, HTML or
+  Laravel project with Tailwind CSS and opens a session ready for you to say what to build.
+- **History and restore.** The **History** tab lists every version the agent made. Restoring one adds a new commit, so
+  it reaches GitHub like any other change and nothing is lost.
+- **Fix with AI.** When the page in the preview shows an error, one click sends it to the agent.
+- **Deploy to Vercel.** **Deploy** in the session header has the agent publish the app with the Vercel CLI, signing in
+  the first time.
+- **Supabase built in.** Turn on `supabase` with **Toggle MCPs** (`Ctrl+;` or `Cmd+;`) and sign in, and the agent can
+  create the database tables, auth and storage your app needs.
 - **Design skills built in.** The agent designs with [Taste Skill](https://github.com/Leonxlnx/taste-skill) instead of
   the generic look AI-made pages tend to have, and four more design skill sets are one `@` away. See
   [Design skills](#design-skills).
@@ -54,7 +63,20 @@ workflow on top.
 
 ## Getting started
 
-SuperVibeCode runs from source for now.
+### Install
+
+Download the installer for your computer from the [latest release](https://github.com/dhank77/SuperVibeCode/releases/latest):
+the `.dmg` for macOS (`arm64` for Apple silicon, `x64` for Intel), the `.exe` for Windows, or the `.AppImage`, `.deb` or
+`.rpm` for Linux. On Windows and Linux the app updates itself from new releases; on macOS, download new
+releases yourself until the app is signed.
+
+The installers are not signed yet, so the first launch needs one extra step:
+
+- **macOS:** open the app once from Finder with right-click → **Open**, then **Open** again. If macOS says the app is
+  damaged, run `xattr -dr com.apple.quarantine /Applications/SuperVibeCode.app` in Terminal.
+- **Windows:** in the SmartScreen prompt, choose **More info** → **Run anyway**.
+
+### Run from source
 
 **Requirements:** [Bun](https://bun.sh) 1.4.4 or newer and [git](https://git-scm.com). Node.js is not required.
 
@@ -105,6 +127,19 @@ when you attach them by typing `@` and the skill's name in the message, so their
 A skill of the same name in your own skills folder replaces the bundled one. To turn the bundled skills off, set
 `SUPERVIBECODE_BUILTIN_SKILLS=0`. Running from source, they load from the `skills/` folder; a compiled build downloads
 them once from this repository. Each skill keeps its original license; see [skills/NOTICE.txt](skills/NOTICE.txt).
+
+## Releasing
+
+Push a version tag and GitHub Actions builds the installers for macOS, Windows and Linux and publishes them as a release:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+You can also run the **supervibecode-release** workflow from the repository's Actions tab with a version number. To sign
+and notarize the macOS app, add the secrets listed at the top of
+[`.github/workflows/supervibecode-release.yml`](.github/workflows/supervibecode-release.yml).
 
 ## Staying up to date with OpenCode
 

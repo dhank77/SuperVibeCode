@@ -49,6 +49,7 @@ const setup: Setup<typeof definition> = (ctx) => {
   const PreviewPane = lazy(() => import("./pane"))
   const CodePane = lazy(() => import("./code"))
   const DevServerButton = lazy(() => import("./header"))
+  const DeployButton = lazy(() => import("./deploy"))
   onCleanup(
     onIdle(() => {
       void PreviewPane.preload()
@@ -371,6 +372,32 @@ const setup: Setup<typeof definition> = (ctx) => {
     }
   })
 
+  // Vercel hosts Node apps; a Laravel app needs a PHP host, so it gets no deploy button.
+  const deployable = (session: SessionRef) => {
+    const next = plan(session)
+
+    return !!next && !next.command.includes("artisan")
+  }
+
+  // The agent deploys with the Vercel CLI, signing in first when needed, and reports the address.
+  const deploy = (session: SessionRef) =>
+    session.server.client.session
+      .prompt({ sessionID: session.id, text: ctx.t("deploy.prompt") })
+      .catch(() => showToast({ variant: "error", title: ctx.t("deploy.failed") }))
+
+  ctx.add(Command, (): Command | undefined => {
+    const session = routed()
+
+    if (!session || !deployable(session)) return undefined
+
+    return {
+      id: "deploy",
+      title: ctx.t("command.deploy"),
+      group: ctx.t("command.category.view"),
+      run: () => void deploy(session),
+    }
+  })
+
   const openCode = (session: SessionRef) => layout.open(`${ctx.id}:code`, session, { tab: "select" })
 
   ctx.add(Command, (): Command | undefined => {
@@ -421,6 +448,18 @@ const setup: Setup<typeof definition> = (ctx) => {
             />
           </Suspense>
         )}
+      </Show>
+    ),
+  })
+
+  ctx.add(Slot, {
+    at: "session.header",
+    order: 31,
+    render: (input) => (
+      <Show when={deployable(input.session)}>
+        <Suspense>
+          <DeployButton onDeploy={() => void deploy(input.session)} />
+        </Suspense>
       </Show>
     ),
   })

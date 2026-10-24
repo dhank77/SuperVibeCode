@@ -17,4 +17,10 @@ export default {
   "start.tooltip": "Start {{command}}",
   "running.label": "Preview",
   "running.tooltip": "{{command}} is running. Show the app.",
+  "command.deploy": "Deploy to Vercel",
+  "deploy.label": "Deploy",
+  "deploy.tooltip": "Put this app online with Vercel",
+  "deploy.failed": "Couldn't ask the agent to deploy",
+  "deploy.prompt":
+    "Deploy this project to Vercel as a production deployment with the Vercel CLI: npx vercel deploy --prod --yes. If the Vercel CLI is not signed in, start npx vercel login in the background, show me the sign-in link it prints as a clickable link, and wait until I have signed in. If the app needs environment variables from .env, add them to the Vercel project with npx vercel env add before deploying, and never put secret keys in client code. When it is done, give me the production URL.",
 }

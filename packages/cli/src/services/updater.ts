@@ -11,6 +11,10 @@ import { RetainedImage } from "./retained-image"
 import { action, parseReleaseVersion, type Policy } from "./updater-action"
 import { errorMessage } from "../util/error"
 
+// SuperVibeCode ships this CLI inside its desktop app, which updates from the fork's own releases. OpenCode's update
+// server would replace it with OpenCode, so the CLI never updates itself.
+const SELF_UPDATE = false
+
 export const methods = ["curl", "npm", "pnpm", "bun", "yarn", "vp", "brew", "winget"] as const
 
 export type Method = (typeof methods)[number]
@@ -531,6 +535,8 @@ const make = Effect.gen(function* () {
   })
 
   const inspect = Effect.fnUntraced(function* () {
+    if (!SELF_UPDATE) return undefined
+
     if (OPENCODE_LOCAL || ["1", "true"].includes(process.env.OPENCODE_DISABLE_AUTOUPDATE?.toLowerCase() ?? "")) {
       yield* Effect.logInfo("update check skipped", {
         reason: OPENCODE_LOCAL ? "local-install" : "disabled",
@@ -583,6 +589,12 @@ const make = Effect.gen(function* () {
   })
 
   const check = Effect.fn("cli.updater.check")(function* () {
+    if (!SELF_UPDATE)
+      return {
+        type: "unavailable" as const,
+        message: "SuperVibeCode updates through its desktop app.",
+      }
+
     if (OPENCODE_LOCAL)
       return {
         type: "unavailable" as const,

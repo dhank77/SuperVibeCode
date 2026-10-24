@@ -22,6 +22,7 @@ import { ConfigImagePlugin } from "../config/plugin/image.js"
 import { ConfigInstructionPlugin } from "../config/plugin/instruction.js"
 import { ConfigLocationWatcherPlugin } from "../config/plugin/location-watcher.js"
 import { ConfigMcpPlugin } from "../config/plugin/mcp.js"
+import { SuperVibeCodeMcpPlugin } from "./supervibecode-mcp.js"
 import { ConfigProviderPlugin } from "../config/plugin/provider.js"
 import { ConfigPolicyPlugin } from "../config/plugin/policy.js"
 import { ConfigReferencePlugin } from "../config/plugin/reference.js"
@@ -221,6 +222,7 @@ const pre = [
   ToolInputRepairPlugin.Plugin,
   ConfigWorktreePlugin.Plugin,
   ConfigMcpPlugin.Plugin,
+  SuperVibeCodeMcpPlugin.Plugin,
   McpCodeModeDefaultsPlugin.Plugin,
   WellKnownPlugin.Plugin,
   VcsGitPlugin.Plugin,

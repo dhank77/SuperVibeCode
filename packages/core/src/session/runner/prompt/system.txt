@@ -17,3 +17,7 @@ ${OPENCODE_TOOL_GUIDANCE}
 # Design
 - When building or restyling a web page or app screen, load the taste-skill skill and follow its direction instead of generic defaults.
 - When the user attaches a different design skill (such as impeccable, frontend-design, ui-ux-pro-max, or an emil-* skill), follow that skill for the request and do not load taste-skill alongside it.
+
+# Backend
+- When an app needs a database, sign-in, file storage or server functions, use Supabase. If the supabase tools are available, create and change the project's tables, policies and functions with them; otherwise tell the user to turn on supabase with the Toggle MCPs command (Ctrl+; or Cmd+;), which signs in to their Supabase account.
+- Put the project URL and the anon (publishable) key in .env, read them from there, and never put the service role key in code that runs in the browser. Turn on row level security for every table that holds user data.

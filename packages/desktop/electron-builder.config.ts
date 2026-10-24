@@ -34,6 +34,9 @@ const rpmNoBuildIdLinksFpm = "--rpm-rpmbuild-define=_build_id_links none"
 const metainfoFpm = (appId: string) =>
   `${path.join(packageDir, "resources", `${appId}.metainfo.xml`)}=/usr/share/metainfo/${appId}.metainfo.xml`
 
+// A Developer ID certificate, from a .p12 (CSC_LINK) or a keychain the build imported it into (CSC_KEYCHAIN).
+const appleSigning = !!(process.env.CSC_LINK || process.env.CSC_KEYCHAIN)
+
 async function signWindows(configuration: { path: string }) {
   if (process.platform !== "win32") return
 
@@ -185,7 +188,10 @@ const getBase = (appId: string): Configuration => {
       extendInfo: {
         NSAutoFillRequiresTextContentTypeForOneTimeCodeOnMac: true,
       },
-      hardenedRuntime: true,
+      // Without an Apple Developer certificate the app is ad-hoc signed, which Apple silicon needs to run it at all; macOS
+      // then asks the user to confirm the first launch. Notarizing needs the certificate and an App Store Connect key.
+      identity: appleSigning ? undefined : "-",
+      hardenedRuntime: appleSigning,
       gatekeeperAssess: false,
       entitlements: "resources/entitlements.plist",
       entitlementsInherit: "resources/entitlements.plist",
@@ -193,7 +199,7 @@ const getBase = (appId: string): Configuration => {
         const { sign } = await import("app-builder-lib/out/codeSign/macCodeSign")
         await sign(macSignOptions(options))
       },
-      notarize: true,
+      notarize: appleSigning && !!process.env.APPLE_API_KEY,
       target: ["dmg", "zip"],
     },
     protocols: {
