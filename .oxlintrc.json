@@ -153,6 +153,7 @@
     "**/sdk.gen.ts",
     "packages/plugins/figma/skills/**",
     "skills/**",
+    "landingpage/**",
     ".agent/**",
     ".agents/**",
     ".claude/**",

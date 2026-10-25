@@ -123,21 +123,27 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends rpm
 
-      - name: Import the macOS signing certificate
-        id: mac-signing
+      # electron-builder treats an empty CSC_LINK as a path and fails, so signing variables are only set when the
+      # secrets exist. Without them the Mac app is ad-hoc signed and not notarized.
+      - name: Set up macOS signing
         if: runner.os == 'macOS'
         shell: bash
         env:
           MAC_CERTIFICATE: ${{ secrets.MAC_CERTIFICATE }}
+          MAC_CERTIFICATE_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
           APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
-          if [ -n "$MAC_CERTIFICATE" ]; then
-            echo "$MAC_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
-            echo "csc-link=$RUNNER_TEMP/certificate.p12" >> "$GITHUB_OUTPUT"
-          fi
-          if [ -n "$MAC_CERTIFICATE" ] && [ -n "$APPLE_API_KEY_BASE64" ]; then
+          if [ -z "$MAC_CERTIFICATE" ]; then exit 0; fi
+          echo "$MAC_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          echo "CSC_LINK=$RUNNER_TEMP/certificate.p12" >> "$GITHUB_ENV"
+          echo "CSC_KEY_PASSWORD=$MAC_CERTIFICATE_PASSWORD" >> "$GITHUB_ENV"
+          if [ -n "$APPLE_API_KEY_BASE64" ]; then
             echo "$APPLE_API_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/apple-api-key.p8"
-            echo "api-key=$RUNNER_TEMP/apple-api-key.p8" >> "$GITHUB_OUTPUT"
+            echo "APPLE_API_KEY=$RUNNER_TEMP/apple-api-key.p8" >> "$GITHUB_ENV"
+            echo "APPLE_API_KEY_ID=$APPLE_API_KEY_ID" >> "$GITHUB_ENV"
+            echo "APPLE_API_ISSUER=$APPLE_API_ISSUER" >> "$GITHUB_ENV"
           fi
 
       - name: Prepare
@@ -154,12 +160,6 @@ jobs:
         run: npx electron-builder ${{ matrix.settings.flags }} --publish never --config electron-builder.config.ts
         working-directory: packages/desktop
         timeout-minutes: 45
-        env:
-          CSC_LINK: ${{ steps.mac-signing.outputs.csc-link }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
-          APPLE_API_KEY: ${{ steps.mac-signing.outputs.api-key }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

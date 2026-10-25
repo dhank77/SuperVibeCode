@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SuperVibeCode: describe an app, watch it run</title>
+    <meta
+      name="description"
+      content="SuperVibeCode is a free desktop app for building apps by talking to an AI agent. Your app runs live beside the chat, on your own computer, with your own models and git."
+    />
+    <meta property="og:title" content="SuperVibeCode" />
+    <meta property="og:description" content="Describe an app. Watch it run beside the chat, on your own computer." />
+    <meta property="og:image" content="assets/screenshot-preview.webp" />
+    <meta name="theme-color" content="#1f2335" />
+    <link rel="icon" type="image/png" href="assets/supervibecode-icon.png" />
+    <link
+      rel="preload"
+      href="assets/fonts/schibsted-grotesk-latin-wght-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="nav">
+      <a class="brand" href="#top" aria-label="SuperVibeCode home">
+        <img src="assets/supervibecode-icon.png" alt="" width="32" height="32" />
+        <img
+          class="wordmark"
+          src="assets/supervibecode-wordmark-dark.svg"
+          alt="SuperVibeCode"
+          width="183"
+          height="21"
+        />
+      </a>
+      <nav aria-label="Sections">
+        <a href="#how">How it works</a>
+        <a href="#yours">Why local</a>
+        <a href="#start">Templates</a>
+        <a href="#download">Download</a>
+        <a class="nav-github" data-repo-link href="https://github.com/dhank77/SuperVibeCode">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="hero-copy">
+          <h1>Describe the app.<br />Watch it run.</h1>
+          <p class="lede">
+            SuperVibeCode is a desktop app where you build apps by talking to an AI agent. It writes the code, starts
+            the dev server, and shows your app live beside the chat. On your computer, with your models and your git.
+          </p>
+          <div class="cta">
+            <a class="button primary" id="download-primary" href="#download">Download</a>
+            <a class="button" data-repo-link href="https://github.com/dhank77/SuperVibeCode">Source on GitHub</a>
+          </div>
+          <p class="fine">Free and open source. macOS, Windows and Linux.</p>
+        </div>
+
+        <figure class="demo" aria-label="SuperVibeCode building an app from a prompt">
+          <div class="window">
+            <div class="window-bar">
+              <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="window-title" id="demo-title">kopi-senja</span>
+              <span class="status" id="demo-status">Idle</span>
+            </div>
+            <div class="window-body">
+              <div class="chat">
+                <p class="prompt" id="demo-prompt" aria-live="polite"></p>
+                <ol class="log" id="demo-log" aria-live="polite"></ol>
+                <div class="choices" role="group" aria-label="Try another prompt">
+                  <button type="button" class="choice" data-scene="coffee" aria-pressed="true">Coffee shop</button>
+                  <button type="button" class="choice" data-scene="portfolio" aria-pressed="false">Portfolio</button>
+                  <button type="button" class="choice" data-scene="tasks" aria-pressed="false">Task app</button>
+                </div>
+              </div>
+              <div class="preview">
+                <div class="address" aria-hidden="true"><span id="demo-url">about:blank</span></div>
+                <div class="screen" id="demo-screen">
+                  <p class="waiting">The app appears here when its dev server starts.</p>
+                  <div class="pixels" id="demo-pixels" aria-hidden="true"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption>Pick a prompt to watch the agent build it again.</figcaption>
+        </figure>
+      </section>
+
+      <section class="how" id="how" aria-labelledby="how-title">
+        <h2 id="how-title">What happens after you press Enter</h2>
+        <ol class="steps">
+          <li>
+            <h3>You describe it</h3>
+            <p>
+              Write what you want in plain words, in any language. Attach a screenshot if you have a design in mind.
+            </p>
+          </li>
+          <li>
+            <h3>The agent builds it</h3>
+            <p>It writes the code, installs dependencies and starts the dev server itself. No commands to copy.</p>
+          </li>
+          <li>
+            <h3>It runs beside the chat</h3>
+            <p>
+              The app opens in the preview as soon as the server is up. Click any element to ask for a change to it, or
+              switch to the phone view.
+            </p>
+          </li>
+          <li>
+            <h3>Every turn is saved</h3>
+            <p>
+              Each change becomes a git commit named after your request and pushes to GitHub. Restore any earlier
+              version in one click.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="showcase" aria-labelledby="showcase-title">
+        <div class="showcase-head">
+          <h2 id="showcase-title">The real app</h2>
+          <div class="tabs" role="tablist" aria-label="Screens">
+            <button
+              type="button"
+              role="tab"
+              id="tab-preview"
+              aria-controls="shot"
+              aria-selected="true"
+              data-shot="preview"
+            >
+              Live preview
+            </button>
+            <button type="button" role="tab" id="tab-code" aria-controls="shot" aria-selected="false" data-shot="code">
+              Code
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-mobile"
+              aria-controls="shot"
+              aria-selected="false"
+              data-shot="mobile"
+            >
+              Phone view
+            </button>
+          </div>
+        </div>
+        <figure class="shot" id="shot" role="tabpanel" aria-labelledby="tab-preview">
+          <img
+            id="shot-image"
+            src="assets/screenshot-preview.webp"
+            alt="A coffee shop site running in the preview beside the conversation"
+            width="1440"
+            height="860"
+            loading="lazy"
+          />
+          <figcaption id="shot-caption">
+            The app the agent built runs beside the conversation, at its real address.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="yours" id="yours" aria-labelledby="yours-title">
+        <h2 id="yours-title">Yours, from the files to the git history</h2>
+        <dl class="facts">
+          <div>
+            <dt>Your computer</dt>
+            <dd>Projects are ordinary folders on your disk. Open them in any editor, any time.</dd>
+          </div>
+          <div>
+            <dt>Your models</dt>
+            <dd>
+              Use Claude, GPT, Gemini, OpenRouter, or a local model. Bring the key or subscription you already have.
+            </dd>
+          </div>
+          <div>
+            <dt>Your git</dt>
+            <dd>Commits push with the git login on your computer, so GitHub Desktop sees every change.</dd>
+          </div>
+          <div>
+            <dt>Your code</dt>
+            <dd>MIT licensed, built on OpenCode. Read it, change it, ship it.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="start" id="start" aria-labelledby="start-title">
+        <h2 id="start-title">Start from a template, or from nothing</h2>
+        <p class="section-lede">
+          New from template creates the project and opens a session ready for your first request. Tailwind CSS is set up
+          in all of them.
+        </p>
+        <ul class="templates">
+          <li><b>React</b><span>with Vite and TypeScript</span></li>
+          <li><b>Next.js</b><span>with the App Router</span></li>
+          <li><b>Vue</b><span>with Vite and TypeScript</span></li>
+          <li><b>HTML</b><span>for landing pages</span></li>
+          <li><b>Laravel</b><span>with Composer</span></li>
+        </ul>
+
+        <div class="taste">
+          <h3>Designs that don't look generated</h3>
+          <p>
+            The agent designs with <a href="https://github.com/Leonxlnx/taste-skill">Taste Skill</a> built in. Type
+            <code>@impeccable</code> for a design audit, <code>@ui-ux-pro-max</code> for palettes and font pairings, or
+            <code>@emil-animate</code> for motion. When the preview shows an error, Fix with AI sends it to the agent.
+            Deploy publishes to Vercel, and Supabase connects a database with one sign-in.
+          </p>
+        </div>
+      </section>
+
+      <section class="download" id="download" aria-labelledby="download-title">
+        <h2 id="download-title">Download SuperVibeCode</h2>
+        <div class="platforms">
+          <div class="platform" data-os="mac">
+            <h3>macOS</h3>
+            <a class="button primary" data-file="supervibecode-desktop-mac-arm64.dmg" href="#">Apple silicon</a>
+            <a class="button" data-file="supervibecode-desktop-mac-x64.dmg" href="#">Intel</a>
+            <p>First launch: right-click the app, choose Open, then Open again.</p>
+          </div>
+          <div class="platform" data-os="windows">
+            <h3>Windows</h3>
+            <a class="button primary" data-file="supervibecode-desktop-win-x64.exe" href="#">Installer</a>
+            <p>If SmartScreen appears, choose More info, then Run anyway.</p>
+          </div>
+          <div class="platform" data-os="linux">
+            <h3>Linux</h3>
+            <a class="button primary" data-file="supervibecode-desktop-linux-x86_64.AppImage" href="#">AppImage</a>
+            <a class="button" data-file="supervibecode-desktop-linux-amd64.deb" href="#">.deb</a>
+            <a class="button" data-file="supervibecode-desktop-linux-x86_64.rpm" href="#">.rpm</a>
+          </div>
+        </div>
+        <p class="fine">
+          Every version is on the
+          <a data-repo-link data-path="/releases" href="https://github.com/dhank77/SuperVibeCode/releases"
+            >releases page</a
+          >. Prefer to run from source? Clone the repository and run <code>bun install</code>, then
+          <code>bun run dev:desktop</code>.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <img class="wordmark" src="assets/supervibecode-wordmark-dark.svg" alt="SuperVibeCode" width="183" height="21" />
+      <p>
+        Built on <a href="https://github.com/anomalyco/opencode">OpenCode</a> by Anomaly Innovations and its
+        contributors. SuperVibeCode is an independent project, not affiliated with or endorsed by the OpenCode team.
+        Released under the MIT License.
+      </p>
+    </footer>
+
+    <script src="main.js" defer></script>
+  </body>
+</html>
