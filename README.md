@@ -73,7 +73,8 @@ releases yourself until the app is signed.
 The installers are not signed yet, so the first launch needs one extra step:
 
 - **macOS:** open the app once from Finder with right-click → **Open**, then **Open** again. If macOS says the app is
-  damaged, run `xattr -dr com.apple.quarantine /Applications/SuperVibeCode.app` in Terminal.
+  damaged, run `xattr -dr com.apple.quarantine /Applications/SuperVibeCode.app` in Terminal once. You only
+  need it again after downloading a new version.
 - **Windows:** in the SmartScreen prompt, choose **More info** → **Run anyway**.
 
 ### Run from source

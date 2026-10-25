@@ -220,7 +220,18 @@
             <h3>macOS</h3>
             <a class="button primary" data-file="supervibecode-desktop-mac-arm64.dmg" href="#">Apple silicon</a>
             <a class="button" data-file="supervibecode-desktop-mac-x64.dmg" href="#">Intel</a>
-            <p>First launch: right-click the app, choose Open, then Open again.</p>
+            <ol class="mac-steps">
+              <li>Open the .dmg and drag SuperVibeCode into Applications.</li>
+              <li>
+                The app isn't signed by Apple yet, so macOS may say it is damaged. Run this once in Terminal, then open
+                the app:
+                <div class="command">
+                  <code id="mac-command">xattr -dr com.apple.quarantine /Applications/SuperVibeCode.app</code>
+                  <button type="button" class="copy" data-copy="mac-command">Copy</button>
+                </div>
+              </li>
+            </ol>
+            <p>You only do this after downloading a new version, not every time you open the app.</p>
           </div>
           <div class="platform" data-os="windows">
             <h3>Windows</h3>

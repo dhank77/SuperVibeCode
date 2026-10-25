@@ -36,6 +36,23 @@ if (os) {
   if (os !== "mac") primary.href = document.querySelector(`.platform[data-os="${os}"] [data-file]`).href
 }
 
+// Copy buttons copy the command beside them and say so.
+document.querySelectorAll("[data-copy]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const text = document.getElementById(button.dataset.copy).textContent
+
+    navigator.clipboard.writeText(text).then(
+      () => {
+        button.textContent = "Copied"
+        setTimeout(() => (button.textContent = "Copy"), 1600)
+      },
+      () => {
+        button.textContent = "Select and copy"
+      },
+    )
+  })
+})
+
 // Screenshots: three real screens of the app behind a tab list.
 const shots = {
   preview: {

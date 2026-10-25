@@ -871,6 +871,57 @@ h1 {
   font-size: 14px;
 }
 
+/* Grid and flex items default to their content's width; the long command must scroll inside, not widen the page. */
+.platform,
+.mac-steps,
+.mac-steps li,
+.command {
+  min-width: 0;
+}
+
+.mac-steps {
+  width: 100%;
+  margin: 6px 0 0;
+  padding-left: 1.2em;
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.mac-steps li + li {
+  margin-top: 8px;
+}
+
+.command {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 8px 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--night-deep);
+}
+
+.command code {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 0;
+  background: none;
+  font-size: 12.5px;
+}
+
+.copy {
+  flex: none;
+  font: 600 13px var(--sans);
+  color: var(--ink-strong);
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
 .platform[data-current] h3::after {
   content: " (this computer)";
   color: var(--muted);
