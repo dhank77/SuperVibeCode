@@ -34,6 +34,11 @@ const rpmNoBuildIdLinksFpm = "--rpm-rpmbuild-define=_build_id_links none"
 const metainfoFpm = (appId: string) =>
   `${path.join(packageDir, "resources", `${appId}.metainfo.xml`)}=/usr/share/metainfo/${appId}.metainfo.xml`
 
+// electron-builder reads an empty CSC_LINK as a certificate path, the current folder, and fails with "not a file".
+// A CI workflow passing an unset secret produces exactly that, so an empty value means no certificate.
+for (const name of ["CSC_LINK", "CSC_KEY_PASSWORD", "WIN_CSC_LINK"])
+  if (process.env[name] === "") delete process.env[name]
+
 // A Developer ID certificate, from a .p12 (CSC_LINK) or a keychain the build imported it into (CSC_KEYCHAIN).
 const appleSigning = !!(process.env.CSC_LINK || process.env.CSC_KEYCHAIN)
 

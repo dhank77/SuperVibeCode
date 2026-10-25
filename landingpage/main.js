@@ -1,5 +1,5 @@
 // The repository whose GitHub releases hold the installers. Change it here if releases move.
-const REPO = "dhank77/SuperVibeCode"
+const REPO = "latjoromhi25d-dotcom/SuperVibeCode"
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
