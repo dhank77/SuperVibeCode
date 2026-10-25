@@ -18,6 +18,8 @@ import { KeyedMutex } from "../effect/keyed-mutex.js"
 import { Location } from "../location.js"
 import { waitForAbort } from "@opencode/util/process"
 import { State } from "../state.js"
+import { McpToggles } from "./toggles.js"
+import { Global } from "@opencode/util/global"
 import type { McpClient } from "./client.js"
 
 export const ServerName = Schema.String.pipe(Schema.brand("MCP.ServerName"))
@@ -179,6 +181,7 @@ export const layer = (options?: Options) =>
       const forms = yield* Form.Service
       const integration = yield* Integration.Service
       const credentials = yield* Credential.Service
+      const toggles = yield* McpToggles.make()
       const root = yield* Effect.scope
       const fork = yield* FiberSet.makeRuntime<never, void, never>()
       // Server scopes close in parallel on shutdown, so one slow server's stop grace does not delay
@@ -658,7 +661,7 @@ export const layer = (options?: Options) =>
       const overrides = new Map<ServerName, Mcp.ServerConfig | false>()
       const reconcileLock = Semaphore.makeUnsafe(1)
       const reconcile = Effect.fnUntraced(function* () {
-        const servers = state.get().servers
+        const servers = toggles.apply(state.get().servers)
         if (!applied && entries.size === 0) {
           for (const [name, server] of servers) {
             entries.set(name, {
@@ -772,6 +775,7 @@ export const layer = (options?: Options) =>
             const target = yield* requireServer(name)
             yield* stopServer(name, target.entry)
             yield* startServer(name, target.entry)
+            yield* toggles.remember(name, true)
           }).pipe(locks.withLock(name))
         }),
         disconnect: Effect.fn("MCP.disconnect")(function* (server) {
@@ -781,6 +785,7 @@ export const layer = (options?: Options) =>
             yield* stopServer(name, target.entry)
             target.entry.status = { status: "disabled" }
             yield* bus.publish(McpEvent.StatusChanged, { server: name })
+            yield* toggles.remember(name, false)
           }).pipe(locks.withLock(name))
         }),
         remove: Effect.fn("MCP.remove")(function* (server) {
@@ -932,7 +937,7 @@ export function configured(options?: Options) {
   return makeLocationNode({
     service: Service,
     layer: layer(options),
-    deps: [Location.node, Environment.node, Bus.node, Form.node, Integration.node, Credential.node],
+    deps: [Location.node, Environment.node, Bus.node, Form.node, Integration.node, Credential.node, Global.node],
   })
 }
 

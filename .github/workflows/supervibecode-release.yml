@@ -11,7 +11,7 @@ name: supervibecode-release
 on:
   push:
     tags:
-      - "v*"
+      - "v[0-9]*"
   workflow_dispatch:
     inputs:
       version:
@@ -26,7 +26,8 @@ permissions:
 
 jobs:
   version:
-    if: github.repository == 'dhank77/SuperVibeCode'
+    # The main repository and the fork that builds its releases; never OpenCode's own repository or other forks.
+    if: contains(fromJSON('["dhank77/SuperVibeCode", "latjoromhi25d-dotcom/SuperVibeCode"]'), github.repository)
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
