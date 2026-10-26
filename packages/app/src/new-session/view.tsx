@@ -21,6 +21,7 @@ import { Persist, persisted } from "@/runtime/persistence/storage"
 import { Persistence } from "@/runtime/persistence/schema"
 import type { NewSessionWorkspaceController } from "./workspace/controller"
 import { NewSessionWordmark } from "./wordmark"
+import { useNewFromTemplate } from "@/home/projects/new-from-template"
 
 const providerTipDismissalDuration = 30 * 24 * 60 * 60 * 1000
 
@@ -67,11 +68,15 @@ export function NewSessionView(props: {
             <div class="mt-8 flex flex-col gap-8">
               <Composer model={props.composer} />
               <Show when={props.project.empty()}>
-                <PromptProjectAddButton controller={props.project} />
+                <div class="flex flex-wrap items-center justify-center gap-1">
+                  <PromptProjectAddButton controller={props.project} />
+                  <NewFromTemplateButton />
+                </div>
               </Show>
               <Show when={props.project.selected()}>
                 <div class="flex min-h-7 min-w-0 flex-row flex-wrap items-center justify-center gap-0 text-v2-text-text-faint">
                   <PromptProjectSelector controller={props.project} placement="bottom" />
+                  <NewFromTemplateButton />
                   <Show
                     when={props.workspace.bar.visible()}
                     fallback={
@@ -241,5 +246,23 @@ function NewSessionTips(props: {
         </div>
       </div>
     </Show>
+  )
+}
+
+/** Starts a new project from a template, beside the project picker so it is there whenever a session starts. */
+function NewFromTemplateButton() {
+  const language = useLanguage()
+  const open = useNewFromTemplate()
+
+  return (
+    <button
+      type="button"
+      data-action="new-from-template"
+      class="flex h-7 min-w-0 items-center gap-1.5 rounded-sm px-2 text-[13px] font-[440] leading-5 tracking-[-0.04px] text-v2-text-text-faint transition-colors hover:bg-v2-overlay-simple-overlay-hover focus-visible:bg-v2-overlay-simple-overlay-hover focus-visible:outline-none"
+      onClick={() => open()}
+    >
+      <Icon name="grid-plus" size="small" class="shrink-0 text-v2-icon-icon-muted" />
+      <span class="min-w-0 truncate leading-5">{language.t("home.template.action")}</span>
+    </button>
   )
 }

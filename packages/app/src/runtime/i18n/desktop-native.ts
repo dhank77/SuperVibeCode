@@ -248,6 +248,7 @@ export const DESKTOP_NATIVE_ENGLISH = {
   "desktop.menu.exportLogs": "Export Logs…",
   "desktop.menu.newSession": "New Session",
   "desktop.menu.openProject": "Open Project…",
+  "desktop.menu.newFromTemplate": "New Project from Template…",
   "desktop.menu.newWindow": "New Window",
   "desktop.menu.closeWindow": "Close Window",
   "desktop.menu.undo": "Undo",

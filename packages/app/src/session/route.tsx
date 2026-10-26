@@ -17,6 +17,7 @@ import { ComposerPersistenceProvider } from "@/composer/persistence"
 import { useData, useServer } from "@/runtime/server/current"
 import { ServerConnection } from "@/runtime/server/registry"
 import { useSettingsCommand } from "@/settings/command"
+import { useNewFromTemplateCommand } from "@/home/projects/new-from-template"
 import { SessionUIProvider } from "@/shell/routes/session-ui-provider"
 import { useTabs, type PendingSession } from "@/shell/tabs/tabs"
 import { requireServerKey } from "@/shell/routes/session"
@@ -96,6 +97,7 @@ function PreparingSession(props: { sessionID: string; pending: PendingSession })
 
 function TargetSessionSettingsCommand() {
   useSettingsCommand()
+  useNewFromTemplateCommand()
 
   return null
 }

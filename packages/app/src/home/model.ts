@@ -75,11 +75,11 @@ export function createHomeController() {
     layout.home.setSelection(next)
   }
 
-  function openProjectNewSession(conn: ServerConnection.Any, directory: string, prompt?: string) {
+  function openProjectNewSession(conn: ServerConnection.Any, directory: string) {
     const ctx = global.ensureServerCtx(conn)
     ctx.projects.open(directory)
     ctx.projects.touch(directory)
-    void tabs.newDraft({ server: ServerConnection.key(conn), directory }, prompt)
+    void tabs.newDraft({ server: ServerConnection.key(conn), directory })
   }
 
   function openProjectSession(conn: ServerConnection.Any, directory: string, session: SessionInfo) {
