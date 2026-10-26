@@ -20,6 +20,12 @@ export default {
   "command.deploy": "Deploy to Vercel",
   "deploy.label": "Deploy",
   "deploy.tooltip": "Put this app online with Vercel",
+  "conflict.title": "{{url}} shows another project",
+  "conflict.description": "It is served by {{command}}, which another session started. Stop it, then start this project's server again.",
+  "conflict.stop": "Stop that server",
+  "conflict.dismiss": "Keep it",
+  "busy.title": "The dev server's port is in use",
+  "busy.description": "{{command}} couldn't start because another server holds its port. Stop that server or ask the agent to use another port.",
   "deploy.failed": "Couldn't ask the agent to deploy",
   "deploy.prompt":
     "Deploy this project to Vercel as a production deployment with the Vercel CLI: npx vercel deploy --prod --yes. If the Vercel CLI is not signed in, start npx vercel login in the background, show me the sign-in link it prints as a clickable link, and wait until I have signed in. If the app needs environment variables from .env, add them to the Vercel project with npx vercel env add before deploying, and never put secret keys in client code. When it is done, give me the production URL.",

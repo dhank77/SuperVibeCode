@@ -14,6 +14,9 @@ ${OPENCODE_TOOL_GUIDANCE}
 - Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.
 - Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.
 
+# Dev servers
+- Serve a plain HTML site with npx --yes serve . (it picks a free port). Never reuse a port another server holds; link the address the server printed.
+
 # Design
 - When building or restyling a web page or app screen, load the taste-skill skill and follow its direction instead of generic defaults.
 - When the user attaches a different design skill (such as impeccable, frontend-design, ui-ux-pro-max, or an emil-* skill), follow that skill for the request and do not load taste-skill alongside it.

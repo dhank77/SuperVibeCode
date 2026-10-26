@@ -43,6 +43,9 @@ const TAIL = 8_192
 // once, so a burst never opens a pile of tabs.
 const SETTLE_MS = 10_000
 
+// A server that could not start because another one holds its port.
+const BUSY = /EADDRINUSE|address already in use/i
+
 const setup: Setup<typeof definition> = (ctx) => {
   const sessions = ctx.sessions
   const layout = ctx.layout
@@ -71,6 +74,49 @@ const setup: Setup<typeof definition> = (ctx) => {
   const announced = new Map<string, Set<string>>()
   // The server last shown per session key, and when.
   const shown = new Map<string, { origin: string | undefined; at: number }>()
+  // The session and shell that announced each server origin, so a session whose address is held by another session's
+  // server (another project still running on that port) is told whose app it would show.
+  const owners = new Map<string, { session: SessionRef; id: string }>()
+
+  const stop = (owner: { session: SessionRef; id: string }) => {
+    const shell = owner.session.server.data.shell.get(owner.id)
+
+    void owner.session.server.client.shell
+      .remove({ id: owner.id, location: shell?.location ?? { directory: owner.session.location?.directory } })
+      .then(() => {
+        for (const [origin, item] of owners) if (item.id === owner.id) owners.delete(origin)
+      })
+      .catch(() => showToast({ variant: "error", title: ctx.t("common.requestFailed") }))
+  }
+
+  // Another session's server still running at this origin, if any.
+  const foreign = (session: SessionRef, origin: string | undefined) => {
+    const owner = origin ? owners.get(origin) : undefined
+
+    if (!owner || owner.session.key === session.key) return undefined
+
+    if (owner.session.server.data.shell.get(owner.id)?.status !== "running") {
+      if (origin) owners.delete(origin)
+
+      return undefined
+    }
+
+    return owner
+  }
+
+  const warnForeign = (owner: { session: SessionRef; id: string }, url: string) => {
+    const shell = owner.session.server.data.shell.get(owner.id)
+
+    showToast({
+      title: ctx.t("conflict.title", { url }),
+      description: ctx.t("conflict.description", { command: shell?.command ?? "" }),
+      persistent: true,
+      actions: [
+        { label: ctx.t("conflict.stop"), variant: "primary", onClick: () => stop(owner) },
+        { label: ctx.t("conflict.dismiss"), onClick: "dismiss" },
+      ],
+    })
+  }
 
   const routed = () => {
     const view = sessions.current()
@@ -89,6 +135,9 @@ const setup: Setup<typeof definition> = (ctx) => {
 
     if (!force && last && last.origin === origin && Date.now() - last.at < SETTLE_MS) return
     shown.set(session.key, { origin, at: Date.now() })
+    const owner = foreign(session, origin)
+
+    if (owner) warnForeign(owner, url)
     const browser = ctx.uses.browser()
 
     if (browser.status === "active" && browser.value.attached(session)) return browser.value.show(session, url)
@@ -250,8 +299,21 @@ const setup: Setup<typeof definition> = (ctx) => {
       if (url) {
         seen.add(id)
         void ctx.stores.dev(session).set({ command: shell.command, cwd: shell.cwd })
+        const origin = serverOrigin(url)
+
+        if (origin) owners.set(origin, { session, id })
 
         return announce(session, url, open)
+      }
+
+      if (BUSY.test(text)) {
+        seen.add(id)
+
+        return void showToast({
+          variant: "error",
+          title: ctx.t("busy.title"),
+          description: ctx.t("busy.description", { command: shell.command }),
+        })
       }
 
       await new Promise((resolve) => setTimeout(resolve, POLL_MS))

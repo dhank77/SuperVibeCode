@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { guessPlan } from "./guess"
+import { guessPlan, STATIC_COMMAND } from "./guess"
 
 const scripts = (value: Record<string, string>) => JSON.stringify({ scripts: value })
 
@@ -33,5 +33,9 @@ test.each([
 test("no plan without a server script", () => {
   expect(guessPlan({ files: ["package.json"], packageJson: scripts({ build: "tsc" }) })).toBeUndefined()
   expect(guessPlan({ files: ["package.json"], packageJson: "{ broken" })).toBeUndefined()
-  expect(guessPlan({ files: ["index.html"] })).toBeUndefined()
+  expect(guessPlan({ files: ["package.json", "index.html"], packageJson: scripts({ build: "tsc" }) })).toBeUndefined()
+})
+
+test("a plain HTML site is served as static files", () => {
+  expect(guessPlan({ files: ["index.html", "style.css"] })).toEqual({ command: STATIC_COMMAND })
 })
