@@ -268,8 +268,14 @@ export function getConfig() {
         appId,
         productName: "SuperVibeCode Beta",
         protocols: { name: "SuperVibeCode Beta", schemes: ["opencode"] },
-        // Updates come from this fork's GitHub releases, never from opencode.ai, which would replace the app with OpenCode.
-        publish: { provider: "github", owner: "dhank77", repo: "SuperVibeCode", releaseType: "prerelease" },
+        // Updates come from the GitHub releases of the fork that builds them, never from opencode.ai, which would replace
+        // the app with OpenCode.
+        publish: {
+          provider: "github",
+          owner: "latjoromhi25d-dotcom",
+          repo: "SuperVibeCode",
+          releaseType: "prerelease",
+        },
         deb: { fpm: [metainfoFpm(appId)] },
         rpm: { packageName: "supervibecode-beta", fpm: [rpmNoBuildIdLinksFpm, metainfoFpm(appId)] },
       }
@@ -281,7 +287,7 @@ export function getConfig() {
         appId,
         productName: "SuperVibeCode",
         protocols: { name: "SuperVibeCode", schemes: ["opencode"] },
-        publish: { provider: "github", owner: "dhank77", repo: "SuperVibeCode", releaseType: "release" },
+        publish: { provider: "github", owner: "latjoromhi25d-dotcom", repo: "SuperVibeCode", releaseType: "release" },
         deb: { fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
         rpm: { packageName: "supervibecode", fpm: [rpmNoBuildIdLinksFpm, metainfoFpm(appId), legacyDesktopEntryFpm] },
       }

