@@ -180,6 +180,43 @@ describe("Config", () => {
     ),
   )
 
+  it.live("update adds and removes providers in the global config, keeping other fields", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
+      Effect.flatMap((tmp) => {
+        const global = path.join(tmp.path, "global")
+        const project = path.join(tmp.path, "project")
+        const file = path.join(global, "opencode.json")
+        return Effect.promise(async () => {
+          await fs.mkdir(project, { recursive: true })
+          await fs.mkdir(global, { recursive: true })
+          await fs.writeFile(file, JSON.stringify({ shell: "zsh" }))
+        }).pipe(
+          Effect.andThen(
+            Effect.gen(function* () {
+              const config = yield* Config.Service
+              yield* config.update!({
+                providers: {
+                  local: {
+                    name: "Local",
+                    package: "@ai-sdk/openai-compatible",
+                    settings: { baseURL: "http://localhost:1234/v1" },
+                    models: { qwen: { name: "Qwen" } },
+                  },
+                },
+              })
+              const written = JSON.parse(yield* Effect.promise(() => fs.readFile(file, "utf8")))
+              expect(written.shell).toBe("zsh")
+              expect(written.providers.local.settings.baseURL).toBe("http://localhost:1234/v1")
+              yield* config.update!({ providers: { local: null } })
+              const removed = JSON.parse(yield* Effect.promise(() => fs.readFile(file, "utf8")))
+              expect(removed).toEqual({ shell: "zsh", providers: {} })
+            }).pipe(Effect.provide(testLayer(project, global))),
+          ),
+        )
+      }),
+    ),
+  )
+
   it.live("excludes global config reached through the project walk when global is disabled", () =>
     Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
       Effect.flatMap((tmp) => {

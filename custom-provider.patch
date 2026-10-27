@@ -1,0 +1,1063 @@
+From a99b0cca952ac08c199ad3c0c96a5aa797f0359f Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 27 Oct 2026 17:13:13 +0800
+Subject: [PATCH] fix(app): save custom providers to the global config
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ .../app/src/providers/credentials/dialog.tsx  |  37 +-
+ .../src/providers/credentials/form.test.ts    |  10 +-
+ .../app/src/providers/credentials/form.ts     |   8 +-
+ packages/client/src/effect/api/api.ts         |   7 +-
+ .../client/src/effect/generated/client.ts     |   6 +-
+ .../client/src/promise/generated/client.ts    |   4 +-
+ .../client/src/promise/generated/types.ts     | 195 ++++++-
+ packages/core/src/config.ts                   |  17 +-
+ packages/core/test/config/config.test.ts      |  37 ++
+ packages/protocol/openapi.json                | 522 +++++++++++++++++-
+ packages/schema/src/config.ts                 |   9 +-
+ 11 files changed, 826 insertions(+), 26 deletions(-)
+
+diff --git a/packages/app/src/providers/credentials/dialog.tsx b/packages/app/src/providers/credentials/dialog.tsx
+index 3939415..f7c3ffb 100644
+--- a/packages/app/src/providers/credentials/dialog.tsx
++++ b/packages/app/src/providers/credentials/dialog.tsx
+@@ -9,13 +9,20 @@ import { batch, For } from "solid-js"
+ import { createStore, produce } from "solid-js/store"
+ import { ExternalLink } from "@/runtime/platform/external-link"
+ import { useData } from "@/runtime/server/current"
++import { useServerSDK } from "@/runtime/server/client"
+ import { useLanguage } from "@/runtime/i18n/language"
+ import { type FormState, headerRow, modelRow, validateCustomProvider } from "./form"
+ import { CustomManagedProviderIcon } from "@/providers/models/provider-group"
+ 
++// How long saving the key waits, in total, for the server to load the new provider.
++const KEY_RETRY_MS = 500
++
++const KEY_ATTEMPTS = 20
++
+ export function CustomProviderForm(props: { autofocus?: boolean } = {}) {
+   const dialog = useDialog()
+   const data = useData()
++  const serverSDK = useServerSDK()
+   const language = useLanguage()
+ 
+   const [form, setForm] = createStore<FormState>({
+@@ -105,10 +112,36 @@ export function CustomProviderForm(props: { autofocus?: boolean } = {}) {
+     return output.result
+   }
+ 
++  const connectKey = async (integrationID: string, key: string, attempt = 0): Promise<void> => {
++    const request = serverSDK.api.integration.connect.key({ integrationID, key })
++
++    if (attempt >= KEY_ATTEMPTS) return request.then(() => undefined)
++
++    const saved = await request.then(
++      () => true,
++      () => false,
++    )
++
++    if (saved) return
++    await new Promise((resolve) => setTimeout(resolve, KEY_RETRY_MS))
++
++    return connectKey(integrationID, key, attempt + 1)
++  }
++
+   const saveMutation = useMutation(() => ({
+     mutationFn: async (result: NonNullable<ReturnType<typeof validate>>): Promise<typeof result> => {
+-      // TODO: Restore custom providers when V2 exposes config and arbitrary credential APIs.
+-      throw new Error(language.t("provider.custom.unavailable"))
++      // The provider goes into the global config, so every project can use it.
++      await serverSDK.api.config.update({ providers: { [result.providerID]: result.config } })
++
++      // The key is kept with the other provider credentials, not in the config file. The provider's key method
++      // appears once the server reloads its config, so connecting waits for it.
++      if (result.key) await connectKey(result.providerID, result.key)
++
++      data.location.integration.invalidate()
++      data.location.provider.invalidate()
++      data.location.model.invalidate()
++
++      return result
+     },
+     onSuccess: (result) => {
+       dialog.close()
+diff --git a/packages/app/src/providers/credentials/form.test.ts b/packages/app/src/providers/credentials/form.test.ts
+index c3769b7..e4247cf 100644
+--- a/packages/app/src/providers/credentials/form.test.ts
++++ b/packages/app/src/providers/credentials/form.test.ts
+@@ -28,14 +28,12 @@ describe("validateCustomProvider", () => {
+       name: "Custom Provider",
+       key: undefined,
+       config: {
+-        npm: "@ai-sdk/openai-compatible",
++        package: "@ai-sdk/openai-compatible",
+         name: "Custom Provider",
+         env: ["CUSTOM_PROVIDER_KEY"],
+-        options: {
+-          baseURL: "https://api.example.com",
+-          headers: {
+-            "X-Test": "enabled",
+-          },
++        settings: { baseURL: "https://api.example.com" },
++        headers: {
++          "X-Test": "enabled",
+         },
+         models: {
+           "model-a": { name: "Model A" },
+diff --git a/packages/app/src/providers/credentials/form.ts b/packages/app/src/providers/credentials/form.ts
+index 2baa635..86e869d 100644
+--- a/packages/app/src/providers/credentials/form.ts
++++ b/packages/app/src/providers/credentials/form.ts
+@@ -154,13 +154,11 @@ export function validateCustomProvider(input: ValidateArgs) {
+       name,
+       key,
+       config: {
+-        npm: OPENAI_COMPATIBLE,
++        package: OPENAI_COMPATIBLE,
+         name,
+         ...(env ? { env: [env] } : {}),
+-        options: {
+-          baseURL,
+-          ...(Object.keys(headerConfig).length ? { headers: headerConfig } : {}),
+-        },
++        settings: { baseURL },
++        ...(Object.keys(headerConfig).length ? { headers: headerConfig } : {}),
+         models: modelConfig,
+       },
+     },
+diff --git a/packages/client/src/effect/api/api.ts b/packages/client/src/effect/api/api.ts
+index 9c3f1c1..83fd3d2 100644
+--- a/packages/client/src/effect/api/api.ts
++++ b/packages/client/src/effect/api/api.ts
+@@ -2373,9 +2373,12 @@ export type ConfigShellsOutput = ReadonlyArray<{
+ }>
+ export type ConfigShellsOperation<E = never> = () => Effect.Effect<ConfigShellsOutput, E>
+ 
+-export type ConfigUpdateInput = { readonly shell: string | null }
++export type ConfigUpdateInput = {
++  readonly shell?: string | null | undefined
++  readonly providers?: { readonly [x: string]: Config.ProviderPatch | null } | undefined
++}
+ export type ConfigUpdateOutput = void
+-export type ConfigUpdateOperation<E = never> = (input: ConfigUpdateInput) => Effect.Effect<ConfigUpdateOutput, E>
++export type ConfigUpdateOperation<E = never> = (input?: ConfigUpdateInput) => Effect.Effect<ConfigUpdateOutput, E>
+ 
+ export interface ConfigApi<E = never> {
+   readonly get: ConfigGetOperation<E>
+diff --git a/packages/client/src/effect/generated/client.ts b/packages/client/src/effect/generated/client.ts
+index 83e5fbd..a2ea2fd 100644
+--- a/packages/client/src/effect/generated/client.ts
++++ b/packages/client/src/effect/generated/client.ts
+@@ -1711,9 +1711,11 @@ const EndpointConfigGet = (raw: RawClient["server.config"]) => (input?: ConfigGe
+ const EndpointConfigShells = (raw: RawClient["server.config"]) => () =>
+   preserveEffect<ConfigShellsOutput>()(raw["config.shells"]({}).pipe(Effect.mapError(mapClientError)))
+ 
+-const EndpointConfigUpdate = (raw: RawClient["server.config"]) => (input: ConfigUpdateInput) =>
++const EndpointConfigUpdate = (raw: RawClient["server.config"]) => (input?: ConfigUpdateInput) =>
+   preserveEffect<ConfigUpdateOutput>()(
+-    raw["config.update"]({ payload: { shell: input["shell"] } }).pipe(Effect.mapError(mapClientError)),
++    raw["config.update"]({ payload: { shell: input?.["shell"], providers: input?.["providers"] } }).pipe(
++      Effect.mapError(mapClientError),
++    ),
+   )
+ 
+ const adaptGroupConfig = (raw: RawClient["server.config"]) => ({
+diff --git a/packages/client/src/promise/generated/client.ts b/packages/client/src/promise/generated/client.ts
+index e636eb1..d6669ac 100644
+--- a/packages/client/src/promise/generated/client.ts
++++ b/packages/client/src/promise/generated/client.ts
+@@ -2384,12 +2384,12 @@ export function make(options: ClientOptions) {
+           },
+           requestOptions,
+         ),
+-      update: (input: ConfigUpdateInput, requestOptions?: RequestOptions) =>
++      update: (input?: ConfigUpdateInput, requestOptions?: RequestOptions) =>
+         request<ConfigUpdateOutput>(
+           {
+             method: "PATCH",
+             path: `/api/experimental/config`,
+-            body: { shell: input["shell"] },
++            body: { shell: input?.["shell"], providers: input?.["providers"] },
+             successStatus: 204,
+             declaredStatuses: [400, 401, 404],
+             empty: true,
+diff --git a/packages/client/src/promise/generated/types.ts b/packages/client/src/promise/generated/types.ts
+index 2afaed3..11a422b 100644
+--- a/packages/client/src/promise/generated/types.ts
++++ b/packages/client/src/promise/generated/types.ts
+@@ -6108,6 +6108,199 @@ export type ConfigGetOutput = Array<ConfigEntry>
+ 
+ export type ConfigShellsOutput = Array<ConfigShellOption>
+ 
+-export type ConfigUpdateInput = { readonly shell: { readonly shell: string | null }["shell"] }
++export type ConfigUpdateInput = {
++  readonly shell?: {
++    readonly shell?: string | null
++    readonly providers?: {
++      readonly [x: string]: {
++        readonly canonical?: string
++        readonly name?: string
++        readonly env?: ReadonlyArray<string>
++        readonly package?: string
++        readonly compatibility?: {
++          readonly reasoningField?: "reasoning" | "reasoning_content" | "reasoning_text" | (string & {})
++          readonly requireReasoning?: boolean
++          readonly maxTokensField?: "max_completion_tokens" | "max_tokens"
++          readonly requireFinishReason?: boolean
++          readonly requireAssistantAfterTool?: boolean
++          readonly supportsPromptCacheKey?: boolean
++          readonly streamUsage?: boolean
++          readonly cacheFormat?: "anthropic" | "alibaba"
++        }
++        readonly settings?: {
++          readonly timeout?: number | false
++          readonly headerTimeout?: number | false
++          readonly chunkTimeout?: number | false
++          readonly compaction?: { readonly type: "summary" } | { readonly type: "native" }
++          readonly transport?: "http" | "websocket"
++          readonly encoding?: "zstd" | "gzip" | "none"
++        } & { readonly [x: string]: JsonValue | null }
++        readonly headers?: { readonly [x: string]: string }
++        readonly body?: { readonly [x: string]: JsonValue }
++        readonly models?: {
++          readonly [x: string]: {
++            readonly modelID?: string
++            readonly family?: string
++            readonly name?: string
++            readonly releaseDate?: string
++            readonly compatibility?: {
++              readonly reasoningField?: "reasoning" | "reasoning_content" | "reasoning_text" | (string & {})
++              readonly requireReasoning?: boolean
++              readonly maxTokensField?: "max_completion_tokens" | "max_tokens"
++              readonly requireFinishReason?: boolean
++              readonly requireAssistantAfterTool?: boolean
++              readonly supportsPromptCacheKey?: boolean
++              readonly streamUsage?: boolean
++              readonly cacheFormat?: "anthropic" | "alibaba"
++              readonly supportsThinkingBlockBinding?: boolean
++              readonly supportsEffortUpdates?: boolean
++            }
++            readonly package?: string
++            readonly settings?: {
++              readonly compaction?: { readonly type: "summary" } | { readonly type: "native" }
++              readonly encoding?: "zstd" | "gzip" | "none"
++            } & { readonly [x: string]: JsonValue | null }
++            readonly headers?: { readonly [x: string]: string }
++            readonly body?: { readonly [x: string]: JsonValue }
++            readonly capabilities?: {
++              readonly tools?: boolean
++              readonly input?: ReadonlyArray<string>
++              readonly output?: ReadonlyArray<string>
++              readonly temperature?: boolean
++              readonly reasoning?:
++                | { readonly supported: false }
++                | {
++                    readonly supported: true
++                    readonly toggle?: boolean
++                    readonly effort?: ReadonlyArray<string>
++                    readonly budget?: { readonly min?: number; readonly max?: number }
++                  }
++            }
++            readonly variants?: ReadonlyArray<{
++              readonly id: string
++              readonly settings?: {
++                readonly compaction?: { readonly type: "summary" } | { readonly type: "native" }
++                readonly encoding?: "zstd" | "gzip" | "none"
++              } & { readonly [x: string]: JsonValue | null }
++              readonly headers?: { readonly [x: string]: string }
++              readonly body?: { readonly [x: string]: JsonValue }
++            }>
++            readonly cost?:
++              | {
++                  readonly tier?: { readonly type: "context"; readonly size: number }
++                  readonly input: number
++                  readonly output: number
++                  readonly cache?: { readonly read?: number; readonly write?: number }
++                }
++              | ReadonlyArray<{
++                  readonly tier?: { readonly type: "context"; readonly size: number }
++                  readonly input: number
++                  readonly output: number
++                  readonly cache?: { readonly read?: number; readonly write?: number }
++                }>
++            readonly disabled?: boolean
++            readonly limit?: { readonly context?: number; readonly input?: number; readonly output?: number }
++          }
++        }
++      } | null
++    }
++  }["shell"]
++  readonly providers?: {
++    readonly shell?: string | null
++    readonly providers?: {
++      readonly [x: string]: {
++        readonly canonical?: string
++        readonly name?: string
++        readonly env?: ReadonlyArray<string>
++        readonly package?: string
++        readonly compatibility?: {
++          readonly reasoningField?: "reasoning" | "reasoning_content" | "reasoning_text" | (string & {})
++          readonly requireReasoning?: boolean
++          readonly maxTokensField?: "max_completion_tokens" | "max_tokens"
++          readonly requireFinishReason?: boolean
++          readonly requireAssistantAfterTool?: boolean
++          readonly supportsPromptCacheKey?: boolean
++          readonly streamUsage?: boolean
++          readonly cacheFormat?: "anthropic" | "alibaba"
++        }
++        readonly settings?: {
++          readonly timeout?: number | false
++          readonly headerTimeout?: number | false
++          readonly chunkTimeout?: number | false
++          readonly compaction?: { readonly type: "summary" } | { readonly type: "native" }
++          readonly transport?: "http" | "websocket"
++          readonly encoding?: "zstd" | "gzip" | "none"
++        } & { readonly [x: string]: JsonValue | null }
++        readonly headers?: { readonly [x: string]: string }
++        readonly body?: { readonly [x: string]: JsonValue }
++        readonly models?: {
++          readonly [x: string]: {
++            readonly modelID?: string
++            readonly family?: string
++            readonly name?: string
++            readonly releaseDate?: string
++            readonly compatibility?: {
++              readonly reasoningField?: "reasoning" | "reasoning_content" | "reasoning_text" | (string & {})
++              readonly requireReasoning?: boolean
++              readonly maxTokensField?: "max_completion_tokens" | "max_tokens"
++              readonly requireFinishReason?: boolean
++              readonly requireAssistantAfterTool?: boolean
++              readonly supportsPromptCacheKey?: boolean
++              readonly streamUsage?: boolean
++              readonly cacheFormat?: "anthropic" | "alibaba"
++              readonly supportsThinkingBlockBinding?: boolean
++              readonly supportsEffortUpdates?: boolean
++            }
++            readonly package?: string
++            readonly settings?: {
++              readonly compaction?: { readonly type: "summary" } | { readonly type: "native" }
++              readonly encoding?: "zstd" | "gzip" | "none"
++            } & { readonly [x: string]: JsonValue | null }
++            readonly headers?: { readonly [x: string]: string }
++            readonly body?: { readonly [x: string]: JsonValue }
++            readonly capabilities?: {
++              readonly tools?: boolean
++              readonly input?: ReadonlyArray<string>
++              readonly output?: ReadonlyArray<string>
++              readonly temperature?: boolean
++              readonly reasoning?:
++                | { readonly supported: false }
++                | {
++                    readonly supported: true
++                    readonly toggle?: boolean
++                    readonly effort?: ReadonlyArray<string>
++                    readonly budget?: { readonly min?: number; readonly max?: number }
++                  }
++            }
++            readonly variants?: ReadonlyArray<{
++              readonly id: string
++              readonly settings?: {
++                readonly compaction?: { readonly type: "summary" } | { readonly type: "native" }
++                readonly encoding?: "zstd" | "gzip" | "none"
++              } & { readonly [x: string]: JsonValue | null }
++              readonly headers?: { readonly [x: string]: string }
++              readonly body?: { readonly [x: string]: JsonValue }
++            }>
++            readonly cost?:
++              | {
++                  readonly tier?: { readonly type: "context"; readonly size: number }
++                  readonly input: number
++                  readonly output: number
++                  readonly cache?: { readonly read?: number; readonly write?: number }
++                }
++              | ReadonlyArray<{
++                  readonly tier?: { readonly type: "context"; readonly size: number }
++                  readonly input: number
++                  readonly output: number
++                  readonly cache?: { readonly read?: number; readonly write?: number }
++                }>
++            readonly disabled?: boolean
++            readonly limit?: { readonly context?: number; readonly input?: number; readonly output?: number }
++          }
++        }
++      } | null
++    }
++  }["providers"]
++}
+ 
+ export type ConfigUpdateOutput = void
+diff --git a/packages/core/src/config.ts b/packages/core/src/config.ts
+index 943d251..09bf2f7 100644
+--- a/packages/core/src/config.ts
++++ b/packages/core/src/config.ts
+@@ -386,13 +386,22 @@ export const layer = (options?: Options) =>
+           const filepath =
+             (yield* Effect.filter(candidates, fs.isFile)).at(-1) ?? path.join(directory, "opencode.jsonc")
+           const text = (yield* fs.readFileStringSafe(filepath)) ?? "{}\n"
++          const changes: Array<readonly [readonly string[], unknown]> = [
++            ...(patch.shell === undefined ? [] : [[["shell"], patch.shell ?? undefined] as const]),
++            ...Object.entries(patch.providers ?? {}).map(
++              ([id, provider]) =>
++                [["providers", id], provider ? (JSON.parse(JSON.stringify(provider)) as unknown) : undefined] as const,
++            ),
++          ]
+           const updated = yield* Effect.try({
+             try: () =>
+-              applyEdits(
++              changes.reduce(
++                (current, [field, value]) =>
++                  applyEdits(
++                    current,
++                    modify(current, [...field], value, { formattingOptions: { tabSize: 2, insertSpaces: true } }),
++                  ),
+                 text,
+-                modify(text, ["shell"], patch.shell ?? undefined, {
+-                  formattingOptions: { tabSize: 2, insertSpaces: true },
+-                }),
+               ),
+             catch: (cause) => new FSUtil.FileSystemError({ method: "config.update", cause }),
+           })
+diff --git a/packages/core/test/config/config.test.ts b/packages/core/test/config/config.test.ts
+index 61b6d5a..6b64bea 100644
+--- a/packages/core/test/config/config.test.ts
++++ b/packages/core/test/config/config.test.ts
+@@ -180,6 +180,43 @@ describe("Config", () => {
+     ),
+   )
+ 
++  it.live("update adds and removes providers in the global config, keeping other fields", () =>
++    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
++      Effect.flatMap((tmp) => {
++        const global = path.join(tmp.path, "global")
++        const project = path.join(tmp.path, "project")
++        const file = path.join(global, "opencode.json")
++        return Effect.promise(async () => {
++          await fs.mkdir(project, { recursive: true })
++          await fs.mkdir(global, { recursive: true })
++          await fs.writeFile(file, JSON.stringify({ shell: "zsh" }))
++        }).pipe(
++          Effect.andThen(
++            Effect.gen(function* () {
++              const config = yield* Config.Service
++              yield* config.update!({
++                providers: {
++                  local: {
++                    name: "Local",
++                    package: "@ai-sdk/openai-compatible",
++                    settings: { baseURL: "http://localhost:1234/v1" },
++                    models: { qwen: { name: "Qwen" } },
++                  },
++                },
++              })
++              const written = JSON.parse(yield* Effect.promise(() => fs.readFile(file, "utf8")))
++              expect(written.shell).toBe("zsh")
++              expect(written.providers.local.settings.baseURL).toBe("http://localhost:1234/v1")
++              yield* config.update!({ providers: { local: null } })
++              const removed = JSON.parse(yield* Effect.promise(() => fs.readFile(file, "utf8")))
++              expect(removed).toEqual({ shell: "zsh", providers: {} })
++            }).pipe(Effect.provide(testLayer(project, global))),
++          ),
++        )
++      }),
++    ),
++  )
++
+   it.live("excludes global config reached through the project walk when global is disabled", () =>
+     Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
+       Effect.flatMap((tmp) => {
+diff --git a/packages/protocol/openapi.json b/packages/protocol/openapi.json
+index 73a54d3..ec134ff 100644
+--- a/packages/protocol/openapi.json
++++ b/packages/protocol/openapi.json
+@@ -13416,6 +13416,398 @@
+         "summary": "VCS diff"
+       }
+     },
++    "/api/vcs/commit": {
++      "post": {
++        "tags": ["vcs"],
++        "operationId": "vcs.commit",
++        "parameters": [
++          {
++            "name": "location",
++            "in": "query",
++            "schema": {
++              "anyOf": [
++                {
++                  "type": "object",
++                  "properties": {
++                    "directory": {
++                      "anyOf": [
++                        {
++                          "type": "string"
++                        },
++                        {
++                          "type": "null"
++                        }
++                      ]
++                    }
++                  },
++                  "additionalProperties": false
++                },
++                {
++                  "type": "null"
++                }
++              ]
++            },
++            "required": false,
++            "style": "deepObject",
++            "explode": true
++          }
++        ],
++        "security": [],
++        "responses": {
++          "200": {
++            "description": "Success",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "type": "object",
++                  "properties": {
++                    "location": {
++                      "$ref": "#/components/schemas/Location.PublicRef"
++                    },
++                    "data": {
++                      "$ref": "#/components/schemas/Vcs.SyncResult"
++                    }
++                  },
++                  "required": ["location", "data"],
++                  "additionalProperties": false
++                }
++              }
++            }
++          },
++          "400": {
++            "description": "InvalidRequestError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
++                }
++              }
++            }
++          },
++          "401": {
++            "description": "UnauthorizedError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
++                }
++              }
++            }
++          },
++          "404": {
++            "description": "LocationNotFoundError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
++                }
++              }
++            }
++          }
++        },
++        "description": "Stage every change in the location's git working copy except environment files and private keys, and commit it with the given message. Reports clean, busy (a merge or rebase is in progress) or norepo instead of failing.",
++        "summary": "Commit working copy",
++        "requestBody": {
++          "content": {
++            "application/json": {
++              "schema": {
++                "$ref": "#/components/schemas/Vcs.CommitInput"
++              }
++            }
++          },
++          "required": true
++        }
++      }
++    },
++    "/api/vcs/push": {
++      "post": {
++        "tags": ["vcs"],
++        "operationId": "vcs.push",
++        "parameters": [
++          {
++            "name": "location",
++            "in": "query",
++            "schema": {
++              "anyOf": [
++                {
++                  "type": "object",
++                  "properties": {
++                    "directory": {
++                      "anyOf": [
++                        {
++                          "type": "string"
++                        },
++                        {
++                          "type": "null"
++                        }
++                      ]
++                    }
++                  },
++                  "additionalProperties": false
++                },
++                {
++                  "type": "null"
++                }
++              ]
++            },
++            "required": false,
++            "style": "deepObject",
++            "explode": true
++          }
++        ],
++        "security": [],
++        "responses": {
++          "200": {
++            "description": "Success",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "type": "object",
++                  "properties": {
++                    "location": {
++                      "$ref": "#/components/schemas/Location.PublicRef"
++                    },
++                    "data": {
++                      "$ref": "#/components/schemas/Vcs.SyncResult"
++                    }
++                  },
++                  "required": ["location", "data"],
++                  "additionalProperties": false
++                }
++              }
++            }
++          },
++          "400": {
++            "description": "InvalidRequestError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
++                }
++              }
++            }
++          },
++          "401": {
++            "description": "UnauthorizedError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
++                }
++              }
++            }
++          },
++          "404": {
++            "description": "LocationNotFoundError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
++                }
++              }
++            }
++          }
++        },
++        "description": "Push the current branch to origin with the user's stored git credentials, setting its upstream the first time. Never prompts: without credentials the outcome is failed.",
++        "summary": "Push current branch"
++      }
++    },
++    "/api/vcs/history": {
++      "get": {
++        "tags": ["vcs"],
++        "operationId": "vcs.history",
++        "parameters": [
++          {
++            "name": "location",
++            "in": "query",
++            "schema": {
++              "anyOf": [
++                {
++                  "type": "object",
++                  "properties": {
++                    "directory": {
++                      "anyOf": [
++                        {
++                          "type": "string"
++                        },
++                        {
++                          "type": "null"
++                        }
++                      ]
++                    }
++                  },
++                  "additionalProperties": false
++                },
++                {
++                  "type": "null"
++                }
++              ]
++            },
++            "required": false,
++            "style": "deepObject",
++            "explode": true
++          }
++        ],
++        "security": [],
++        "responses": {
++          "200": {
++            "description": "Success",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "type": "object",
++                  "properties": {
++                    "location": {
++                      "$ref": "#/components/schemas/Location.PublicRef"
++                    },
++                    "data": {
++                      "$ref": "#/components/schemas/Vcs.History"
++                    }
++                  },
++                  "required": ["location", "data"],
++                  "additionalProperties": false
++                }
++              }
++            }
++          },
++          "400": {
++            "description": "InvalidRequestError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
++                }
++              }
++            }
++          },
++          "401": {
++            "description": "UnauthorizedError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
++                }
++              }
++            }
++          },
++          "404": {
++            "description": "LocationNotFoundError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
++                }
++              }
++            }
++          }
++        },
++        "description": "The current branch's latest commits, newest first, and the repository's web page when origin is a GitHub, GitLab or Bitbucket remote.",
++        "summary": "List versions"
++      }
++    },
++    "/api/vcs/restore": {
++      "post": {
++        "tags": ["vcs"],
++        "operationId": "vcs.restore",
++        "parameters": [
++          {
++            "name": "location",
++            "in": "query",
++            "schema": {
++              "anyOf": [
++                {
++                  "type": "object",
++                  "properties": {
++                    "directory": {
++                      "anyOf": [
++                        {
++                          "type": "string"
++                        },
++                        {
++                          "type": "null"
++                        }
++                      ]
++                    }
++                  },
++                  "additionalProperties": false
++                },
++                {
++                  "type": "null"
++                }
++              ]
++            },
++            "required": false,
++            "style": "deepObject",
++            "explode": true
++          }
++        ],
++        "security": [],
++        "responses": {
++          "200": {
++            "description": "Success",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "type": "object",
++                  "properties": {
++                    "location": {
++                      "$ref": "#/components/schemas/Location.PublicRef"
++                    },
++                    "data": {
++                      "$ref": "#/components/schemas/Vcs.SyncResult"
++                    }
++                  },
++                  "required": ["location", "data"],
++                  "additionalProperties": false
++                }
++              }
++            }
++          },
++          "400": {
++            "description": "InvalidRequestError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
++                }
++              }
++            }
++          },
++          "401": {
++            "description": "UnauthorizedError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
++                }
++              }
++            }
++          },
++          "404": {
++            "description": "LocationNotFoundError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
++                }
++              }
++            }
++          }
++        },
++        "description": "Make the working copy's files match a commit again, as a new commit on top of the current branch. Unsaved changes are committed first; environment files, private keys, untracked and ignored files are left alone.",
++        "summary": "Restore a version",
++        "requestBody": {
++          "content": {
++            "application/json": {
++              "schema": {
++                "$ref": "#/components/schemas/Vcs.RestoreInput"
++              }
++            }
++          },
++          "required": true
++        }
++      }
++    },
+     "/api/debug/heap-dump": {
+       "post": {
+         "tags": ["debug"],
+@@ -15168,9 +15560,21 @@
+                 "type": "null"
+               }
+             ]
++          },
++          "providers": {
++            "type": "object",
++            "additionalProperties": {
++              "anyOf": [
++                {
++                  "$ref": "#/components/schemas/Config.ProviderPatch"
++                },
++                {
++                  "type": "null"
++                }
++              ]
++            }
+           }
+         },
+-        "required": ["shell"],
+         "additionalProperties": false
+       },
+       "Config.Plugin.EntryEncoded": {
+@@ -15288,6 +15692,48 @@
+         },
+         "additionalProperties": false
+       },
++      "Config.ProviderPatch": {
++        "type": "object",
++        "properties": {
++          "canonical": {
++            "$ref": "#/components/schemas/Provider.ID"
++          },
++          "name": {
++            "type": "string"
++          },
++          "env": {
++            "type": "array",
++            "items": {
++              "type": "string"
++            }
++          },
++          "package": {
++            "type": "string"
++          },
++          "compatibility": {
++            "$ref": "#/components/schemas/Provider.Compatibility"
++          },
++          "settings": {
++            "$ref": "#/components/schemas/Config.Provider.Settings"
++          },
++          "headers": {
++            "type": "object",
++            "additionalProperties": {
++              "type": "string"
++            }
++          },
++          "body": {
++            "type": "object"
++          },
++          "models": {
++            "type": "object",
++            "additionalProperties": {
++              "$ref": "#/components/schemas/Config.ModelEncoded"
++            }
++          }
++        },
++        "additionalProperties": false
++      },
+       "Config.Reference.GitEncoded": {
+         "type": "object",
+         "properties": {
+@@ -21013,6 +21459,18 @@
+           "type": "string"
+         }
+       },
++      "Vcs.CommitInput": {
++        "type": "object",
++        "properties": {
++          "message": {
++            "type": "string",
++            "minLength": 1,
++            "maxLength": 4096
++          }
++        },
++        "required": ["message"],
++        "additionalProperties": false
++      },
+       "Vcs.FileStatus": {
+         "type": "object",
+         "properties": {
+@@ -21035,6 +21493,22 @@
+         "required": ["file", "additions", "deletions", "status"],
+         "additionalProperties": false
+       },
++      "Vcs.History": {
++        "type": "object",
++        "properties": {
++          "versions": {
++            "type": "array",
++            "items": {
++              "$ref": "#/components/schemas/Vcs.Version"
++            }
++          },
++          "web": {
++            "type": "string"
++          }
++        },
++        "required": ["versions"],
++        "additionalProperties": false
++      },
+       "Vcs.Info": {
+         "type": "object",
+         "properties": {
+@@ -21052,6 +21526,52 @@
+         "type": "string",
+         "enum": ["working", "branch", "committed"]
+       },
++      "Vcs.RestoreInput": {
++        "type": "object",
++        "properties": {
++          "hash": {
++            "type": "string"
++          }
++        },
++        "required": ["hash"],
++        "additionalProperties": false
++      },
++      "Vcs.SyncOutcome": {
++        "type": "string",
++        "enum": ["committed", "pushed", "restored", "clean", "busy", "norepo", "noremote", "detached", "failed"]
++      },
++      "Vcs.SyncResult": {
++        "type": "object",
++        "properties": {
++          "outcome": {
++            "$ref": "#/components/schemas/Vcs.SyncOutcome"
++          },
++          "detail": {
++            "type": "string"
++          }
++        },
++        "required": ["outcome"],
++        "additionalProperties": false
++      },
++      "Vcs.Version": {
++        "type": "object",
++        "properties": {
++          "hash": {
++            "type": "string"
++          },
++          "subject": {
++            "type": "string"
++          },
++          "time": {
++            "type": "number"
++          },
++          "author": {
++            "type": "string"
++          }
++        },
++        "required": ["hash", "subject", "time", "author"],
++        "additionalProperties": false
++      },
+       "VcsInitNotSupportedErrorEncoded": {
+         "type": "object",
+         "properties": {
+diff --git a/packages/schema/src/config.ts b/packages/schema/src/config.ts
+index 732947e..4e7acc2 100644
+--- a/packages/schema/src/config.ts
++++ b/packages/schema/src/config.ts
+@@ -113,8 +113,15 @@ export class Info extends Schema.Class<Info>("Config.Info")({
+   experimental: ConfigExperimental.Info.pipe(optional),
+ }) {}
+ 
++// A provider as plain data, so request payloads need no class instances.
++export const ProviderPatch = Schema.Struct(ConfigProvider.Info.fields).annotate({ identifier: "Config.ProviderPatch" })
++export interface ProviderPatch extends Schema.Schema.Type<typeof ProviderPatch> {}
++
+ export const Patch = Schema.Struct({
+-  shell: Schema.NullOr(Schema.String),
++  // Omitted leaves the field as it is; null removes it.
++  shell: Schema.NullOr(Schema.String).pipe(optional),
++  // Providers to add or replace by ID; null removes one.
++  providers: Schema.Record(Schema.String, Schema.NullOr(ProviderPatch)).pipe(optional),
+ }).annotate({ identifier: "Config.Patch" })
+ export interface Patch extends Schema.Schema.Type<typeof Patch> {}
+ 
+-- 
+2.43.0
+

@@ -154,13 +154,11 @@ export function validateCustomProvider(input: ValidateArgs) {
       name,
       key,
       config: {
-        npm: OPENAI_COMPATIBLE,
+        package: OPENAI_COMPATIBLE,
         name,
         ...(env ? { env: [env] } : {}),
-        options: {
-          baseURL,
-          ...(Object.keys(headerConfig).length ? { headers: headerConfig } : {}),
-        },
+        settings: { baseURL },
+        ...(Object.keys(headerConfig).length ? { headers: headerConfig } : {}),
         models: modelConfig,
       },
     },

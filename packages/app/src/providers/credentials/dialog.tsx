@@ -9,13 +9,20 @@ import { batch, For } from "solid-js"
 import { createStore, produce } from "solid-js/store"
 import { ExternalLink } from "@/runtime/platform/external-link"
 import { useData } from "@/runtime/server/current"
+import { useServerSDK } from "@/runtime/server/client"
 import { useLanguage } from "@/runtime/i18n/language"
 import { type FormState, headerRow, modelRow, validateCustomProvider } from "./form"
 import { CustomManagedProviderIcon } from "@/providers/models/provider-group"
 
+// How long saving the key waits, in total, for the server to load the new provider.
+const KEY_RETRY_MS = 500
+
+const KEY_ATTEMPTS = 20
+
 export function CustomProviderForm(props: { autofocus?: boolean } = {}) {
   const dialog = useDialog()
   const data = useData()
+  const serverSDK = useServerSDK()
   const language = useLanguage()
 
   const [form, setForm] = createStore<FormState>({
@@ -105,10 +112,36 @@ export function CustomProviderForm(props: { autofocus?: boolean } = {}) {
     return output.result
   }
 
+  const connectKey = async (integrationID: string, key: string, attempt = 0): Promise<void> => {
+    const request = serverSDK.api.integration.connect.key({ integrationID, key })
+
+    if (attempt >= KEY_ATTEMPTS) return request.then(() => undefined)
+
+    const saved = await request.then(
+      () => true,
+      () => false,
+    )
+
+    if (saved) return
+    await new Promise((resolve) => setTimeout(resolve, KEY_RETRY_MS))
+
+    return connectKey(integrationID, key, attempt + 1)
+  }
+
   const saveMutation = useMutation(() => ({
     mutationFn: async (result: NonNullable<ReturnType<typeof validate>>): Promise<typeof result> => {
-      // TODO: Restore custom providers when V2 exposes config and arbitrary credential APIs.
-      throw new Error(language.t("provider.custom.unavailable"))
+      // The provider goes into the global config, so every project can use it.
+      await serverSDK.api.config.update({ providers: { [result.providerID]: result.config } })
+
+      // The key is kept with the other provider credentials, not in the config file. The provider's key method
+      // appears once the server reloads its config, so connecting waits for it.
+      if (result.key) await connectKey(result.providerID, result.key)
+
+      data.location.integration.invalidate()
+      data.location.provider.invalidate()
+      data.location.model.invalidate()
+
+      return result
     },
     onSuccess: (result) => {
       dialog.close()

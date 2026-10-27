@@ -13416,6 +13416,398 @@
         "summary": "VCS diff"
       }
     },
+    "/api/vcs/commit": {
+      "post": {
+        "tags": ["vcs"],
+        "operationId": "vcs.commit",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "directory": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "required": false,
+            "style": "deepObject",
+            "explode": true
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "location": {
+                      "$ref": "#/components/schemas/Location.PublicRef"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Vcs.SyncResult"
+                    }
+                  },
+                  "required": ["location", "data"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "LocationNotFoundError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "Stage every change in the location's git working copy except environment files and private keys, and commit it with the given message. Reports clean, busy (a merge or rebase is in progress) or norepo instead of failing.",
+        "summary": "Commit working copy",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Vcs.CommitInput"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/vcs/push": {
+      "post": {
+        "tags": ["vcs"],
+        "operationId": "vcs.push",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "directory": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "required": false,
+            "style": "deepObject",
+            "explode": true
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "location": {
+                      "$ref": "#/components/schemas/Location.PublicRef"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Vcs.SyncResult"
+                    }
+                  },
+                  "required": ["location", "data"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "LocationNotFoundError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "Push the current branch to origin with the user's stored git credentials, setting its upstream the first time. Never prompts: without credentials the outcome is failed.",
+        "summary": "Push current branch"
+      }
+    },
+    "/api/vcs/history": {
+      "get": {
+        "tags": ["vcs"],
+        "operationId": "vcs.history",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "directory": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "required": false,
+            "style": "deepObject",
+            "explode": true
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "location": {
+                      "$ref": "#/components/schemas/Location.PublicRef"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Vcs.History"
+                    }
+                  },
+                  "required": ["location", "data"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "LocationNotFoundError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "The current branch's latest commits, newest first, and the repository's web page when origin is a GitHub, GitLab or Bitbucket remote.",
+        "summary": "List versions"
+      }
+    },
+    "/api/vcs/restore": {
+      "post": {
+        "tags": ["vcs"],
+        "operationId": "vcs.restore",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "directory": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "required": false,
+            "style": "deepObject",
+            "explode": true
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "location": {
+                      "$ref": "#/components/schemas/Location.PublicRef"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Vcs.SyncResult"
+                    }
+                  },
+                  "required": ["location", "data"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestErrorEncoded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorEncoded"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "LocationNotFoundError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
+                }
+              }
+            }
+          }
+        },
+        "description": "Make the working copy's files match a commit again, as a new commit on top of the current branch. Unsaved changes are committed first; environment files, private keys, untracked and ignored files are left alone.",
+        "summary": "Restore a version",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Vcs.RestoreInput"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/api/debug/heap-dump": {
       "post": {
         "tags": ["debug"],
@@ -15168,9 +15560,21 @@
                 "type": "null"
               }
             ]
+          },
+          "providers": {
+            "type": "object",
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Config.ProviderPatch"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
           }
         },
-        "required": ["shell"],
         "additionalProperties": false
       },
       "Config.Plugin.EntryEncoded": {
@@ -15247,6 +15651,48 @@
         ]
       },
       "Config.ProviderEncoded": {
+        "type": "object",
+        "properties": {
+          "canonical": {
+            "$ref": "#/components/schemas/Provider.ID"
+          },
+          "name": {
+            "type": "string"
+          },
+          "env": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "package": {
+            "type": "string"
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/Provider.Compatibility"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/Config.Provider.Settings"
+          },
+          "headers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "body": {
+            "type": "object"
+          },
+          "models": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Config.ModelEncoded"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Config.ProviderPatch": {
         "type": "object",
         "properties": {
           "canonical": {
@@ -21013,6 +21459,18 @@
           "type": "string"
         }
       },
+      "Vcs.CommitInput": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        },
+        "required": ["message"],
+        "additionalProperties": false
+      },
       "Vcs.FileStatus": {
         "type": "object",
         "properties": {
@@ -21035,6 +21493,22 @@
         "required": ["file", "additions", "deletions", "status"],
         "additionalProperties": false
       },
+      "Vcs.History": {
+        "type": "object",
+        "properties": {
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Vcs.Version"
+            }
+          },
+          "web": {
+            "type": "string"
+          }
+        },
+        "required": ["versions"],
+        "additionalProperties": false
+      },
       "Vcs.Info": {
         "type": "object",
         "properties": {
@@ -21051,6 +21525,52 @@
       "Vcs.Mode": {
         "type": "string",
         "enum": ["working", "branch", "committed"]
+      },
+      "Vcs.RestoreInput": {
+        "type": "object",
+        "properties": {
+          "hash": {
+            "type": "string"
+          }
+        },
+        "required": ["hash"],
+        "additionalProperties": false
+      },
+      "Vcs.SyncOutcome": {
+        "type": "string",
+        "enum": ["committed", "pushed", "restored", "clean", "busy", "norepo", "noremote", "detached", "failed"]
+      },
+      "Vcs.SyncResult": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/Vcs.SyncOutcome"
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": ["outcome"],
+        "additionalProperties": false
+      },
+      "Vcs.Version": {
+        "type": "object",
+        "properties": {
+          "hash": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "time": {
+            "type": "number"
+          },
+          "author": {
+            "type": "string"
+          }
+        },
+        "required": ["hash", "subject", "time", "author"],
+        "additionalProperties": false
       },
       "VcsInitNotSupportedErrorEncoded": {
         "type": "object",

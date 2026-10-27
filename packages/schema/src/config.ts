@@ -113,8 +113,15 @@ export class Info extends Schema.Class<Info>("Config.Info")({
   experimental: ConfigExperimental.Info.pipe(optional),
 }) {}
 
+// A provider as plain data, so request payloads need no class instances.
+export const ProviderPatch = Schema.Struct(ConfigProvider.Info.fields).annotate({ identifier: "Config.ProviderPatch" })
+export interface ProviderPatch extends Schema.Schema.Type<typeof ProviderPatch> {}
+
 export const Patch = Schema.Struct({
-  shell: Schema.NullOr(Schema.String),
+  // Omitted leaves the field as it is; null removes it.
+  shell: Schema.NullOr(Schema.String).pipe(optional),
+  // Providers to add or replace by ID; null removes one.
+  providers: Schema.Record(Schema.String, Schema.NullOr(ProviderPatch)).pipe(optional),
 }).annotate({ identifier: "Config.Patch" })
 export interface Patch extends Schema.Schema.Type<typeof Patch> {}
 
