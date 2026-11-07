@@ -23,6 +23,7 @@ import { ConfigInstructionPlugin } from "../config/plugin/instruction.js"
 import { ConfigLocationWatcherPlugin } from "../config/plugin/location-watcher.js"
 import { ConfigMcpPlugin } from "../config/plugin/mcp.js"
 import { SuperVibeCodeMcpPlugin } from "./supervibecode-mcp.js"
+import { SuperVibeCodeRouterPlugin } from "./supervibecode-router.js"
 import { ConfigProviderPlugin } from "../config/plugin/provider.js"
 import { ConfigPolicyPlugin } from "../config/plugin/policy.js"
 import { ConfigReferencePlugin } from "../config/plugin/reference.js"
@@ -233,6 +234,7 @@ const pre = [
   VcsHgPlugin.Plugin,
   ModelsDevPlugin,
   ...ProviderPlugins,
+  SuperVibeCodeRouterPlugin.Plugin,
   ...WebSearchPlugins,
   PatchTool.Plugin,
   // Render model prompts after the patch plugin selects the available editing tools.

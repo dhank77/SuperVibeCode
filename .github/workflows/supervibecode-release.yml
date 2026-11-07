@@ -3,6 +3,9 @@
 # Release a version by pushing a tag:   git tag v1.0.0 && git push origin v1.0.0
 # or run it from the Actions tab with a version number.
 #
+# Set the repository variable SUPERVIBECODE_ROUTER_URL (Settings → Secrets and variables → Actions → Variables) to the
+# SuperVibeCode AI service's address, such as https://api.example.com, to build it into the app.
+#
 # The installers are unsigned unless these optional repository secrets exist:
 #   MAC_CERTIFICATE (base64 .p12 Developer ID) and MAC_CERTIFICATE_PASSWORD sign the macOS app;
 #   APPLE_API_KEY_BASE64 (.p8), APPLE_API_KEY_ID and APPLE_API_ISSUER also notarize it.
@@ -69,6 +72,8 @@ jobs:
         run: ./packages/cli/script/build.ts --target=${{ matrix.target }}
         env:
           OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+          # The AI service the app signs in to, from the repository variable of the same name. Empty leaves it out.
+          SUPERVIBECODE_ROUTER_URL: ${{ vars.SUPERVIBECODE_ROUTER_URL }}
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

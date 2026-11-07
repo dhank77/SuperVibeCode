@@ -1,0 +1,1184 @@
+From 8929edbb1234e9c49da08e10eb475065a7a7eb6a Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 7 Nov 2026 15:31:56 +0800
+Subject: [PATCH] feat: sign in to the SuperVibeCode AI service and top up from
+ the app
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ .env.example                                  |   3 +
+ .github/workflows/supervibecode-release.yml   |   5 +
+ README.md                                     |  16 +
+ packages/cli/script/build.ts                  |   2 +
+ packages/core/src/plugin/internal.ts          |   2 +
+ .../core/src/plugin/supervibecode-router.ts   | 454 ++++++++++++++++++
+ .../test/plugin/supervibecode-router.test.ts  |  15 +
+ packages/gui-extensions/src/account/api.ts    |  66 +++
+ .../gui-extensions/src/account/dialog.tsx     | 302 ++++++++++++
+ .../gui-extensions/src/account/i18n/en.ts     |  36 ++
+ packages/gui-extensions/src/account/index.ts  |  12 +
+ .../gui-extensions/src/account/renderer.tsx   |  92 ++++
+ packages/gui-extensions/src/main.ts           |   2 +
+ packages/gui-extensions/src/renderer.ts       |   3 +
+ 14 files changed, 1010 insertions(+)
+ create mode 100644 .env.example
+ create mode 100644 packages/core/src/plugin/supervibecode-router.ts
+ create mode 100644 packages/core/test/plugin/supervibecode-router.test.ts
+ create mode 100644 packages/gui-extensions/src/account/api.ts
+ create mode 100644 packages/gui-extensions/src/account/dialog.tsx
+ create mode 100644 packages/gui-extensions/src/account/i18n/en.ts
+ create mode 100644 packages/gui-extensions/src/account/index.ts
+ create mode 100644 packages/gui-extensions/src/account/renderer.tsx
+
+diff --git a/.env.example b/.env.example
+new file mode 100644
+index 0000000..0a32a01
+--- /dev/null
++++ b/.env.example
+@@ -0,0 +1,3 @@
++# SuperVibeCode AI service (a SumoRouter instance). Copy to .env and fill in for local development;
++# release builds read the repository variable of the same name.
++SUPERVIBECODE_ROUTER_URL=https://api.example.com
+diff --git a/.github/workflows/supervibecode-release.yml b/.github/workflows/supervibecode-release.yml
+index 06e09c0..1310e03 100644
+--- a/.github/workflows/supervibecode-release.yml
++++ b/.github/workflows/supervibecode-release.yml
+@@ -3,6 +3,9 @@
+ # Release a version by pushing a tag:   git tag v1.0.0 && git push origin v1.0.0
+ # or run it from the Actions tab with a version number.
+ #
++# Set the repository variable SUPERVIBECODE_ROUTER_URL (Settings → Secrets and variables → Actions → Variables) to the
++# SuperVibeCode AI service's address, such as https://api.example.com, to build it into the app.
++#
+ # The installers are unsigned unless these optional repository secrets exist:
+ #   MAC_CERTIFICATE (base64 .p12 Developer ID) and MAC_CERTIFICATE_PASSWORD sign the macOS app;
+ #   APPLE_API_KEY_BASE64 (.p8), APPLE_API_KEY_ID and APPLE_API_ISSUER also notarize it.
+@@ -69,6 +72,8 @@ jobs:
+         run: ./packages/cli/script/build.ts --target=${{ matrix.target }}
+         env:
+           OPENCODE_VERSION: ${{ needs.version.outputs.version }}
++          # The AI service the app signs in to, from the repository variable of the same name. Empty leaves it out.
++          SUPERVIBECODE_ROUTER_URL: ${{ vars.SUPERVIBECODE_ROUTER_URL }}
+ 
+       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+         with:
+diff --git a/README.md b/README.md
+index 4586992..d46f058 100644
+--- a/README.md
++++ b/README.md
+@@ -136,6 +136,22 @@ A skill of the same name in your own skills folder replaces the bundled one. To
+ `SUPERVIBECODE_BUILTIN_SKILLS=0`. Running from source, they load from the `skills/` folder; a compiled build downloads
+ them once from this repository. Each skill keeps its original license; see [skills/NOTICE.txt](skills/NOTICE.txt).
+ 
++## SuperVibeCode AI
++
++SuperVibeCode can sell model access itself through a [SumoRouter](https://docs.sumorouter.com/introduction) instance.
++Users sign in from the titlebar (or the dialog that opens on first launch) with their email and password, and the app
++creates an API key for that computer, lists the service's models with their prices, shows the balance, and tops it up
++with QRIS. Claude models go through the Anthropic Messages endpoint so prompt caching keeps working.
++
++Set the service's address in `SUPERVIBECODE_ROUTER_URL`:
++
++- **From source:** copy `.env.example` to `.env` and fill it in.
++- **Releases:** add a repository variable named `SUPERVIBECODE_ROUTER_URL` under Settings → Secrets and variables →
++  Actions → Variables. The build bakes it into the app; the environment variable still overrides it at runtime.
++
++Without an address the feature is hidden. Keep Turnstile off for sign-in on the instance, since the app signs in
++without a browser captcha.
++
+ ## Releasing
+ 
+ Push a version tag and GitHub Actions builds the installers for macOS, Windows and Linux and publishes them as a release:
+diff --git a/packages/cli/script/build.ts b/packages/cli/script/build.ts
+index a84cb54..77117e6 100755
+--- a/packages/cli/script/build.ts
++++ b/packages/cli/script/build.ts
+@@ -193,6 +193,8 @@ export default { path: file, version: ${JSON.stringify(opencodePty.version)}, sh
+       OPENCODE_CLI_NAME: "'opencode'",
+       OPENCODE_CHANNEL: `'${Script.channel}'`,
+       OPENCODE_ARTIFACT: `'cli'`,
++      // SuperVibeCode's AI service address for this build; SUPERVIBECODE_ROUTER_URL at runtime overrides it.
++      SUPERVIBECODE_ROUTER_URL: JSON.stringify(process.env.SUPERVIBECODE_ROUTER_URL ?? ""),
+       ...(highlights ? { OPENCODE_RELEASE_HIGHLIGHTS: JSON.stringify(highlights) } : {}),
+       OPENCODE_LIBC: item.os === "linux" ? `'${item.abi ?? "glibc"}'` : "undefined",
+       // FFF_LIBC selects the fff native lib variant: "musl" or "gnu".
+diff --git a/packages/core/src/plugin/internal.ts b/packages/core/src/plugin/internal.ts
+index 8168fa3..67f578e 100644
+--- a/packages/core/src/plugin/internal.ts
++++ b/packages/core/src/plugin/internal.ts
+@@ -23,6 +23,7 @@ import { ConfigInstructionPlugin } from "../config/plugin/instruction.js"
+ import { ConfigLocationWatcherPlugin } from "../config/plugin/location-watcher.js"
+ import { ConfigMcpPlugin } from "../config/plugin/mcp.js"
+ import { SuperVibeCodeMcpPlugin } from "./supervibecode-mcp.js"
++import { SuperVibeCodeRouterPlugin } from "./supervibecode-router.js"
+ import { ConfigProviderPlugin } from "../config/plugin/provider.js"
+ import { ConfigPolicyPlugin } from "../config/plugin/policy.js"
+ import { ConfigReferencePlugin } from "../config/plugin/reference.js"
+@@ -233,6 +234,7 @@ const pre = [
+   VcsHgPlugin.Plugin,
+   ModelsDevPlugin,
+   ...ProviderPlugins,
++  SuperVibeCodeRouterPlugin.Plugin,
+   ...WebSearchPlugins,
+   PatchTool.Plugin,
+   // Render model prompts after the patch plugin selects the available editing tools.
+diff --git a/packages/core/src/plugin/supervibecode-router.ts b/packages/core/src/plugin/supervibecode-router.ts
+new file mode 100644
+index 0000000..1086129
+--- /dev/null
++++ b/packages/core/src/plugin/supervibecode-router.ts
+@@ -0,0 +1,454 @@
++export * as SuperVibeCodeRouterPlugin from "./supervibecode-router.js"
++
++import os from "node:os"
++import { define } from "@opencode/plugin/effect/plugin"
++import { Money } from "@opencode/schema/money"
++import { Duration, Effect, Schedule, Schema } from "effect"
++import { Model } from "../model.js"
++import { Rpc } from "../rpc.js"
++import { Variant } from "../variant.js"
++
++// Set at build time for release builds; SUPERVIBECODE_ROUTER_URL in the environment overrides it.
++declare const SUPERVIBECODE_ROUTER_URL: string | undefined
++
++/** The provider SuperVibeCode's own AI service adds once the user signs in. */
++export const providerID = "supervibecode"
++
++/**
++ * The SuperVibeCode AI service: a SumoRouter instance that sells model access by credit. Signing in creates an API key
++ * for this computer, so the agent keeps working after the 7-day session ends; the session is only needed to show the
++ * balance and to top up. Without a configured address the plugin does nothing.
++ */
++export const Plugin = define({
++  id: "supervibecode.router",
++  effect: Effect.fn(function* (ctx) {
++    const base = origin()
++    if (!base) return
++    const state = {
++      account: decodeAccount(yield* ctx.storage.get(ACCOUNT)),
++      models: [] as readonly RouterModel[],
++      hash: "",
++    }
++
++    const sync = Effect.fn("SuperVibeCodeRouter.sync")(function* () {
++      // Another project's window may have signed in or out; the account lives in storage shared by all of them.
++      const account = decodeAccount(yield* ctx.storage.get(ACCOUNT))
++      const models = account
++        ? yield* request(base, "/api/models", { schema: RouterModels }).pipe(
++            Effect.map((items) => items.filter((item) => item.mode === "chat")),
++            Effect.orElseSucceed(() => state.models),
++          )
++        : []
++      const hash = JSON.stringify([account?.key, models])
++
++      if (hash === state.hash) return
++      state.account = account
++      state.models = models
++      state.hash = hash
++      yield* ctx.provider.reload()
++    })
++
++    yield* ctx.provider.transform((providers) => {
++      const key = state.account?.key
++
++      if (!key || state.models.length === 0) return
++      providers.update(providerID, (provider) => {
++        provider.name = "SuperVibeCode"
++        provider.activation = "enabled"
++        provider.package = "@opencode/ai/providers/openai-compatible"
++        provider.settings = { baseURL: `${base}/v1`, provider: providerID, apiKey: key }
++        provider.integrationID = undefined
++      })
++
++      for (const item of state.models) {
++        const catalog = findCatalog(providers.list(), item)
++
++        providers.models.update(providerID, item.slug, (model) => {
++          model.modelID = Model.ID.make(item.slug)
++          model.name = item.name || item.slug
++          if (catalog?.family) model.family = catalog.family
++          model.capabilities = {
++            tools: catalog?.capabilities.tools ?? true,
++            input: item.supports_vision ? ["text", "image"] : ["text"],
++            output: ["text"],
++            ...(catalog?.capabilities.temperature === undefined
++              ? {}
++              : { temperature: catalog.capabilities.temperature }),
++          }
++          model.limit = { context: item.context_length, output: catalog?.limit.output ?? model.limit.output }
++          model.time = { released: item.created * 1000 }
++          model.cost = [
++            {
++              input: perMillion(item.prompt_price_nano),
++              output: perMillion(item.completion_price_nano),
++              cache: {
++                read: perMillion(item.cache_read_price_nano ?? item.prompt_price_nano),
++                write: Money.USDPerMillionTokens.zero,
++              },
++            },
++          ]
++          // Claude goes through the Anthropic Messages endpoint, which keeps prompt caching intact.
++          if (item.owned_by === "anthropic") {
++            model.package = "@opencode/ai/providers/anthropic-compatible"
++            model.settings = { baseURL: `${base}/v1`, provider: providerID, apiKey: key }
++          }
++          model.variants = item.supports_reasoning ? [...Variant.resolve(withPackage(model))] : []
++        })
++      }
++    })
++
++    // A new sign-in starts on the service's own models unless the user already chose another.
++    yield* ctx.model.transform((models) => {
++      if (!state.account?.key) return
++      const current = models.default.get()
++
++      if (current && current.providerID !== "opencode") return
++      const choices = models.list(providerID)
++      const pick = choices.find((model) => /sonnet/i.test(model.id)) ?? choices[0]
++
++      if (pick) models.default.set(providerID, pick.id)
++    })
++
++    const signIn = Effect.fn("SuperVibeCodeRouter.signIn")(function* (token: string, email: string) {
++      const kept = state.account?.email === email ? state.account : undefined
++      const key =
++        kept?.key && kept.keyID
++          ? { id: kept.keyID, key: kept.key }
++          : yield* request(base, "/api/keys", {
++              method: "POST",
++              token,
++              body: { name: `SuperVibeCode (${os.hostname()})` },
++              schema: CreatedKey,
++            })
++      const account = { email, token, key: key.key, keyID: key.id }
++
++      yield* ctx.storage.set(ACCOUNT, account)
++      yield* sync()
++
++      return { status: "signed-in" as const }
++    })
++
++    const finish = (email: string) =>
++      Effect.fn("SuperVibeCodeRouter.finish")(function* (result: typeof LoginResult.Type) {
++        if ("token" in result) return yield* signIn(result.token, email)
++        if ("mfa" in result && result.mfa.setup)
++          return { status: "error" as const, message: "Turn on two-factor authentication on the website first." }
++        if ("mfa" in result) return { status: "mfa" as const, mfaToken: result.mfa.token }
++
++        return { status: "verify" as const }
++      })
++
++    yield* ctx.rpc
++      .register(Contract, {
++        status: () =>
++          Effect.gen(function* () {
++            const account = decodeAccount(yield* ctx.storage.get(ACCOUNT))
++            const [methods, billing] = yield* Effect.all(
++              [
++                request(base, "/api/auth/methods", { schema: Methods }).pipe(Effect.option),
++                request(base, "/api/billing/config", { schema: BillingConfig }).pipe(Effect.option),
++              ],
++              { concurrency: "unbounded" },
++            )
++            const me = account
++              ? yield* request(base, "/api/me", { token: account.token, schema: Me }).pipe(Effect.option)
++              : undefined
++            const config = billing._tag === "Some" ? billing.value : undefined
++
++            return compact({
++              origin: base,
++              signedIn: Boolean(account),
++              email: account?.email,
++              // The key keeps working after the session ends; only the balance needs a fresh sign-in.
++              sessionExpired: Boolean(account) && me?._tag !== "Some",
++              balanceNano: me?._tag === "Some" ? me.value.balance_nano : undefined,
++              name: me?._tag === "Some" ? me.value.name : undefined,
++              registration: methods._tag === "Some" ? methods.value.registration : true,
++              captcha: methods._tag === "Some" ? Boolean(methods.value.turnstile_site_key) : false,
++              topup: config?.enabled ?? false,
++              idrPerUsd: config?.idr_per_usd,
++              minTopupIdr: config?.min_topup_idr,
++              maxTopupIdr: config?.max_topup_idr,
++            })
++          }),
++        login: (input) =>
++          request(base, "/api/auth/login", {
++            method: "POST",
++            body: { email: input.email, password: input.password },
++            schema: LoginResult,
++          }).pipe(Effect.flatMap(finish(input.email)), Effect.catch(failure)),
++        verify: (input) =>
++          request(base, "/api/auth/mfa/verify", {
++            method: "POST",
++            body: { mfa_token: input.mfaToken, code: input.code },
++            schema: Schema.Struct({ token: Schema.String }),
++          }).pipe(
++            Effect.flatMap((result) => signIn(result.token, input.email)),
++            Effect.catch(failure),
++          ),
++        logout: () =>
++          Effect.gen(function* () {
++            const account = decodeAccount(yield* ctx.storage.get(ACCOUNT))
++
++            if (account?.keyID)
++              yield* request(base, `/api/keys/${encodeURIComponent(account.keyID)}`, {
++                method: "DELETE",
++                token: account.token,
++                schema: Schema.Unknown,
++              }).pipe(Effect.ignore)
++            yield* ctx.storage.remove(ACCOUNT)
++            yield* sync()
++
++            return { ok: true }
++          }),
++        topup: (input) =>
++          Effect.gen(function* () {
++            const account = decodeAccount(yield* ctx.storage.get(ACCOUNT))
++
++            if (!account) return { status: "error" as const, message: "Sign in first." }
++
++            return yield* request(base, "/api/billing/topups", {
++              method: "POST",
++              token: account.token,
++              body: { amount_idr: input.amountIdr },
++              schema: Topup,
++            }).pipe(Effect.map(topupOutput), Effect.catch(failure))
++          }),
++        topupStatus: (input) =>
++          Effect.gen(function* () {
++            const account = decodeAccount(yield* ctx.storage.get(ACCOUNT))
++
++            if (!account) return { status: "error" as const, message: "Sign in first." }
++
++            return yield* request(base, `/api/billing/topups/${encodeURIComponent(input.orderId)}`, {
++              token: account.token,
++              schema: Topup,
++            }).pipe(Effect.map(topupOutput), Effect.catch(failure))
++          }),
++      })
++      .pipe(Effect.orDie)
++
++    // Models change on the service without a release, and other windows sign in and out.
++    yield* sync().pipe(Effect.ignore, Effect.repeat(Schedule.spaced(Duration.minutes(1))), Effect.forkScoped)
++  }),
++})
++
++/** The service's address without a trailing `/v1`, or undefined when SuperVibeCode has none. */
++export function origin(env: Record<string, string | undefined> = process.env) {
++  const value =
++    env.SUPERVIBECODE_ROUTER_URL || (typeof SUPERVIBECODE_ROUTER_URL === "string" ? SUPERVIBECODE_ROUTER_URL : "")
++  const trimmed = value.trim().replace(/\/+$/, "").replace(/\/v1$/, "")
++
++  return URL.canParse(trimmed) ? trimmed : undefined
++}
++
++const ACCOUNT = "account"
++
++const Account = Schema.Struct({
++  email: Schema.String,
++  token: Schema.String,
++  key: Schema.String,
++  keyID: Schema.String,
++})
++
++const decodeAccount = (value: unknown) =>
++  Schema.decodeUnknownOption(Account)(value).pipe((option) => (option._tag === "Some" ? option.value : undefined))
++
++const RouterModel = Schema.Struct({
++  slug: Schema.String,
++  name: Schema.String,
++  owned_by: Schema.String,
++  context_length: Schema.Int,
++  prompt_price_nano: Schema.Number,
++  completion_price_nano: Schema.Number,
++  cache_read_price_nano: Schema.NullOr(Schema.Number),
++  created: Schema.Number,
++  mode: Schema.String,
++  supports_reasoning: Schema.Boolean,
++  supports_vision: Schema.Boolean,
++})
++type RouterModel = typeof RouterModel.Type
++const RouterModels = Schema.Array(RouterModel)
++
++const Methods = Schema.Struct({
++  registration: Schema.Boolean,
++  turnstile_site_key: Schema.NullOr(Schema.String),
++})
++
++const BillingConfig = Schema.Struct({
++  enabled: Schema.Boolean,
++  idr_per_usd: Schema.Number,
++  min_topup_idr: Schema.Number,
++  max_topup_idr: Schema.Number,
++})
++
++const Me = Schema.Struct({ name: Schema.String, balance_nano: Schema.Number })
++
++const CreatedKey = Schema.Struct({ id: Schema.String, key: Schema.String })
++
++const LoginResult = Schema.Union([
++  Schema.Struct({ token: Schema.String }),
++  Schema.Struct({ mfa: Schema.Struct({ token: Schema.String, setup: Schema.Boolean }) }),
++  Schema.Struct({ verification_required: Schema.Boolean }),
++])
++
++const Topup = Schema.Struct({
++  order_id: Schema.String,
++  amount_idr: Schema.Number,
++  status: Schema.String,
++  payment_link_url: Schema.NullOr(Schema.String),
++  payment_code: Schema.NullOr(Schema.String),
++})
++
++const topupOutput = (topup: typeof Topup.Type) =>
++  compact({
++    status: "ok" as const,
++    orderId: topup.order_id,
++    amountIdr: topup.amount_idr,
++    state: topup.status,
++    paymentUrl: topup.payment_link_url ?? undefined,
++    paymentCode: topup.payment_code ?? undefined,
++  })
++
++/** Drops absent fields: RPC replies are JSON, which has no `undefined`. */
++function compact<T extends Record<string, unknown>>(value: T) {
++  return Object.fromEntries(Object.entries(value).filter((entry) => entry[1] !== undefined)) as T
++}
++
++const Failure = Schema.Struct({ status: Schema.Literal("error"), message: Schema.String })
++
++const SignInOutput = Schema.Union([
++  Schema.Struct({ status: Schema.Literal("signed-in") }),
++  Schema.Struct({ status: Schema.Literal("mfa"), mfaToken: Schema.String }),
++  Schema.Struct({ status: Schema.Literal("verify") }),
++  Failure,
++])
++
++const TopupOutput = Schema.Union([
++  Schema.Struct({
++    status: Schema.Literal("ok"),
++    orderId: Schema.String,
++    amountIdr: Schema.Number,
++    state: Schema.String,
++    paymentUrl: Schema.optional(Schema.String),
++    paymentCode: Schema.optional(Schema.String),
++  }),
++  Failure,
++])
++
++/** What the app calls on the server: the account, signing in and out, and topping up. */
++export const Contract = Rpc.define({
++  id: "supervibecode.account",
++  methods: {
++    status: {
++      input: Schema.Struct({}),
++      output: Schema.Struct({
++        origin: Schema.String,
++        signedIn: Schema.Boolean,
++        email: Schema.optional(Schema.String),
++        name: Schema.optional(Schema.String),
++        sessionExpired: Schema.Boolean,
++        balanceNano: Schema.optional(Schema.Number),
++        registration: Schema.Boolean,
++        captcha: Schema.Boolean,
++        topup: Schema.Boolean,
++        idrPerUsd: Schema.optional(Schema.Number),
++        minTopupIdr: Schema.optional(Schema.Number),
++        maxTopupIdr: Schema.optional(Schema.Number),
++      }),
++    },
++    login: {
++      input: Schema.Struct({ email: Schema.String, password: Schema.String }),
++      output: SignInOutput,
++    },
++    verify: {
++      input: Schema.Struct({ email: Schema.String, mfaToken: Schema.String, code: Schema.String }),
++      output: SignInOutput,
++    },
++    logout: { input: Schema.Struct({}), output: Schema.Struct({ ok: Schema.Boolean }) },
++    topup: { input: Schema.Struct({ amountIdr: Schema.Int }), output: TopupOutput },
++    topupStatus: { input: Schema.Struct({ orderId: Schema.String }), output: TopupOutput },
++  },
++  events: {},
++})
++
++class RouterError extends Schema.TaggedError<RouterError>()("SuperVibeCodeRouter.Error", {
++  message: Schema.String,
++}) {}
++
++const failure = (error: RouterError) => Effect.succeed({ status: "error" as const, message: error.message })
++
++const ErrorBody = Schema.Struct({
++  error: Schema.optional(Schema.Union([Schema.String, Schema.Struct({ message: Schema.String })])),
++  message: Schema.optional(Schema.String),
++})
++
++/** Calls the service's API and decodes the reply; any failure carries the service's own message when it sent one. */
++function request<A, I>(
++  base: string,
++  path: string,
++  input: {
++    readonly schema: Schema.Codec<A, I>
++    readonly method?: "GET" | "POST" | "DELETE"
++    readonly token?: string
++    readonly body?: unknown
++  },
++) {
++  return Effect.tryPromise({
++    try: async (signal) => {
++      const response = await fetch(`${base}${path}`, {
++        method: input.method ?? "GET",
++        headers: {
++          accept: "application/json",
++          ...(input.body === undefined ? {} : { "content-type": "application/json" }),
++          ...(input.token ? { authorization: `Bearer ${input.token}` } : {}),
++        },
++        body: input.body === undefined ? undefined : JSON.stringify(input.body),
++        signal: AbortSignal.any([signal, AbortSignal.timeout(20_000)]),
++      })
++      const json: unknown = await response.json().catch(() => undefined)
++
++      return { ok: response.ok, status: response.status, json }
++    },
++    catch: () => new RouterError({ message: "Couldn't reach the SuperVibeCode service. Check your connection." }),
++  }).pipe(
++    Effect.flatMap((response) => {
++      if (response.ok)
++        return Schema.decodeUnknownEffect(input.schema)(response.json).pipe(
++          Effect.mapError(() => new RouterError({ message: "The SuperVibeCode service sent an unexpected reply." })),
++        )
++      const body = Schema.decodeUnknownOption(ErrorBody)(response.json)
++      const detail = body._tag === "Some" ? body.value : undefined
++      const message =
++        (typeof detail?.error === "object" ? detail.error.message : detail?.error) ??
++        detail?.message ??
++        `The SuperVibeCode service answered ${response.status}.`
++
++      return Effect.fail(new RouterError({ message }))
++    }),
++  )
++}
++
++const perMillion = (nano: number) => Money.USDPerMillionTokens.make(nano / 1_000_000_000)
++
++const withPackage = (model: Model.Info) => ({
++  ...model,
++  package: model.package ?? ("@opencode/ai/providers/openai-compatible" as Model.Info["package"]),
++})
++
++/** The catalog's entry for a model the service sells, for the capabilities and output limit the service doesn't report. */
++function findCatalog(
++  records: readonly { readonly provider: { readonly id: string }; readonly models: ReadonlyMap<string, Model.Info> }[],
++  item: RouterModel,
++) {
++  const slug = item.slug.includes("/") ? item.slug.slice(item.slug.indexOf("/") + 1) : item.slug
++  const matches = records.flatMap((record) =>
++    record.provider.id === providerID
++      ? []
++      : Array.from(record.models.values())
++          .filter((model) => model.id === slug || model.modelID === slug)
++          .map((model) => ({ model, owner: record.provider.id === item.owned_by })),
++  )
++
++  return (matches.find((match) => match.owner) ?? matches[0])?.model
++}
+diff --git a/packages/core/test/plugin/supervibecode-router.test.ts b/packages/core/test/plugin/supervibecode-router.test.ts
+new file mode 100644
+index 0000000..5ab1336
+--- /dev/null
++++ b/packages/core/test/plugin/supervibecode-router.test.ts
+@@ -0,0 +1,15 @@
++import { describe, expect, test } from "bun:test"
++import { SuperVibeCodeRouterPlugin } from "../../src/plugin/supervibecode-router"
++
++describe("SuperVibeCodeRouterPlugin.origin", () => {
++  test("reads the service address without a trailing /v1 or slash", () => {
++    expect(SuperVibeCodeRouterPlugin.origin({ SUPERVIBECODE_ROUTER_URL: "https://api.example.com/v1/" })).toBe(
++      "https://api.example.com",
++    )
++  })
++
++  test("is undefined without a usable address", () => {
++    expect(SuperVibeCodeRouterPlugin.origin({})).toBeUndefined()
++    expect(SuperVibeCodeRouterPlugin.origin({ SUPERVIBECODE_ROUTER_URL: "not a url" })).toBeUndefined()
++  })
++})
+diff --git a/packages/gui-extensions/src/account/api.ts b/packages/gui-extensions/src/account/api.ts
+new file mode 100644
+index 0000000..0d52975
+--- /dev/null
++++ b/packages/gui-extensions/src/account/api.ts
+@@ -0,0 +1,66 @@
++import type { ServerRef } from "../sdk"
++
++/** What the server's SuperVibeCode service plugin reports; `undefined` when the build has no service configured. */
++export type Status = {
++  readonly origin: string
++  readonly signedIn: boolean
++  readonly email?: string
++  readonly name?: string
++  readonly sessionExpired: boolean
++  readonly balanceNano?: number
++  readonly registration: boolean
++  readonly captcha: boolean
++  readonly topup: boolean
++  readonly idrPerUsd?: number
++  readonly minTopupIdr?: number
++  readonly maxTopupIdr?: number
++}
++
++export type SignIn =
++  | { readonly status: "signed-in" }
++  | { readonly status: "mfa"; readonly mfaToken: string }
++  | { readonly status: "verify" }
++  | { readonly status: "error"; readonly message: string }
++
++export type Topup =
++  | {
++      readonly status: "ok"
++      readonly orderId: string
++      readonly amountIdr: number
++      readonly state: string
++      readonly paymentUrl?: string
++      readonly paymentCode?: string
++    }
++  | { readonly status: "error"; readonly message: string }
++
++type Methods = {
++  status: [Record<string, never>, Status]
++  login: [{ email: string; password: string }, SignIn]
++  verify: [{ email: string; mfaToken: string; code: string }, SignIn]
++  logout: [Record<string, never>, { ok: boolean }]
++  topup: [{ amountIdr: number }, Topup]
++  topupStatus: [{ orderId: string }, Topup]
++}
++
++/** Calls the account RPC the server's SuperVibeCode service plugin registers. */
++export function call<M extends keyof Methods>(server: ServerRef, method: M, input: Methods[M][0]) {
++  return server.client.rpc
++    .call({ rpcID: "supervibecode.account", method, input })
++    .then((response) => (response as { output: Methods[M][1] }).output)
++}
++
++/** The balance in rupiah when the service sells in rupiah, else in dollars. */
++export function formatBalance(status: Status, locale: string) {
++  const usd = (status.balanceNano ?? 0) / 1_000_000_000
++
++  if (status.idrPerUsd)
++    return new Intl.NumberFormat(locale, { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(
++      usd * status.idrPerUsd,
++    )
++
++  return new Intl.NumberFormat(locale, { style: "currency", currency: "USD" }).format(usd)
++}
++
++export function formatRupiah(amount: number, locale: string) {
++  return new Intl.NumberFormat(locale, { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount)
++}
+diff --git a/packages/gui-extensions/src/account/dialog.tsx b/packages/gui-extensions/src/account/dialog.tsx
+new file mode 100644
+index 0000000..6fe5ce9
+--- /dev/null
++++ b/packages/gui-extensions/src/account/dialog.tsx
+@@ -0,0 +1,302 @@
++import { Button } from "@opencode/ui/button"
++import { Dialog, DialogBody, DialogHeader, DialogTitleGroup } from "@opencode/ui/dialog"
++import { TextField } from "@opencode/ui/text-field"
++import { showToast } from "@opencode/ui/toast"
++import { createMemo, For, Match, onCleanup, Show, Switch } from "solid-js"
++import { createStore } from "solid-js/store"
++import { renderSVG } from "uqr"
++import { useExtension, type ServerRef } from "../sdk"
++import { call, formatBalance, formatRupiah, type SignIn, type Status, type Topup } from "./api"
++import type definition from "./index"
++
++const PRESETS = [50_000, 100_000, 250_000]
++const POLL_MS = 3_000
++
++type Payment = Extract<Topup, { status: "ok" }>
++
++/** Signs in to the SuperVibeCode AI service, shows the balance, and tops it up with QRIS. */
++export default function AccountDialog(props: {
++  server: ServerRef
++  status: Status
++  /** Reloads the status, for the balance after a sign-in or a payment. */
++  refresh(): Promise<void>
++  close(): void
++}) {
++  const ctx = useExtension<typeof definition>()
++  const [form, setForm] = createStore({
++    email: props.status.email ?? "",
++    password: "",
++    code: "",
++    mfaToken: "",
++    amount: String(PRESETS[0]),
++    busy: false,
++    error: "",
++    payment: undefined as Payment | undefined,
++  })
++  const timer: { id?: ReturnType<typeof setTimeout> } = {}
++  onCleanup(() => clearTimeout(timer.id))
++
++  const locale = () => ctx.locale.locale()
++  const open = (path: string) => ctx.system.openExternal(`${props.status.origin}${path}`)
++
++  const run = async <T,>(work: () => Promise<T>) => {
++    setForm({ busy: true, error: "" })
++    const result = await work().catch((error: unknown) => {
++      setForm("error", error instanceof Error ? error.message : ctx.t("error.generic"))
++
++      return undefined
++    })
++    setForm("busy", false)
++
++    return result
++  }
++
++  const settle = async (result: SignIn | undefined) => {
++    if (!result) return
++    if (result.status === "error") return setForm("error", result.message)
++    if (result.status === "verify") return setForm("error", ctx.t("verify.email"))
++    if (result.status === "mfa") return setForm({ mfaToken: result.mfaToken, password: "" })
++    setForm({ mfaToken: "", password: "", code: "" })
++    await props.refresh()
++    showToast({ variant: "success", title: ctx.t("welcome.toast") })
++  }
++
++  const signIn = () =>
++    run(() => call(props.server, "login", { email: form.email.trim(), password: form.password })).then(settle)
++
++  const verify = () =>
++    run(() =>
++      call(props.server, "verify", { email: form.email.trim(), mfaToken: form.mfaToken, code: form.code.trim() }),
++    ).then(settle)
++
++  const signOut = () => run(() => call(props.server, "logout", {})).then(() => props.refresh())
++
++  const amount = () => Number(form.amount.replace(/\D/g, ""))
++  const inRange = () =>
++    amount() >= (props.status.minTopupIdr ?? 1) && amount() <= (props.status.maxTopupIdr ?? Number.MAX_SAFE_INTEGER)
++
++  const poll = (orderId: string) => {
++    timer.id = setTimeout(async () => {
++      const result = await call(props.server, "topupStatus", { orderId }).catch(() => undefined)
++
++      if (result?.status !== "ok" || result.state === "pending") return poll(orderId)
++      setForm("payment", undefined)
++      if (result.state !== "completed")
++        return showToast({ variant: "error", title: ctx.t("topup.failed", { state: result.state }) })
++      showToast({ variant: "success", title: ctx.t("topup.done") })
++      await props.refresh()
++    }, POLL_MS)
++  }
++
++  const topup = () =>
++    run(() => call(props.server, "topup", { amountIdr: amount() })).then((result) => {
++      if (!result) return
++      if (result.status === "error") return setForm("error", result.message)
++      setForm("payment", result)
++      // A payment without a QR code is paid on the provider's page.
++      if (!result.paymentCode && result.paymentUrl) ctx.system.openExternal(result.paymentUrl)
++      poll(result.orderId)
++    })
++
++  const qr = createMemo(() => {
++    const code = form.payment?.paymentCode
++
++    if (!code) return
++
++    return renderSVG(code, { border: 2, blackColor: "#000", whiteColor: "#fff" })
++  })
++
++  const field = "flex flex-col gap-3"
++
++  return (
++    <Dialog fit containerClass="max-w-[min(420px,calc(100vw-32px))]">
++      <DialogHeader>
++        <DialogTitleGroup title={ctx.t("dialog.title")} description={ctx.t("dialog.description")} />
++      </DialogHeader>
++      <DialogBody class="flex flex-col gap-4 px-4 pb-4">
++        <Switch>
++          <Match when={(!props.status.signedIn || props.status.sessionExpired) && form.mfaToken}>
++            <form
++              class={field}
++              onSubmit={(event) => {
++                event.preventDefault()
++                void verify()
++              }}
++            >
++              <TextField
++                label={ctx.t("verify.code")}
++                description={ctx.t("verify.description")}
++                value={form.code}
++                autocomplete="one-time-code"
++                onChange={(value) => setForm("code", value)}
++                error={form.error || undefined}
++                validationState={form.error ? "invalid" : "valid"}
++              />
++              <Button type="submit" variant="contrast" disabled={form.busy || !form.code.trim()}>
++                {ctx.t("verify.submit")}
++              </Button>
++            </form>
++          </Match>
++
++          <Match when={!props.status.signedIn || props.status.sessionExpired}>
++            <form
++              class={field}
++              onSubmit={(event) => {
++                event.preventDefault()
++                void signIn()
++              }}
++            >
++              <Show when={props.status.sessionExpired}>
++                <p class="text-13-regular text-v2-text-text-muted">{ctx.t("account.expired")}</p>
++              </Show>
++              <Show when={props.status.captcha}>
++                <p class="text-13-regular text-v2-text-text-muted">{ctx.t("signIn.captcha")}</p>
++              </Show>
++              <TextField
++                label={ctx.t("signIn.email")}
++                type="email"
++                autocomplete="email"
++                value={form.email}
++                onChange={(value) => setForm("email", value)}
++              />
++              <TextField
++                label={ctx.t("signIn.password")}
++                type="password"
++                autocomplete="current-password"
++                value={form.password}
++                onChange={(value) => setForm("password", value)}
++                error={form.error || undefined}
++                validationState={form.error ? "invalid" : "valid"}
++              />
++              <Button type="submit" variant="contrast" disabled={form.busy || !form.email.trim() || !form.password}>
++                {ctx.t("signIn.submit")}
++              </Button>
++              <div class="flex flex-wrap justify-between gap-2">
++                <Show when={props.status.registration}>
++                  <Button type="button" size="small" variant="ghost" onClick={() => open("/register")}>
++                    {ctx.t("signIn.register")}
++                  </Button>
++                </Show>
++                <Button type="button" size="small" variant="ghost-muted" onClick={() => open("/forgot-password")}>
++                  {ctx.t("signIn.forgot")}
++                </Button>
++                <Show when={props.status.signedIn}>
++                  <Button
++                    type="button"
++                    size="small"
++                    variant="ghost-muted"
++                    disabled={form.busy}
++                    onClick={() => void signOut()}
++                  >
++                    {ctx.t("account.signOut")}
++                  </Button>
++                </Show>
++              </div>
++            </form>
++          </Match>
++
++          <Match when={form.payment}>
++            {(payment) => (
++              <div class="flex flex-col items-center gap-3">
++                <p class="text-14-medium text-v2-text-text-base">{formatRupiah(payment().amountIdr, locale())}</p>
++                <Show when={qr()}>
++                  <div
++                    class="aspect-square w-full max-w-[260px] rounded-[6px] bg-white p-2 [&>svg]:size-full"
++                    role="img"
++                    aria-label={ctx.t("topup.qr")}
++                    innerHTML={qr()}
++                  />
++                </Show>
++                <p class="text-center text-13-regular text-v2-text-text-muted">{ctx.t("topup.scan")}</p>
++                <div class="flex gap-2">
++                  <Show when={payment().paymentUrl}>
++                    {(url) => (
++                      <Button size="small" variant="ghost" onClick={() => ctx.system.openExternal(url())}>
++                        {ctx.t("topup.link")}
++                      </Button>
++                    )}
++                  </Show>
++                  <Button
++                    size="small"
++                    variant="ghost-muted"
++                    onClick={() => {
++                      clearTimeout(timer.id)
++                      setForm("payment", undefined)
++                    }}
++                  >
++                    {ctx.t("topup.cancel")}
++                  </Button>
++                </div>
++              </div>
++            )}
++          </Match>
++
++          <Match when={props.status.signedIn}>
++            <div class="flex flex-col gap-1">
++              <span class="text-12-regular text-v2-text-text-muted">{props.status.email}</span>
++              <span class="text-12-regular text-v2-text-text-muted">{ctx.t("account.balance")}</span>
++              <span class="text-20-medium text-v2-text-text-base">{formatBalance(props.status, locale())}</span>
++            </div>
++
++            <Show
++              when={props.status.topup}
++              fallback={<p class="text-13-regular text-v2-text-text-muted">{ctx.t("topup.unavailable")}</p>}
++            >
++              <form
++                class={field}
++                onSubmit={(event) => {
++                  event.preventDefault()
++                  void topup()
++                }}
++              >
++                <span class="text-14-medium text-v2-text-text-base">{ctx.t("topup.title")}</span>
++                <div class="flex flex-wrap gap-2">
++                  <For each={PRESETS}>
++                    {(preset) => (
++                      <Button
++                        type="button"
++                        size="small"
++                        variant={amount() === preset ? "contrast" : "outline"}
++                        onClick={() => setForm("amount", String(preset))}
++                      >
++                        {formatRupiah(preset, locale())}
++                      </Button>
++                    )}
++                  </For>
++                </div>
++                <TextField
++                  label={ctx.t("topup.amount")}
++                  inputMode="numeric"
++                  value={form.amount}
++                  onChange={(value) => setForm("amount", value.replace(/\D/g, ""))}
++                  description={
++                    props.status.minTopupIdr && props.status.maxTopupIdr
++                      ? ctx.t("topup.range", {
++                          min: formatRupiah(props.status.minTopupIdr, locale()),
++                          max: formatRupiah(props.status.maxTopupIdr, locale()),
++                        })
++                      : undefined
++                  }
++                  error={form.error || undefined}
++                  validationState={form.error ? "invalid" : "valid"}
++                />
++                <Button type="submit" variant="contrast" disabled={form.busy || !inRange()}>
++                  {ctx.t("topup.submit")}
++                </Button>
++              </form>
++            </Show>
++
++            <div class="flex flex-wrap justify-between gap-2">
++              <Button size="small" variant="ghost" onClick={() => open("/")}>
++                {ctx.t("account.website")}
++              </Button>
++              <Button size="small" variant="ghost-muted" disabled={form.busy} onClick={() => void signOut()}>
++                {ctx.t("account.signOut")}
++              </Button>
++            </div>
++          </Match>
++        </Switch>
++      </DialogBody>
++    </Dialog>
++  )
++}
+diff --git a/packages/gui-extensions/src/account/i18n/en.ts b/packages/gui-extensions/src/account/i18n/en.ts
+new file mode 100644
+index 0000000..28a3732
+--- /dev/null
++++ b/packages/gui-extensions/src/account/i18n/en.ts
+@@ -0,0 +1,36 @@
++export default {
++  "titlebar.signIn": "Sign in",
++  "titlebar.signIn.title": "Sign in to SuperVibeCode AI",
++  "titlebar.balance.title": "SuperVibeCode AI balance. Top up or manage your account.",
++  "command.open": "SuperVibeCode AI account",
++  "dialog.title": "SuperVibeCode AI",
++  "dialog.description": "Use the best AI models without API keys. Pay as you go with QRIS.",
++  "signIn.email": "Email",
++  "signIn.password": "Password",
++  "signIn.submit": "Sign in",
++  "signIn.register": "Create an account",
++  "signIn.forgot": "Forgot password",
++  "signIn.captcha": "This service asks for a captcha, so sign in on the website and come back.",
++  "verify.code": "Two-factor code",
++  "verify.description": "Enter the 6-digit code from your authenticator app, or a recovery code.",
++  "verify.submit": "Verify",
++  "verify.email": "Confirm your email with the link we sent, then sign in again.",
++  "account.balance": "Balance",
++  "account.expired":
++    "Your session ended. Sign in again to see your balance and top up; the AI keeps working meanwhile.",
++  "account.signOut": "Sign out",
++  "account.website": "Open dashboard",
++  "topup.title": "Top up",
++  "topup.amount": "Amount (Rp)",
++  "topup.range": "Between {{min}} and {{max}}.",
++  "topup.submit": "Pay with QRIS",
++  "topup.scan": "Scan with any e-wallet or mobile banking app. Your balance updates once the payment is confirmed.",
++  "topup.qr": "QRIS payment code",
++  "topup.link": "Open payment page",
++  "topup.cancel": "Back",
++  "topup.done": "Payment received. Your balance is updated.",
++  "topup.failed": "The payment {{state}}. Try again.",
++  "topup.unavailable": "Top-up isn't available right now.",
++  "error.generic": "Something went wrong. Try again.",
++  "welcome.toast": "Signed in to SuperVibeCode AI",
++}
+diff --git a/packages/gui-extensions/src/account/index.ts b/packages/gui-extensions/src/account/index.ts
+new file mode 100644
+index 0000000..fe7762b
+--- /dev/null
++++ b/packages/gui-extensions/src/account/index.ts
+@@ -0,0 +1,12 @@
++import { Schema } from "effect"
++import { Extension, Store } from "../sdk"
++import en from "./i18n/en"
++
++export default Extension.define({
++  id: "account",
++  stores: {
++    // The sign-in dialog opens by itself once, on the first launch with the SuperVibeCode service available.
++    prefs: Store.global(Schema.Struct({ introduced: Schema.Boolean }), { introduced: false }),
++  },
++  i18n: { en },
++})
+diff --git a/packages/gui-extensions/src/account/renderer.tsx b/packages/gui-extensions/src/account/renderer.tsx
+new file mode 100644
+index 0000000..e6dbcb4
+--- /dev/null
++++ b/packages/gui-extensions/src/account/renderer.tsx
+@@ -0,0 +1,92 @@
++import { lazy, onCleanup } from "solid-js"
++import { createStore, reconcile } from "solid-js/store"
++import { Command, createKeyed, TitlebarItem, type ServerRef, type Setup } from "../sdk"
++import { call, formatBalance, type Status } from "./api"
++import type definition from "./index"
++
++// The balance follows spending while the app is open.
++const REFRESH_MS = 60_000
++
++/**
++ * The SuperVibeCode AI service in the titlebar: a sign-in pill until the user signs in, then the balance, which opens
++ * the account dialog for topping up. Shows nothing when the build has no service configured.
++ */
++const setup: Setup<typeof definition> = (ctx) => {
++  const AccountDialog = lazy(() => import("./dialog"))
++  const [state, setState] = createStore({ status: undefined as Status | undefined })
++
++  // The app's own server: the service plugin runs there, beside the credentials it saves.
++  const server = (): ServerRef | undefined => {
++    const refs = ctx.servers.list().map((id) => ctx.servers.get(id))
++
++    return refs.find((ref) => ref?.builtin) ?? refs.find((ref) => ref?.local)
++  }
++
++  const refresh = async () => {
++    const ref = server()
++
++    if (!ref) return
++    // A server without the plugin, or a build without a service address, has no account RPC.
++    const status = await call(ref, "status", {}).catch(() => undefined)
++
++    if (ctx.signal.aborted) return
++    setState("status", status ? reconcile(status) : undefined)
++    // The first launch with the service available introduces it, so a new user can start without an API key.
++    if (!status || status.signedIn || ctx.stores.prefs.value.introduced) return
++    ctx.stores.prefs.set({ introduced: true })
++    open()
++  }
++
++  const open = () => {
++    const ref = server()
++    const status = state.status
++
++    if (!ref || !status) return
++    ctx.dialogs.open((dialog) => (
++      <AccountDialog server={ref} status={state.status ?? status} refresh={refresh} close={dialog.close} />
++    ))
++  }
++
++  // Each connection of the app's server: load the status now and keep the balance current while it lasts.
++  createKeyed(
++    () => (server()?.connected ? server() : undefined),
++    () => {
++      void refresh()
++      const timer = setInterval(() => void refresh(), REFRESH_MS)
++
++      onCleanup(() => clearInterval(timer))
++    },
++  )
++
++  ctx.add(TitlebarItem, () => {
++    const status = state.status
++
++    if (!status) return
++    if (!status.signedIn || status.sessionExpired)
++      return {
++        id: "account",
++        label: ctx.t("titlebar.signIn"),
++        title: ctx.t("titlebar.signIn.title"),
++        icon: "providers" as const,
++        run: open,
++      }
++
++    return {
++      id: "account",
++      label: formatBalance(status, ctx.locale.locale()),
++      title: ctx.t("titlebar.balance.title"),
++      icon: "brain" as const,
++      run: open,
++    }
++  })
++
++  ctx.add(Command, {
++    id: "open",
++    get title() {
++      return ctx.t("command.open")
++    },
++    run: open,
++  })
++}
++
++export default setup
+diff --git a/packages/gui-extensions/src/main.ts b/packages/gui-extensions/src/main.ts
+index 7cd5e77..0ae8099 100644
+--- a/packages/gui-extensions/src/main.ts
++++ b/packages/gui-extensions/src/main.ts
+@@ -14,6 +14,7 @@ import wsl from "./wsl"
+ import microsoftOffice from "./microsoft-office"
+ import preview from "./preview"
+ import autogit from "./autogit"
++import account from "./account"
+ 
+ /**
+  * Built-in extensions with their main entries. Lists every built-in so their ids stay reserved. `builtins.typecheck.ts`
+@@ -35,4 +36,5 @@ export const builtins = Extension.compose(
+   microsoftOffice,
+   preview,
+   autogit,
++  account,
+ )
+diff --git a/packages/gui-extensions/src/renderer.ts b/packages/gui-extensions/src/renderer.ts
+index b880210..8651e08 100644
+--- a/packages/gui-extensions/src/renderer.ts
++++ b/packages/gui-extensions/src/renderer.ts
+@@ -28,6 +28,8 @@ import microsoftOfficeRenderer from "./microsoft-office/renderer"
+ import preview from "./preview"
+ import autogit from "./autogit"
+ import autogitRenderer from "./autogit/renderer"
++import account from "./account"
++import accountRenderer from "./account/renderer"
+ import previewRenderer from "./preview/renderer"
+ 
+ // The window renders once every built-in is active, so the small renderer entries load with the app, like the
+@@ -55,4 +57,5 @@ export const builtins = Extension.compose(
+   { ...microsoftOffice, renderer: eager(microsoftOfficeRenderer) },
+   { ...preview, renderer: eager(previewRenderer) },
+   { ...autogit, renderer: eager(autogitRenderer) },
++  { ...account, renderer: eager(accountRenderer) },
+ )
+-- 
+2.43.0
+

@@ -193,6 +193,8 @@ export default { path: file, version: ${JSON.stringify(opencodePty.version)}, sh
       OPENCODE_CLI_NAME: "'opencode'",
       OPENCODE_CHANNEL: `'${Script.channel}'`,
       OPENCODE_ARTIFACT: `'cli'`,
+      // SuperVibeCode's AI service address for this build; SUPERVIBECODE_ROUTER_URL at runtime overrides it.
+      SUPERVIBECODE_ROUTER_URL: JSON.stringify(process.env.SUPERVIBECODE_ROUTER_URL ?? ""),
       ...(highlights ? { OPENCODE_RELEASE_HIGHLIGHTS: JSON.stringify(highlights) } : {}),
       OPENCODE_LIBC: item.os === "linux" ? `'${item.abi ?? "glibc"}'` : "undefined",
       // FFF_LIBC selects the fff native lib variant: "musl" or "gnu".

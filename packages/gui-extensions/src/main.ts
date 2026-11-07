@@ -14,6 +14,7 @@ import wsl from "./wsl"
 import microsoftOffice from "./microsoft-office"
 import preview from "./preview"
 import autogit from "./autogit"
+import account from "./account"
 
 /**
  * Built-in extensions with their main entries. Lists every built-in so their ids stay reserved. `builtins.typecheck.ts`
@@ -35,4 +36,5 @@ export const builtins = Extension.compose(
   microsoftOffice,
   preview,
   autogit,
+  account,
 )

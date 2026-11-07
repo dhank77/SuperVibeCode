@@ -136,6 +136,22 @@ A skill of the same name in your own skills folder replaces the bundled one. To 
 `SUPERVIBECODE_BUILTIN_SKILLS=0`. Running from source, they load from the `skills/` folder; a compiled build downloads
 them once from this repository. Each skill keeps its original license; see [skills/NOTICE.txt](skills/NOTICE.txt).
 
+## SuperVibeCode AI
+
+SuperVibeCode can sell model access itself through a [SumoRouter](https://docs.sumorouter.com/introduction) instance.
+Users sign in from the titlebar (or the dialog that opens on first launch) with their email and password, and the app
+creates an API key for that computer, lists the service's models with their prices, shows the balance, and tops it up
+with QRIS. Claude models go through the Anthropic Messages endpoint so prompt caching keeps working.
+
+Set the service's address in `SUPERVIBECODE_ROUTER_URL`:
+
+- **From source:** copy `.env.example` to `.env` and fill it in.
+- **Releases:** add a repository variable named `SUPERVIBECODE_ROUTER_URL` under Settings → Secrets and variables →
+  Actions → Variables. The build bakes it into the app; the environment variable still overrides it at runtime.
+
+Without an address the feature is hidden. Keep Turnstile off for sign-in on the instance, since the app signs in
+without a browser captcha.
+
 ## Releasing
 
 Push a version tag and GitHub Actions builds the installers for macOS, Windows and Linux and publishes them as a release:
