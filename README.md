@@ -65,7 +65,21 @@ workflow on top.
 
 ### Install
 
-Download the installer for your computer from the [latest release](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest):
+The quickest way, without security warnings, is one command. The script downloads the latest release itself, and a
+download made from the command line isn't flagged the way a browser download of an unsigned app is. Run it again to
+update.
+
+```bash
+# macOS (Terminal)
+curl -fsSL https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.sh | bash
+```
+
+```powershell
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.ps1 | iex
+```
+
+Or download the installer for your computer from the [latest release](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest):
 the `.dmg` for macOS (`arm64` for Apple silicon, `x64` for Intel), the `.exe` for Windows, or the `.AppImage`, `.deb` or
 `.rpm` for Linux. On Windows and Linux the app updates itself from new releases; on macOS, download new
 releases yourself until the app is signed.

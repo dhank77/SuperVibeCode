@@ -217,6 +217,36 @@
 
       <section class="download" id="download" aria-labelledby="download-title">
         <h2 id="download-title">Download SuperVibeCode</h2>
+        <div class="quick">
+          <h3>Install with one command</h3>
+          <p>
+            The fastest way, with no security warnings: the installer downloads the latest version itself, so macOS and
+            Windows don't treat it as an unknown download. Run the same command again to update.
+          </p>
+          <div class="quick-row" data-os="mac">
+            <span class="quick-os">macOS <small>Terminal</small></span>
+            <div class="command">
+              <code id="install-mac" data-install="install.sh"
+                >curl -fsSL
+                https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.sh |
+                bash</code
+              >
+              <button type="button" class="copy" data-copy="install-mac">Copy</button>
+            </div>
+          </div>
+          <div class="quick-row" data-os="windows">
+            <span class="quick-os">Windows <small>PowerShell</small></span>
+            <div class="command">
+              <code id="install-windows" data-install="install.ps1"
+                >irm https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.ps1 |
+                iex</code
+              >
+              <button type="button" class="copy" data-copy="install-windows">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="platforms-title">Or download the installer</h3>
         <div class="platforms">
           <div class="platform" data-os="mac">
             <h3>macOS</h3>
@@ -235,8 +265,8 @@
             <ol class="mac-steps">
               <li>Open the .dmg and drag SuperVibeCode into Applications.</li>
               <li>
-                The app isn't signed by Apple yet, so macOS may say it is damaged. Run this once in Terminal, then open
-                the app:
+                The app isn't signed by Apple yet, so a browser download may be called damaged. Run this once in
+                Terminal, then open the app, or use the one-command install above instead:
                 <div class="command">
                   <code id="mac-command">xattr -dr com.apple.quarantine /Applications/SuperVibeCode.app</code>
                   <button type="button" class="copy" data-copy="mac-command">Copy</button>
@@ -281,7 +311,12 @@
           Every version is on the
           <a data-repo-link data-path="/releases" href="https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases"
             >releases page</a
-          >. Prefer to run from source? Clone the repository and run <code>bun install</code>, then
+          >, and you can
+          <a
+            href="https://www.virustotal.com/gui/url/cdf13b573c6d7b21579b999ccb28774cf94f824f91917c9c249edc6143385548/detection"
+            >check its VirusTotal scan</a
+          >
+          before installing. Prefer to run from source? Clone the repository and run <code>bun install</code>, then
           <code>bun run dev:desktop</code>.
         </p>
       </section>

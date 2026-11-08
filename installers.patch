@@ -1,0 +1,305 @@
+From 14b21214668db8d040d2779c136fa9dc8d723442 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 8 Nov 2026 08:33:01 +0800
+Subject: [PATCH] feat(landingpage): one-command installers for macOS and
+ Windows
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ README.md               | 16 +++++++++++-
+ landingpage/index.html  | 41 ++++++++++++++++++++++++++---
+ landingpage/install.ps1 | 21 +++++++++++++++
+ landingpage/install.sh  | 53 ++++++++++++++++++++++++++++++++++++++
+ landingpage/main.js     | 10 ++++++++
+ landingpage/style.css   | 57 ++++++++++++++++++++++++++++++++++++++++-
+ 6 files changed, 193 insertions(+), 5 deletions(-)
+ create mode 100644 landingpage/install.ps1
+ create mode 100755 landingpage/install.sh
+
+diff --git a/README.md b/README.md
+index d46f058..fbcfd8c 100644
+--- a/README.md
++++ b/README.md
+@@ -65,7 +65,21 @@ workflow on top.
+ 
+ ### Install
+ 
+-Download the installer for your computer from the [latest release](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest):
++The quickest way, without security warnings, is one command. The script downloads the latest release itself, and a
++download made from the command line isn't flagged the way a browser download of an unsigned app is. Run it again to
++update.
++
++```bash
++# macOS (Terminal)
++curl -fsSL https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.sh | bash
++```
++
++```powershell
++# Windows (PowerShell)
++irm https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.ps1 | iex
++```
++
++Or download the installer for your computer from the [latest release](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest):
+ the `.dmg` for macOS (`arm64` for Apple silicon, `x64` for Intel), the `.exe` for Windows, or the `.AppImage`, `.deb` or
+ `.rpm` for Linux. On Windows and Linux the app updates itself from new releases; on macOS, download new
+ releases yourself until the app is signed.
+diff --git a/landingpage/index.html b/landingpage/index.html
+index 22bc6f9..f095109 100644
+--- a/landingpage/index.html
++++ b/landingpage/index.html
+@@ -217,6 +217,36 @@
+ 
+       <section class="download" id="download" aria-labelledby="download-title">
+         <h2 id="download-title">Download SuperVibeCode</h2>
++        <div class="quick">
++          <h3>Install with one command</h3>
++          <p>
++            The fastest way, with no security warnings: the installer downloads the latest version itself, so macOS and
++            Windows don't treat it as an unknown download. Run the same command again to update.
++          </p>
++          <div class="quick-row" data-os="mac">
++            <span class="quick-os">macOS <small>Terminal</small></span>
++            <div class="command">
++              <code id="install-mac" data-install="install.sh"
++                >curl -fsSL
++                https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.sh |
++                bash</code
++              >
++              <button type="button" class="copy" data-copy="install-mac">Copy</button>
++            </div>
++          </div>
++          <div class="quick-row" data-os="windows">
++            <span class="quick-os">Windows <small>PowerShell</small></span>
++            <div class="command">
++              <code id="install-windows" data-install="install.ps1"
++                >irm https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.ps1 |
++                iex</code
++              >
++              <button type="button" class="copy" data-copy="install-windows">Copy</button>
++            </div>
++          </div>
++        </div>
++
++        <h3 class="platforms-title">Or download the installer</h3>
+         <div class="platforms">
+           <div class="platform" data-os="mac">
+             <h3>macOS</h3>
+@@ -235,8 +265,8 @@
+             <ol class="mac-steps">
+               <li>Open the .dmg and drag SuperVibeCode into Applications.</li>
+               <li>
+-                The app isn't signed by Apple yet, so macOS may say it is damaged. Run this once in Terminal, then open
+-                the app:
++                The app isn't signed by Apple yet, so a browser download may be called damaged. Run this once in
++                Terminal, then open the app, or use the one-command install above instead:
+                 <div class="command">
+                   <code id="mac-command">xattr -dr com.apple.quarantine /Applications/SuperVibeCode.app</code>
+                   <button type="button" class="copy" data-copy="mac-command">Copy</button>
+@@ -281,7 +311,12 @@
+           Every version is on the
+           <a data-repo-link data-path="/releases" href="https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases"
+             >releases page</a
+-          >. Prefer to run from source? Clone the repository and run <code>bun install</code>, then
++          >, and you can
++          <a
++            href="https://www.virustotal.com/gui/url/cdf13b573c6d7b21579b999ccb28774cf94f824f91917c9c249edc6143385548/detection"
++            >check its VirusTotal scan</a
++          >
++          before installing. Prefer to run from source? Clone the repository and run <code>bun install</code>, then
+           <code>bun run dev:desktop</code>.
+         </p>
+       </section>
+diff --git a/landingpage/install.ps1 b/landingpage/install.ps1
+new file mode 100644
+index 0000000..410758c
+--- /dev/null
++++ b/landingpage/install.ps1
+@@ -0,0 +1,21 @@
++# Installs SuperVibeCode on Windows:  irm https://<site>/install.ps1 | iex
++#
++# A download made by PowerShell carries no mark of the web, so SmartScreen doesn't stop the installer the way it stops
++# an unsigned one downloaded in a browser. Run it again to update.
++$ErrorActionPreference = "Stop"
++$ProgressPreference = "SilentlyContinue"
++
++$repo = if ($env:SUPERVIBECODE_REPO) { $env:SUPERVIBECODE_REPO } else { "latjoromhi25d-dotcom/SuperVibeCode" }
++$url = "https://github.com/$repo/releases/latest/download/supervibecode-desktop-win-x64.exe"
++$installer = Join-Path ([System.IO.Path]::GetTempPath()) "SuperVibeCode-Setup.exe"
++
++Write-Host "Downloading SuperVibeCode..."
++Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing
++
++try {
++  Write-Host "Installing. SuperVibeCode opens when it's done."
++  Start-Process -FilePath $installer -Wait
++}
++finally {
++  Remove-Item $installer -Force -ErrorAction SilentlyContinue
++}
+diff --git a/landingpage/install.sh b/landingpage/install.sh
+new file mode 100755
+index 0000000..069dc0d
+--- /dev/null
++++ b/landingpage/install.sh
+@@ -0,0 +1,53 @@
++#!/usr/bin/env bash
++# Installs SuperVibeCode on macOS:  curl -fsSL https://<site>/install.sh | bash
++#
++# A download made by curl carries no quarantine flag, so macOS opens the app without the warning a browser download of
++# an app not notarized by Apple gets. Run it again to update.
++set -euo pipefail
++
++REPO="${SUPERVIBECODE_REPO:-latjoromhi25d-dotcom/SuperVibeCode}"
++
++if [ "$(uname -s)" != "Darwin" ]; then
++  echo "This installer is for macOS. On Windows run: irm <site>/install.ps1 | iex"
++  echo "On Linux, download the AppImage, .deb or .rpm from https://github.com/$REPO/releases/latest"
++  exit 1
++fi
++
++# Apple silicon reports x86_64 under Rosetta, so ask the hardware rather than the shell.
++if [ "$(sysctl -n hw.optional.arm64 2>/dev/null || echo 0)" = "1" ]; then arch="arm64"; else arch="x64"; fi
++
++url="https://github.com/$REPO/releases/latest/download/supervibecode-desktop-mac-$arch.dmg"
++work="$(mktemp -d)"
++mount="$work/volume"
++
++cleanup() {
++  hdiutil detach "$mount" -quiet 2>/dev/null || true
++  rm -rf "$work"
++}
++trap cleanup EXIT
++
++echo "Downloading SuperVibeCode for $( [ "$arch" = arm64 ] && echo "Apple silicon" || echo "Intel" ) Macs..."
++curl -fL --progress-bar "$url" -o "$work/SuperVibeCode.dmg"
++
++mkdir -p "$mount"
++hdiutil attach "$work/SuperVibeCode.dmg" -nobrowse -readonly -noautoopen -quiet -mountpoint "$mount"
++app="$(find "$mount" -maxdepth 1 -name "*.app" -print -quit)"
++
++if [ -z "$app" ]; then
++  echo "The download didn't contain the app. Try again, or download it from https://github.com/$REPO/releases/latest"
++  exit 1
++fi
++
++name="$(basename "$app")"
++# /Applications needs no password for an administrator; other accounts install to their own Applications folder.
++target="/Applications"
++[ -w "$target" ] || target="$HOME/Applications"
++mkdir -p "$target"
++
++osascript -e "quit app \"${name%.app}\"" >/dev/null 2>&1 || true
++rm -rf "$target/$name"
++ditto "$app" "$target/$name"
++xattr -dr com.apple.quarantine "$target/$name" 2>/dev/null || true
++
++echo "Installed $name in $target. Opening it now."
++open "$target/$name"
+diff --git a/landingpage/main.js b/landingpage/main.js
+index 7d3384b..486b91e 100644
+--- a/landingpage/main.js
++++ b/landingpage/main.js
+@@ -12,6 +12,15 @@ document.querySelectorAll("[data-file]").forEach((link) => {
+   link.href = `https://github.com/${REPO}/releases/latest/download/${link.dataset.file}`
+ })
+ 
++// One-command installs: served beside this page when the site hosts it, else straight from the repository.
++document.querySelectorAll("[data-install]").forEach((code) => {
++  const script = location.protocol.startsWith("http")
++    ? new URL(code.dataset.install, location.href).href
++    : `https://raw.githubusercontent.com/${REPO}/main/landingpage/${code.dataset.install}`
++
++  code.textContent = code.dataset.install.endsWith(".ps1") ? `irm ${script} | iex` : `curl -fsSL ${script} | bash`
++})
++
+ // The hero's Download button goes straight to this computer's installer when the platform is clear.
+ const os = (() => {
+   const platform = (navigator.userAgentData?.platform ?? navigator.platform ?? "").toLowerCase()
+@@ -30,6 +39,7 @@ const primary = document.getElementById("download-primary")
+ 
+ if (os) {
+   document.querySelector(`.platform[data-os="${os}"]`)?.setAttribute("data-current", "")
++  document.querySelector(`.quick-row[data-os="${os}"]`)?.setAttribute("data-current", "")
+   primary.textContent = labels[os]
+ 
+   // macOS cannot tell Apple silicon from Intel in a browser, so Mac users pick on the download section.
+diff --git a/landingpage/style.css b/landingpage/style.css
+index 9d81d0b..6d3bb46 100644
+--- a/landingpage/style.css
++++ b/landingpage/style.css
+@@ -838,8 +838,58 @@ h1 {
+   margin: 10px 0 0;
+ }
+ 
+-.platforms {
++.quick {
+   margin-top: 36px;
++  padding: 24px;
++  border: 1px solid var(--line);
++  border-radius: 12px;
++  background: var(--raised);
++}
++
++.quick > p {
++  margin: 8px 0 0;
++  max-width: 70ch;
++  color: var(--muted);
++  font-size: 14px;
++}
++
++.quick-row {
++  display: grid;
++  grid-template-columns: 9.5rem minmax(0, 1fr);
++  align-items: center;
++  gap: 12px;
++  margin-top: 16px;
++}
++
++.quick-row .command {
++  margin-top: 0;
++}
++
++.quick-os {
++  font-weight: 700;
++  color: var(--ink-strong);
++}
++
++.quick-os small {
++  display: block;
++  font-weight: 500;
++  color: var(--muted);
++}
++
++.quick-row[data-current] .quick-os::after {
++  content: "this computer";
++  display: block;
++  font-size: 12px;
++  font-weight: 600;
++  color: var(--violet-strong);
++}
++
++.platforms-title {
++  margin-top: 40px;
++}
++
++.platforms {
++  margin-top: 16px;
+   display: grid;
+   grid-template-columns: repeat(3, 1fr);
+   gap: 0;
+@@ -989,6 +1039,11 @@ h1 {
+     grid-template-columns: 1fr;
+   }
+ 
++  .quick-row {
++    grid-template-columns: 1fr;
++    gap: 6px;
++  }
++
+   .platform + .platform {
+     padding-left: 0;
+     border-left: 0;
+-- 
+2.43.0
+

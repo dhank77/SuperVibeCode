@@ -838,8 +838,58 @@ h1 {
   margin: 10px 0 0;
 }
 
-.platforms {
+.quick {
   margin-top: 36px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--raised);
+}
+
+.quick > p {
+  margin: 8px 0 0;
+  max-width: 70ch;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.quick-row {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.quick-row .command {
+  margin-top: 0;
+}
+
+.quick-os {
+  font-weight: 700;
+  color: var(--ink-strong);
+}
+
+.quick-os small {
+  display: block;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.quick-row[data-current] .quick-os::after {
+  content: "this computer";
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--violet-strong);
+}
+
+.platforms-title {
+  margin-top: 40px;
+}
+
+.platforms {
+  margin-top: 16px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
@@ -987,6 +1037,11 @@ h1 {
 
   .platforms {
     grid-template-columns: 1fr;
+  }
+
+  .quick-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 
   .platform + .platform {

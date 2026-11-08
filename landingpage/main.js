@@ -12,6 +12,15 @@ document.querySelectorAll("[data-file]").forEach((link) => {
   link.href = `https://github.com/${REPO}/releases/latest/download/${link.dataset.file}`
 })
 
+// One-command installs: served beside this page when the site hosts it, else straight from the repository.
+document.querySelectorAll("[data-install]").forEach((code) => {
+  const script = location.protocol.startsWith("http")
+    ? new URL(code.dataset.install, location.href).href
+    : `https://raw.githubusercontent.com/${REPO}/main/landingpage/${code.dataset.install}`
+
+  code.textContent = code.dataset.install.endsWith(".ps1") ? `irm ${script} | iex` : `curl -fsSL ${script} | bash`
+})
+
 // The hero's Download button goes straight to this computer's installer when the platform is clear.
 const os = (() => {
   const platform = (navigator.userAgentData?.platform ?? navigator.platform ?? "").toLowerCase()
@@ -30,6 +39,7 @@ const primary = document.getElementById("download-primary")
 
 if (os) {
   document.querySelector(`.platform[data-os="${os}"]`)?.setAttribute("data-current", "")
+  document.querySelector(`.quick-row[data-os="${os}"]`)?.setAttribute("data-current", "")
   primary.textContent = labels[os]
 
   // macOS cannot tell Apple silicon from Intel in a browser, so Mac users pick on the download section.
