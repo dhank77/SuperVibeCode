@@ -30,6 +30,8 @@ import autogit from "./autogit"
 import autogitRenderer from "./autogit/renderer"
 import account from "./account"
 import accountRenderer from "./account/renderer"
+import upgrade from "./upgrade"
+import upgradeRenderer from "./upgrade/renderer"
 import previewRenderer from "./preview/renderer"
 
 // The window renders once every built-in is active, so the small renderer entries load with the app, like the
@@ -58,4 +60,5 @@ export const builtins = Extension.compose(
   { ...preview, renderer: eager(previewRenderer) },
   { ...autogit, renderer: eager(autogitRenderer) },
   { ...account, renderer: eager(accountRenderer) },
+  { ...upgrade, renderer: eager(upgradeRenderer) },
 )

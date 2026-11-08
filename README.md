@@ -166,6 +166,27 @@ Set the service's address in `SUPERVIBECODE_ROUTER_URL`:
 Without an address the feature is hidden. Keep Turnstile off for sign-in on the instance, since the app signs in
 without a browser captcha.
 
+## Requiring an update
+
+The app reads `https://supervibecode.ai.id/version.json` (`landingpage/version.json`) when it starts and every few
+hours:
+
+```json
+{
+  "minimum": "0.2.0",
+  "latest": "0.3.1",
+  "message": "Optional text for the update dialog",
+  "download": "https://supervibecode.ai.id/#download"
+}
+```
+
+- Below `latest`, a reminder offers the update once per release.
+- Below `minimum`, a dialog that can't be closed asks for the update. Windows and Linux install it in the app; macOS
+  shows the one-command installer until the app is signed.
+- Offline, or without the file, the app keeps working. Point `SUPERVIBECODE_VERSION_URL` at another file to test.
+
+Raise `latest` with every release, and `minimum` only when old versions must stop.
+
 ## Releasing
 
 Push a version tag and GitHub Actions builds the installers for macOS, Windows and Linux and publishes them as a release:

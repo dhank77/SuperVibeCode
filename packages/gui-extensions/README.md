@@ -677,6 +677,7 @@ export const builtins = Extension.compose(
   preview,
   autogit,
   account,
+  { ...upgrade, main: () => import("./upgrade/main") },
 )
 ```
 
@@ -706,6 +707,7 @@ export const builtins = Extension.compose(
   { ...preview, renderer: eager(previewRenderer) },
   { ...autogit, renderer: eager(autogitRenderer) },
   { ...account, renderer: eager(accountRenderer) },
+  { ...upgrade, renderer: eager(upgradeRenderer) },
 )
 ```
 

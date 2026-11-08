@@ -15,6 +15,7 @@ import microsoftOffice from "./microsoft-office"
 import preview from "./preview"
 import autogit from "./autogit"
 import account from "./account"
+import upgrade from "./upgrade"
 
 /**
  * Built-in extensions with their main entries. Lists every built-in so their ids stay reserved. `builtins.typecheck.ts`
@@ -37,4 +38,5 @@ export const builtins = Extension.compose(
   preview,
   autogit,
   account,
+  { ...upgrade, main: () => import("./upgrade/main") },
 )

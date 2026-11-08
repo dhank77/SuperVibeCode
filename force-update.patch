@@ -1,0 +1,513 @@
+From 7b1d32b6962038404babd72aeac88ad0807616ae Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 8 Nov 2026 08:45:43 +0800
+Subject: [PATCH] feat(gui-extensions): require an update below the publisher's
+ minimum version
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ README.md                                     | 21 +++++
+ landingpage/version.json                      |  5 +
+ packages/gui-extensions/README.md             |  2 +
+ packages/gui-extensions/src/main.ts           |  2 +
+ packages/gui-extensions/src/renderer.ts       |  3 +
+ .../gui-extensions/src/upgrade/contract.ts    | 34 +++++++
+ .../gui-extensions/src/upgrade/i18n/en.ts     | 17 ++++
+ packages/gui-extensions/src/upgrade/index.ts  | 16 ++++
+ packages/gui-extensions/src/upgrade/main.ts   | 74 +++++++++++++++
+ .../gui-extensions/src/upgrade/renderer.tsx   | 91 +++++++++++++++++++
+ .../gui-extensions/src/upgrade/required.tsx   | 74 +++++++++++++++
+ .../src/upgrade/version.test.ts               |  9 ++
+ .../gui-extensions/src/upgrade/version.ts     | 14 +++
+ 13 files changed, 362 insertions(+)
+ create mode 100644 landingpage/version.json
+ create mode 100644 packages/gui-extensions/src/upgrade/contract.ts
+ create mode 100644 packages/gui-extensions/src/upgrade/i18n/en.ts
+ create mode 100644 packages/gui-extensions/src/upgrade/index.ts
+ create mode 100644 packages/gui-extensions/src/upgrade/main.ts
+ create mode 100644 packages/gui-extensions/src/upgrade/renderer.tsx
+ create mode 100644 packages/gui-extensions/src/upgrade/required.tsx
+ create mode 100644 packages/gui-extensions/src/upgrade/version.test.ts
+ create mode 100644 packages/gui-extensions/src/upgrade/version.ts
+
+diff --git a/README.md b/README.md
+index fe9cc32..c53bc2e 100644
+--- a/README.md
++++ b/README.md
+@@ -166,6 +166,27 @@ Set the service's address in `SUPERVIBECODE_ROUTER_URL`:
+ Without an address the feature is hidden. Keep Turnstile off for sign-in on the instance, since the app signs in
+ without a browser captcha.
+ 
++## Requiring an update
++
++The app reads `https://supervibecode.ai.id/version.json` (`landingpage/version.json`) when it starts and every few
++hours:
++
++```json
++{
++  "minimum": "0.2.0",
++  "latest": "0.3.1",
++  "message": "Optional text for the update dialog",
++  "download": "https://supervibecode.ai.id/#download"
++}
++```
++
++- Below `latest`, a reminder offers the update once per release.
++- Below `minimum`, a dialog that can't be closed asks for the update. Windows and Linux install it in the app; macOS
++  shows the one-command installer until the app is signed.
++- Offline, or without the file, the app keeps working. Point `SUPERVIBECODE_VERSION_URL` at another file to test.
++
++Raise `latest` with every release, and `minimum` only when old versions must stop.
++
+ ## Releasing
+ 
+ Push a version tag and GitHub Actions builds the installers for macOS, Windows and Linux and publishes them as a release:
+diff --git a/landingpage/version.json b/landingpage/version.json
+new file mode 100644
+index 0000000..5841fe0
+--- /dev/null
++++ b/landingpage/version.json
+@@ -0,0 +1,5 @@
++{
++  "minimum": "0.1.0",
++  "latest": "0.1.3",
++  "download": "https://supervibecode.ai.id/#download"
++}
+diff --git a/packages/gui-extensions/README.md b/packages/gui-extensions/README.md
+index e8cb4ae..8a37a4f 100644
+--- a/packages/gui-extensions/README.md
++++ b/packages/gui-extensions/README.md
+@@ -677,6 +677,7 @@ export const builtins = Extension.compose(
+   preview,
+   autogit,
+   account,
++  { ...upgrade, main: () => import("./upgrade/main") },
+ )
+ ```
+ 
+@@ -706,6 +707,7 @@ export const builtins = Extension.compose(
+   { ...preview, renderer: eager(previewRenderer) },
+   { ...autogit, renderer: eager(autogitRenderer) },
+   { ...account, renderer: eager(accountRenderer) },
++  { ...upgrade, renderer: eager(upgradeRenderer) },
+ )
+ ```
+ 
+diff --git a/packages/gui-extensions/src/main.ts b/packages/gui-extensions/src/main.ts
+index 0ae8099..07ae8e8 100644
+--- a/packages/gui-extensions/src/main.ts
++++ b/packages/gui-extensions/src/main.ts
+@@ -15,6 +15,7 @@ import microsoftOffice from "./microsoft-office"
+ import preview from "./preview"
+ import autogit from "./autogit"
+ import account from "./account"
++import upgrade from "./upgrade"
+ 
+ /**
+  * Built-in extensions with their main entries. Lists every built-in so their ids stay reserved. `builtins.typecheck.ts`
+@@ -37,4 +38,5 @@ export const builtins = Extension.compose(
+   preview,
+   autogit,
+   account,
++  { ...upgrade, main: () => import("./upgrade/main") },
+ )
+diff --git a/packages/gui-extensions/src/renderer.ts b/packages/gui-extensions/src/renderer.ts
+index 8651e08..1501bdb 100644
+--- a/packages/gui-extensions/src/renderer.ts
++++ b/packages/gui-extensions/src/renderer.ts
+@@ -30,6 +30,8 @@ import autogit from "./autogit"
+ import autogitRenderer from "./autogit/renderer"
+ import account from "./account"
+ import accountRenderer from "./account/renderer"
++import upgrade from "./upgrade"
++import upgradeRenderer from "./upgrade/renderer"
+ import previewRenderer from "./preview/renderer"
+ 
+ // The window renders once every built-in is active, so the small renderer entries load with the app, like the
+@@ -58,4 +60,5 @@ export const builtins = Extension.compose(
+   { ...preview, renderer: eager(previewRenderer) },
+   { ...autogit, renderer: eager(autogitRenderer) },
+   { ...account, renderer: eager(accountRenderer) },
++  { ...upgrade, renderer: eager(upgradeRenderer) },
+ )
+diff --git a/packages/gui-extensions/src/upgrade/contract.ts b/packages/gui-extensions/src/upgrade/contract.ts
+new file mode 100644
+index 0000000..1939d1b
+--- /dev/null
++++ b/packages/gui-extensions/src/upgrade/contract.ts
+@@ -0,0 +1,34 @@
++import { Schema } from "effect"
++import { Ipc } from "../sdk"
++
++export const Policy = Schema.Struct({
++  /**
++   * - `unknown`: not checked yet, the policy couldn't be read, or this build doesn't check.
++   * - `current`: at or above the latest version.
++   * - `outdated`: below the latest version, at or above the minimum.
++   * - `required`: below the minimum; the app can't be used until it updates.
++   */
++  status: Schema.Literals(["unknown", "current", "outdated", "required"]),
++  current: Schema.String,
++  latest: Schema.optional(Schema.String),
++  /** The publisher's message for an update the app requires. */
++  message: Schema.optional(Schema.String),
++  /** The page to download the latest version. */
++  download: Schema.String,
++  /** The site serving the one-command installers. */
++  site: Schema.String,
++  os: Schema.Literals(["mac", "windows", "linux"]),
++})
++
++export type Policy = typeof Policy.Type
++
++/** Which versions the publisher still supports, read by main from the site's version.json. */
++export const Upgrade = Ipc.define({
++  id: "upgrade",
++  state: Policy,
++  methods: {
++    /** Reads the policy again, as after the user updated outside the app. */
++    refresh: { output: Policy },
++  },
++  events: {},
++})
+diff --git a/packages/gui-extensions/src/upgrade/i18n/en.ts b/packages/gui-extensions/src/upgrade/i18n/en.ts
+new file mode 100644
+index 0000000..3bd915f
+--- /dev/null
++++ b/packages/gui-extensions/src/upgrade/i18n/en.ts
+@@ -0,0 +1,17 @@
++export default {
++  "required.title": "Update SuperVibeCode to continue",
++  "required.description": "This version ({{current}}) is no longer supported. Version {{latest}} is ready to install.",
++  "required.descriptionNoLatest":
++    "This version ({{current}}) is no longer supported. Install the latest version to continue.",
++  "required.update": "Update now",
++  "required.download": "Open download page",
++  "required.mac": "Paste this in Terminal to install the latest version, then open SuperVibeCode again:",
++  "required.copy": "Copy command",
++  "required.copied": "Command copied. Paste it in Terminal.",
++  "required.recheck": "I've updated",
++  "required.stillOld": "This is still version {{current}}. Install the update, then open the app again.",
++  "outdated.title": "SuperVibeCode {{latest}} is available",
++  "outdated.description": "You have {{current}}.",
++  "outdated.update": "Update",
++  "outdated.later": "Later",
++}
+diff --git a/packages/gui-extensions/src/upgrade/index.ts b/packages/gui-extensions/src/upgrade/index.ts
+new file mode 100644
+index 0000000..66c0a98
+--- /dev/null
++++ b/packages/gui-extensions/src/upgrade/index.ts
+@@ -0,0 +1,16 @@
++import { Schema } from "effect"
++import { Extension, Store } from "../sdk"
++import { Updater } from "../updater/contract"
++import { Upgrade } from "./contract"
++import en from "./i18n/en"
++
++export default Extension.define({
++  id: "upgrade",
++  provides: { upgrade: Upgrade },
++  uses: { updater: Updater },
++  stores: {
++    // The latest version whose optional update the user dismissed, so the reminder shows once per release.
++    dismissed: Store.global(Schema.Struct({ version: Schema.optional(Schema.String) }), {}),
++  },
++  i18n: { en },
++})
+diff --git a/packages/gui-extensions/src/upgrade/main.ts b/packages/gui-extensions/src/upgrade/main.ts
+new file mode 100644
+index 0000000..020a70e
+--- /dev/null
++++ b/packages/gui-extensions/src/upgrade/main.ts
+@@ -0,0 +1,74 @@
++import { Schema } from "effect"
++import type { MainSetup } from "../sdk/main"
++import { Upgrade, type Policy } from "./contract"
++import type definition from "./index"
++import { compare } from "./version"
++
++// The publisher's policy file. SUPERVIBECODE_VERSION_URL points elsewhere, as for testing a build from source.
++const DEFAULT_URL = "https://supervibecode.ai.id/version.json"
++
++// A release goes out every few days at most; the window still asks again when the user says they updated.
++const REFRESH_MS = 6 * 60 * 60 * 1000
++
++const Manifest = Schema.Struct({
++  minimum: Schema.optional(Schema.String),
++  latest: Schema.optional(Schema.String),
++  message: Schema.optional(Schema.String),
++  download: Schema.optional(Schema.String),
++})
++
++/**
++ * Reads which versions are still supported from the publisher's version.json and tells every window. Without the file,
++ * offline, or with a file it can't read, the app stays usable: only a policy it read can require an update.
++ */
++const setup: MainSetup<typeof definition> = (ctx) => {
++  const url = process.env.SUPERVIBECODE_VERSION_URL || DEFAULT_URL
++  const enabled = Boolean(process.env.SUPERVIBECODE_VERSION_URL) || (ctx.build.packaged && ctx.build.channel !== "dev")
++  const site = new URL(url).origin
++  const base: Policy = {
++    status: "unknown",
++    current: ctx.build.version,
++    download: `${site}/#download`,
++    site,
++    os: process.platform === "darwin" ? "mac" : process.platform === "win32" ? "windows" : "linux",
++  }
++  const state = { value: base }
++  const publish = { changed: () => {} }
++
++  const refresh = async () => {
++    if (!enabled) return state.value
++    const manifest = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(15_000) })
++      .then((response) => (response.ok ? response.json() : undefined))
++      .then((json) => Schema.decodeUnknownOption(Manifest)(json))
++      .catch(() => undefined)
++
++    // A failed read keeps the last answer, so a requirement already known survives a network drop.
++    if (!manifest || manifest._tag === "None") return state.value
++    state.value = { ...base, ...decide(ctx.build.version, manifest.value) }
++    publish.changed()
++
++    return state.value
++  }
++
++  const provider = ctx.provide(Upgrade, { state: () => state.value, refresh })
++  publish.changed = () => provider.changed()
++
++  void refresh()
++  const timer = setInterval(() => void refresh(), REFRESH_MS)
++  ctx.scope.addFinalizer(() => clearInterval(timer))
++}
++
++function decide(current: string, manifest: typeof Manifest.Type) {
++  const extra = {
++    ...(manifest.latest ? { latest: manifest.latest } : {}),
++    ...(manifest.message ? { message: manifest.message } : {}),
++    ...(manifest.download ? { download: manifest.download } : {}),
++  }
++
++  if (manifest.minimum && compare(current, manifest.minimum) < 0) return { ...extra, status: "required" as const }
++  if (manifest.latest && compare(current, manifest.latest) < 0) return { ...extra, status: "outdated" as const }
++
++  return { ...extra, status: "current" as const }
++}
++
++export default setup
+diff --git a/packages/gui-extensions/src/upgrade/renderer.tsx b/packages/gui-extensions/src/upgrade/renderer.tsx
+new file mode 100644
+index 0000000..7ad76b7
+--- /dev/null
++++ b/packages/gui-extensions/src/upgrade/renderer.tsx
+@@ -0,0 +1,91 @@
++import { showToast } from "@opencode/ui/toast"
++import { createSignal, lazy } from "solid-js"
++import { createKeyed, type Setup } from "../sdk"
++import type { Policy } from "./contract"
++import type definition from "./index"
++
++/**
++ * Keeps users on a supported version. Below the publisher's minimum, a dialog that can't be dismissed asks for the
++ * update; below the latest version, a reminder shows once per release.
++ */
++const setup: Setup<typeof definition> = (ctx) => {
++  if (!ctx.desktop) return
++  const Required = lazy(() => import("./required"))
++  // Bumped when the required dialog is dismissed anyway (Escape, a backdrop click), which opens it again.
++  const [opened, setOpened] = createSignal(0)
++
++  const policy = (): Policy | undefined => {
++    const live = ctx.uses.upgrade()
++
++    return live.status === "active" ? live.value.state() : undefined
++  }
++
++  /** Installs the update where the app can do it itself; a Mac without a signed build, or a failure, downloads it. */
++  const update = async () => {
++    const current = policy()
++    const updater = ctx.uses.updater()
++
++    if (!current) return
++    if (current.os !== "mac" && updater.status === "active") {
++      const state = await updater.value.check({ signal: ctx.signal }).catch(() => undefined)
++
++      if (state?.status === "ready" || state?.status === "download-required")
++        return void updater.value.install().catch(() => ctx.system.openExternal(current.download))
++    }
++    ctx.system.openExternal(current.download)
++  }
++
++  const recheck = async () => {
++    const live = ctx.uses.upgrade()
++
++    if (live.status !== "active") return
++
++    return live.value.refresh({ signal: ctx.signal }).catch(() => undefined)
++  }
++
++  createKeyed(
++    () => (policy()?.status === "required" ? opened() + 1 : undefined),
++    () => {
++      ctx.dialogs.open(
++        () => (
++          <Required
++            policy={() => policy()}
++            update={update}
++            recheck={recheck}
++            dismissed={() => setOpened((count) => count + 1)}
++          />
++        ),
++        { replace: true },
++      )
++    },
++  )
++
++  createKeyed(
++    () => {
++      const current = policy()
++
++      if (current?.status !== "outdated" || !current.latest) return
++      if (ctx.stores.dismissed.value.version === current.latest) return
++
++      return current.latest
++    },
++    (latest) => {
++      const current = policy()
++
++      showToast({
++        title: ctx.t("outdated.title", { latest }),
++        description: ctx.t("outdated.description", { current: current?.current ?? ctx.build.version }),
++        persistent: true,
++        actions: [
++          { label: ctx.t("outdated.update"), variant: "primary", onClick: () => void update() },
++          {
++            label: ctx.t("outdated.later"),
++            onClick: () => ctx.stores.dismissed.set({ version: latest }),
++          },
++        ],
++      })
++    },
++  )
++}
++
++export default setup
+diff --git a/packages/gui-extensions/src/upgrade/required.tsx b/packages/gui-extensions/src/upgrade/required.tsx
+new file mode 100644
+index 0000000..c248ac2
+--- /dev/null
++++ b/packages/gui-extensions/src/upgrade/required.tsx
+@@ -0,0 +1,74 @@
++import { Button } from "@opencode/ui/button"
++import { Dialog, DialogBody, DialogHeader, DialogTitleGroup } from "@opencode/ui/dialog"
++import { showToast } from "@opencode/ui/toast"
++import { onCleanup, Show } from "solid-js"
++import { useExtension } from "../sdk"
++import type { Policy } from "./contract"
++import type definition from "./index"
++
++/** The update the app requires. Dismissing it some other way calls `dismissed`, which opens it again. */
++export default function Required(props: {
++  policy: () => Policy | undefined
++  update(): Promise<void>
++  recheck(): Promise<Policy | undefined>
++  dismissed(): void
++}) {
++  const ctx = useExtension<typeof definition>()
++  const command = () => `curl -fsSL ${props.policy()?.site ?? "https://supervibecode.ai.id"}/install.sh | bash`
++
++  // Closed by the app because the requirement ended, the owner run ends first and this is a no-op there.
++  onCleanup(() => {
++    if (props.policy()?.status === "required") queueMicrotask(props.dismissed)
++  })
++
++  const recheck = async () => {
++    const policy = await props.recheck()
++
++    if (policy?.status === "required") showToast({ title: ctx.t("required.stillOld", { current: policy.current }) })
++  }
++
++  return (
++    <Dialog fit containerClass="max-w-[min(460px,calc(100vw-32px))]">
++      <DialogHeader>
++        <DialogTitleGroup
++          title={ctx.t("required.title")}
++          description={
++            props.policy()?.message ||
++            (props.policy()?.latest
++              ? ctx.t("required.description", { current: ctx.build.version, latest: props.policy()?.latest ?? "" })
++              : ctx.t("required.descriptionNoLatest", { current: ctx.build.version }))
++          }
++        />
++      </DialogHeader>
++      <DialogBody class="flex flex-col gap-3 px-4 pb-4">
++        <Show
++          when={props.policy()?.os === "mac"}
++          fallback={
++            <Button variant="contrast" onClick={() => void props.update()}>
++              {ctx.t("required.update")}
++            </Button>
++          }
++        >
++          <p class="text-13-regular text-v2-text-text-muted">{ctx.t("required.mac")}</p>
++          <code class="block overflow-x-auto rounded-[6px] bg-v2-background-bg-base px-3 py-2 text-12-regular">
++            {command()}
++          </code>
++          <Button
++            variant="contrast"
++            onClick={() => void ctx.system.copy(command()).then(() => showToast({ title: ctx.t("required.copied") }))}
++          >
++            {ctx.t("required.copy")}
++          </Button>
++        </Show>
++        <div class="flex flex-wrap justify-between gap-2">
++          <Button size="small" variant="ghost" onClick={() => ctx.system.openExternal(props.policy()?.download ?? "")}>
++            {ctx.t("required.download")}
++          </Button>
++          <Button size="small" variant="ghost-muted" onClick={() => void recheck()}>
++            {ctx.t("required.recheck")}
++          </Button>
++        </div>
++      </DialogBody>
++    </Dialog>
++  )
++}
+diff --git a/packages/gui-extensions/src/upgrade/version.test.ts b/packages/gui-extensions/src/upgrade/version.test.ts
+new file mode 100644
+index 0000000..aea4141
+--- /dev/null
++++ b/packages/gui-extensions/src/upgrade/version.test.ts
+@@ -0,0 +1,9 @@
++import { expect, test } from "bun:test"
++import { compare } from "./version"
++
++test("compares release versions part by part", () => {
++  expect(compare("0.1.9", "0.2.0")).toBeLessThan(0)
++  expect(compare("0.10.0", "0.9.9")).toBeGreaterThan(0)
++  expect(compare("v1.2", "1.2.0")).toBe(0)
++  expect(compare("1.2.0-beta.1", "1.2.0")).toBe(0)
++})
+diff --git a/packages/gui-extensions/src/upgrade/version.ts b/packages/gui-extensions/src/upgrade/version.ts
+new file mode 100644
+index 0000000..c365c30
+--- /dev/null
++++ b/packages/gui-extensions/src/upgrade/version.ts
+@@ -0,0 +1,14 @@
++/** Compares release versions such as 1.4.2; a pre-release suffix and missing parts count as zero. */
++export function compare(a: string, b: string) {
++  const parts = (value: string) =>
++    value
++      .replace(/^v/, "")
++      .split("-")[0]
++      .split(".")
++      .map((part) => Number.parseInt(part, 10) || 0)
++  const left = parts(a)
++  const right = parts(b)
++  const length = Math.max(left.length, right.length)
++
++  return Array.from({ length }, (_, index) => (left[index] ?? 0) - (right[index] ?? 0)).find((diff) => diff !== 0) ?? 0
++}
+-- 
+2.43.0
+
