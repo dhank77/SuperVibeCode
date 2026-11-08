@@ -1,0 +1,113 @@
+From 2c380b119c59c4a45fd0d7bf282396488566f4de Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 8 Nov 2026 08:39:01 +0800
+Subject: [PATCH] feat(landingpage): serve the install scripts from
+ supervibecode.ai.id
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ README.md               | 4 ++--
+ landingpage/index.html  | 7 ++-----
+ landingpage/install.ps1 | 2 +-
+ landingpage/install.sh  | 4 ++--
+ landingpage/main.js     | 8 ++++----
+ 5 files changed, 11 insertions(+), 14 deletions(-)
+
+diff --git a/README.md b/README.md
+index fbcfd8c..fe9cc32 100644
+--- a/README.md
++++ b/README.md
+@@ -71,12 +71,12 @@ update.
+ 
+ ```bash
+ # macOS (Terminal)
+-curl -fsSL https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.sh | bash
++curl -fsSL https://supervibecode.ai.id/install.sh | bash
+ ```
+ 
+ ```powershell
+ # Windows (PowerShell)
+-irm https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.ps1 | iex
++irm https://supervibecode.ai.id/install.ps1 | iex
+ ```
+ 
+ Or download the installer for your computer from the [latest release](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest):
+diff --git a/landingpage/index.html b/landingpage/index.html
+index f095109..1a1a85c 100644
+--- a/landingpage/index.html
++++ b/landingpage/index.html
+@@ -227,9 +227,7 @@
+             <span class="quick-os">macOS <small>Terminal</small></span>
+             <div class="command">
+               <code id="install-mac" data-install="install.sh"
+-                >curl -fsSL
+-                https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.sh |
+-                bash</code
++                >curl -fsSL https://supervibecode.ai.id/install.sh | bash</code
+               >
+               <button type="button" class="copy" data-copy="install-mac">Copy</button>
+             </div>
+@@ -238,8 +236,7 @@
+             <span class="quick-os">Windows <small>PowerShell</small></span>
+             <div class="command">
+               <code id="install-windows" data-install="install.ps1"
+-                >irm https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.ps1 |
+-                iex</code
++                >irm https://supervibecode.ai.id/install.ps1 | iex</code
+               >
+               <button type="button" class="copy" data-copy="install-windows">Copy</button>
+             </div>
+diff --git a/landingpage/install.ps1 b/landingpage/install.ps1
+index 410758c..7bdf63c 100644
+--- a/landingpage/install.ps1
++++ b/landingpage/install.ps1
+@@ -1,4 +1,4 @@
+-# Installs SuperVibeCode on Windows:  irm https://<site>/install.ps1 | iex
++# Installs SuperVibeCode on Windows:  irm https://supervibecode.ai.id/install.ps1 | iex
+ #
+ # A download made by PowerShell carries no mark of the web, so SmartScreen doesn't stop the installer the way it stops
+ # an unsigned one downloaded in a browser. Run it again to update.
+diff --git a/landingpage/install.sh b/landingpage/install.sh
+index 069dc0d..20f9450 100755
+--- a/landingpage/install.sh
++++ b/landingpage/install.sh
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env bash
+-# Installs SuperVibeCode on macOS:  curl -fsSL https://<site>/install.sh | bash
++# Installs SuperVibeCode on macOS:  curl -fsSL https://supervibecode.ai.id/install.sh | bash
+ #
+ # A download made by curl carries no quarantine flag, so macOS opens the app without the warning a browser download of
+ # an app not notarized by Apple gets. Run it again to update.
+@@ -8,7 +8,7 @@ set -euo pipefail
+ REPO="${SUPERVIBECODE_REPO:-latjoromhi25d-dotcom/SuperVibeCode}"
+ 
+ if [ "$(uname -s)" != "Darwin" ]; then
+-  echo "This installer is for macOS. On Windows run: irm <site>/install.ps1 | iex"
++  echo "This installer is for macOS. On Windows run: irm https://supervibecode.ai.id/install.ps1 | iex"
+   echo "On Linux, download the AppImage, .deb or .rpm from https://github.com/$REPO/releases/latest"
+   exit 1
+ fi
+diff --git a/landingpage/main.js b/landingpage/main.js
+index 486b91e..d5885be 100644
+--- a/landingpage/main.js
++++ b/landingpage/main.js
+@@ -12,11 +12,11 @@ document.querySelectorAll("[data-file]").forEach((link) => {
+   link.href = `https://github.com/${REPO}/releases/latest/download/${link.dataset.file}`
+ })
+ 
+-// One-command installs: served beside this page when the site hosts it, else straight from the repository.
++// One-command installs come from the site, which serves the scripts beside this page.
++const SITE = "https://supervibecode.ai.id"
++
+ document.querySelectorAll("[data-install]").forEach((code) => {
+-  const script = location.protocol.startsWith("http")
+-    ? new URL(code.dataset.install, location.href).href
+-    : `https://raw.githubusercontent.com/${REPO}/main/landingpage/${code.dataset.install}`
++  const script = `${SITE}/${code.dataset.install}`
+ 
+   code.textContent = code.dataset.install.endsWith(".ps1") ? `irm ${script} | iex` : `curl -fsSL ${script} | bash`
+ })
+-- 
+2.43.0
+

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installs SuperVibeCode on macOS:  curl -fsSL https://<site>/install.sh | bash
+# Installs SuperVibeCode on macOS:  curl -fsSL https://supervibecode.ai.id/install.sh | bash
 #
 # A download made by curl carries no quarantine flag, so macOS opens the app without the warning a browser download of
 # an app not notarized by Apple gets. Run it again to update.
@@ -8,7 +8,7 @@ set -euo pipefail
 REPO="${SUPERVIBECODE_REPO:-latjoromhi25d-dotcom/SuperVibeCode}"
 
 if [ "$(uname -s)" != "Darwin" ]; then
-  echo "This installer is for macOS. On Windows run: irm <site>/install.ps1 | iex"
+  echo "This installer is for macOS. On Windows run: irm https://supervibecode.ai.id/install.ps1 | iex"
   echo "On Linux, download the AppImage, .deb or .rpm from https://github.com/$REPO/releases/latest"
   exit 1
 fi

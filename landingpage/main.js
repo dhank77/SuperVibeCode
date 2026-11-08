@@ -12,11 +12,11 @@ document.querySelectorAll("[data-file]").forEach((link) => {
   link.href = `https://github.com/${REPO}/releases/latest/download/${link.dataset.file}`
 })
 
-// One-command installs: served beside this page when the site hosts it, else straight from the repository.
+// One-command installs come from the site, which serves the scripts beside this page.
+const SITE = "https://supervibecode.ai.id"
+
 document.querySelectorAll("[data-install]").forEach((code) => {
-  const script = location.protocol.startsWith("http")
-    ? new URL(code.dataset.install, location.href).href
-    : `https://raw.githubusercontent.com/${REPO}/main/landingpage/${code.dataset.install}`
+  const script = `${SITE}/${code.dataset.install}`
 
   code.textContent = code.dataset.install.endsWith(".ps1") ? `irm ${script} | iex` : `curl -fsSL ${script} | bash`
 })

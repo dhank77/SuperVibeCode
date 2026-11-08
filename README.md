@@ -71,12 +71,12 @@ update.
 
 ```bash
 # macOS (Terminal)
-curl -fsSL https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.sh | bash
+curl -fsSL https://supervibecode.ai.id/install.sh | bash
 ```
 
 ```powershell
 # Windows (PowerShell)
-irm https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.ps1 | iex
+irm https://supervibecode.ai.id/install.ps1 | iex
 ```
 
 Or download the installer for your computer from the [latest release](https://github.com/latjoromhi25d-dotcom/SuperVibeCode/releases/latest):
