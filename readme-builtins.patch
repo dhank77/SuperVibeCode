@@ -1,0 +1,35 @@
+From a6b436c19ec686c94bb190ca9b0a9b54b21d2f05 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 8 Nov 2026 08:37:16 +0800
+Subject: [PATCH] docs(gui-extensions): list the account extension in the
+ builtins guide
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ packages/gui-extensions/README.md | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/packages/gui-extensions/README.md b/packages/gui-extensions/README.md
+index f6fe369..e8cb4ae 100644
+--- a/packages/gui-extensions/README.md
++++ b/packages/gui-extensions/README.md
+@@ -676,6 +676,7 @@ export const builtins = Extension.compose(
+   microsoftOffice,
+   preview,
+   autogit,
++  account,
+ )
+ ```
+ 
+@@ -704,6 +705,7 @@ export const builtins = Extension.compose(
+   { ...microsoftOffice, renderer: eager(microsoftOfficeRenderer) },
+   { ...preview, renderer: eager(previewRenderer) },
+   { ...autogit, renderer: eager(autogitRenderer) },
++  { ...account, renderer: eager(accountRenderer) },
+ )
+ ```
+ 
+-- 
+2.43.0
+

@@ -676,6 +676,7 @@ export const builtins = Extension.compose(
   microsoftOffice,
   preview,
   autogit,
+  account,
 )
 ```
 
@@ -704,6 +705,7 @@ export const builtins = Extension.compose(
   { ...microsoftOffice, renderer: eager(microsoftOfficeRenderer) },
   { ...preview, renderer: eager(previewRenderer) },
   { ...autogit, renderer: eager(autogitRenderer) },
+  { ...account, renderer: eager(accountRenderer) },
 )
 ```
 
