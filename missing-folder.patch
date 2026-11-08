@@ -1,0 +1,79 @@
+From bd7a0178a06b70bf97179f1fae28ef9a16e95080 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 8 Nov 2026 07:44:08 +0800
+Subject: [PATCH] fix(app): move a new session whose folder is gone to the home
+ folder
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ packages/app/src/new-session/screen.tsx | 31 +++++++++++++++++++++++++
+ packages/app/src/runtime/i18n/en.ts     |  3 +++
+ 2 files changed, 34 insertions(+)
+
+diff --git a/packages/app/src/new-session/screen.tsx b/packages/app/src/new-session/screen.tsx
+index 30f28ad..5a9f4f0 100644
+--- a/packages/app/src/new-session/screen.tsx
++++ b/packages/app/src/new-session/screen.tsx
+@@ -11,6 +11,10 @@ import { NewSessionView } from "./view"
+ import { createNewSessionWorkspaceController } from "./workspace/controller"
+ import { useNewSessionCommands } from "./commands"
+ import { createDraftMcpControls } from "./mcp"
++import { useWorkspaceLocation } from "@/workspaces/location"
++import { useServerSDK } from "@/runtime/server/client"
++import { useLanguage } from "@/runtime/i18n/language"
++import { showToast } from "@/shell/notifications/toast"
+ 
+ /** The draft-only Session page. Submitting promotes the draft into a real Session. */
+ export default function NewSessionPage(props: { draftId: string }) {
+@@ -23,6 +27,33 @@ export default function NewSessionPage(props: { draftId: string }) {
+     tabs.store.find((tab): tab is DraftTab => tab.type === "draft" && tab.draftID === search.draftId),
+   )
+ 
++  const location = useWorkspaceLocation()
++  const serverSDK = useServerSDK()
++  const language = useLanguage()
++
++  // A draft whose folder was deleted or moved has no models or agents, so it moves to the server's home folder.
++  createEffect(
++    on(
++      () => location().missing,
++      (missing) => {
++        const draft = untrack(draftTab)
++
++        if (!missing || !draft || missing.directory !== draft.directory) return
++        void serverSDK.api.location
++          .get()
++          .then((home) => {
++            if (!home.directory || home.directory === draft.directory) return
++            tabs.updateDraft(draft.draftID, { directory: home.directory, worktree: undefined, branch: undefined })
++            showToast({
++              title: language.t("newSession.missingFolder.title"),
++              description: language.t("newSession.missingFolder.description", { directory: missing.directory }),
++            })
++          })
++          .catch(() => undefined)
++      },
++    ),
++  )
++
+   const openWorkspaces = () => {
+     const draft = draftTab()
+ 
+diff --git a/packages/app/src/runtime/i18n/en.ts b/packages/app/src/runtime/i18n/en.ts
+index 5b022c7..09112da 100644
+--- a/packages/app/src/runtime/i18n/en.ts
++++ b/packages/app/src/runtime/i18n/en.ts
+@@ -3,6 +3,9 @@ import { DESKTOP_NATIVE_ENGLISH } from "./desktop-native"
+ export const dict = {
+   ...DESKTOP_NATIVE_ENGLISH,
+   "session.location.unavailable": "Session location unavailable",
++  "newSession.missingFolder.title": "Folder not found",
++  "newSession.missingFolder.description":
++    "{{directory}} no longer exists, so this new session moved to your home folder.",
+   "session.location.description": "Choose another directory to continue this session.",
+   "session.location.choose": "Choose directory",
+   "session.location.worktree": "Choose worktree",
+-- 
+2.43.0
+

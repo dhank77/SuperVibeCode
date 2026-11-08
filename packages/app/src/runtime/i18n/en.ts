@@ -3,6 +3,9 @@ import { DESKTOP_NATIVE_ENGLISH } from "./desktop-native"
 export const dict = {
   ...DESKTOP_NATIVE_ENGLISH,
   "session.location.unavailable": "Session location unavailable",
+  "newSession.missingFolder.title": "Folder not found",
+  "newSession.missingFolder.description":
+    "{{directory}} no longer exists, so this new session moved to your home folder.",
   "session.location.description": "Choose another directory to continue this session.",
   "session.location.choose": "Choose directory",
   "session.location.worktree": "Choose worktree",

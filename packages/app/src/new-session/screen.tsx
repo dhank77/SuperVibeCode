@@ -11,6 +11,10 @@ import { NewSessionView } from "./view"
 import { createNewSessionWorkspaceController } from "./workspace/controller"
 import { useNewSessionCommands } from "./commands"
 import { createDraftMcpControls } from "./mcp"
+import { useWorkspaceLocation } from "@/workspaces/location"
+import { useServerSDK } from "@/runtime/server/client"
+import { useLanguage } from "@/runtime/i18n/language"
+import { showToast } from "@/shell/notifications/toast"
 
 /** The draft-only Session page. Submitting promotes the draft into a real Session. */
 export default function NewSessionPage(props: { draftId: string }) {
@@ -21,6 +25,33 @@ export default function NewSessionPage(props: { draftId: string }) {
 
   const draftTab = createMemo(() =>
     tabs.store.find((tab): tab is DraftTab => tab.type === "draft" && tab.draftID === search.draftId),
+  )
+
+  const location = useWorkspaceLocation()
+  const serverSDK = useServerSDK()
+  const language = useLanguage()
+
+  // A draft whose folder was deleted or moved has no models or agents, so it moves to the server's home folder.
+  createEffect(
+    on(
+      () => location().missing,
+      (missing) => {
+        const draft = untrack(draftTab)
+
+        if (!missing || !draft || missing.directory !== draft.directory) return
+        void serverSDK.api.location
+          .get()
+          .then((home) => {
+            if (!home.directory || home.directory === draft.directory) return
+            tabs.updateDraft(draft.draftID, { directory: home.directory, worktree: undefined, branch: undefined })
+            showToast({
+              title: language.t("newSession.missingFolder.title"),
+              description: language.t("newSession.missingFolder.description", { directory: missing.directory }),
+            })
+          })
+          .catch(() => undefined)
+      },
+    ),
   )
 
   const openWorkspaces = () => {

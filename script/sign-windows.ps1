@@ -14,6 +14,50 @@ if ($env:GITHUB_ACTIONS -ne "true") {
   exit 0
 }
 
+$files = @($Path | ForEach-Object { Resolve-Path $_ -ErrorAction SilentlyContinue } | Select-Object -ExpandProperty Path -Unique)
+
+if (-not $files -or $files.Count -eq 0) {
+  throw "No files matched the requested paths"
+}
+
+# SSL.com eSigner: a cloud code signing certificate that can sign unattended from CI, for publishers outside the
+# countries Azure Artifact Signing serves.
+$ssl = @{
+  username = $env:SSLDOTCOM_USERNAME
+  password = $env:SSLDOTCOM_PASSWORD
+  credential = $env:SSLDOTCOM_CREDENTIAL_ID
+  totp = $env:SSLDOTCOM_TOTP_SECRET
+}
+
+if (-not ($ssl.Values | Where-Object { -not $_ })) {
+  $tools = Join-Path ($env:RUNNER_TEMP ?? [System.IO.Path]::GetTempPath()) "CodeSignTool"
+  $tool = Get-ChildItem -Path $tools -Filter "CodeSignTool.bat" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+
+  if (-not $tool) {
+    $zip = "$tools.zip"
+    Invoke-WebRequest -Uri "https://www.ssl.com/download/codesigntool-for-windows/" -OutFile $zip
+    Expand-Archive -Path $zip -DestinationPath $tools -Force
+    $tool = Get-ChildItem -Path $tools -Filter "CodeSignTool.bat" -Recurse | Select-Object -First 1
+  }
+
+  foreach ($file in $files) {
+    Write-Host "Signing $file with SSL.com eSigner"
+    Push-Location $tool.DirectoryName
+    try {
+      # The arguments hold the credentials, so the tool's own output is all that is logged.
+      $output = & cmd /c "CodeSignTool.bat" sign "-input_file_path=$file" "-username=$($ssl.username)" `
+        "-password=$($ssl.password)" "-credential_id=$($ssl.credential)" "-totp_secret=$($ssl.totp)" "-override=true" 2>&1
+      Write-Host ($output -join "`n")
+      if ($LASTEXITCODE -ne 0 -or ($output -join "`n") -match "(?m)^Error") { throw "SSL.com eSigner could not sign $file" }
+    }
+    finally {
+      Pop-Location
+    }
+  }
+
+  exit 0
+}
+
 $vars = @{
   endpoint = $env:AZURE_TRUSTED_SIGNING_ENDPOINT
   account = $env:AZURE_TRUSTED_SIGNING_ACCOUNT_NAME
@@ -21,7 +65,7 @@ $vars = @{
 }
 
 if ($vars.Values | Where-Object { -not $_ }) {
-  Write-Host "Skipping Windows signing because Azure Artifact Signing is not configured"
+  Write-Host "Skipping Windows signing because neither SSL.com eSigner nor Azure Artifact Signing is configured"
   exit 0
 }
 
@@ -40,12 +84,6 @@ if (-not $module) {
 }
 
 Import-Module TrustedSigning -RequiredVersion $moduleVersion -Force
-
-$files = @($Path | ForEach-Object { Resolve-Path $_ -ErrorAction SilentlyContinue } | Select-Object -ExpandProperty Path -Unique)
-
-if (-not $files -or $files.Count -eq 0) {
-  throw "No files matched the requested paths"
-}
 
 $params = @{
   Endpoint                         = $vars.endpoint

@@ -1,0 +1,111 @@
+From 603e41aabbd0717059842d8af5ddfe8a0a4678bd Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 7 Nov 2026 20:19:51 +0800
+Subject: [PATCH] fix(desktop): read the repository .env in dev and accept more
+ model catalog shapes
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ .../core/src/plugin/supervibecode-router.ts   | 24 +++++++++++------
+ packages/desktop/scripts/dev.ts               | 26 +++++++++++++++++++
+ 2 files changed, 42 insertions(+), 8 deletions(-)
+
+diff --git a/packages/core/src/plugin/supervibecode-router.ts b/packages/core/src/plugin/supervibecode-router.ts
+index 1086129..a9dd2e2 100644
+--- a/packages/core/src/plugin/supervibecode-router.ts
++++ b/packages/core/src/plugin/supervibecode-router.ts
+@@ -35,7 +35,7 @@ export const Plugin = define({
+       const account = decodeAccount(yield* ctx.storage.get(ACCOUNT))
+       const models = account
+         ? yield* request(base, "/api/models", { schema: RouterModels }).pipe(
+-            Effect.map((items) => items.filter((item) => item.mode === "chat")),
++            Effect.map(readModels),
+             Effect.orElseSucceed(() => state.models),
+           )
+         : []
+@@ -76,7 +76,7 @@ export const Plugin = define({
+               : { temperature: catalog.capabilities.temperature }),
+           }
+           model.limit = { context: item.context_length, output: catalog?.limit.output ?? model.limit.output }
+-          model.time = { released: item.created * 1000 }
++          if (item.created) model.time = { released: item.created * 1000 }
+           model.cost = [
+             {
+               input: perMillion(item.prompt_price_nano),
+@@ -261,14 +261,22 @@ const RouterModel = Schema.Struct({
+   context_length: Schema.Int,
+   prompt_price_nano: Schema.Number,
+   completion_price_nano: Schema.Number,
+-  cache_read_price_nano: Schema.NullOr(Schema.Number),
+-  created: Schema.Number,
+-  mode: Schema.String,
+-  supports_reasoning: Schema.Boolean,
+-  supports_vision: Schema.Boolean,
++  cache_read_price_nano: Schema.optional(Schema.NullOr(Schema.Number)),
++  created: Schema.optional(Schema.Number),
++  mode: Schema.optional(Schema.String),
++  supports_reasoning: Schema.optional(Schema.Boolean),
++  supports_vision: Schema.optional(Schema.Boolean),
+ })
+ type RouterModel = typeof RouterModel.Type
+-const RouterModels = Schema.Array(RouterModel)
++// The catalog is a plain array, or wrapped in `data` like OpenAI's; an entry it can't read is skipped, not fatal.
++const RouterModels = Schema.Union([Schema.Array(Schema.Unknown), Schema.Struct({ data: Schema.Array(Schema.Unknown) })])
++
++const readModels = (body: typeof RouterModels.Type) =>
++  ("data" in body ? body.data : body).flatMap((entry) => {
++    const decoded = Schema.decodeUnknownOption(RouterModel)(entry)
++
++    return decoded._tag === "Some" && (decoded.value.mode ?? "chat") === "chat" ? [decoded.value] : []
++  })
+ 
+ const Methods = Schema.Struct({
+   registration: Schema.Boolean,
+diff --git a/packages/desktop/scripts/dev.ts b/packages/desktop/scripts/dev.ts
+index 69e6403..95015ec 100644
+--- a/packages/desktop/scripts/dev.ts
++++ b/packages/desktop/scripts/dev.ts
+@@ -10,6 +10,7 @@ type ServerSource = { type: "build" } | { type: "download"; version: string }
+ type DevOptions = { server: ServerSource; electron: string[] }
+ 
+ async function main() {
++  await loadRootEnv()
+   process.env.OPENCODE_CHANNEL = "local"
+   process.env.OPENCODE_VERSION ??= `2.0.0-local-${Date.now()}`
+   process.env.OPENCODE_DISABLE_CHANNEL_DB = "0"
+@@ -22,6 +23,31 @@ async function main() {
+   await startDesktop(options.electron)
+ }
+ 
++// `bun run dev:desktop` runs from packages/desktop, so Bun only reads that folder's .env. The repository's own .env
++// (SUPERVIBECODE_ROUTER_URL and the like) reaches the desktop's server through here; values already set win.
++async function loadRootEnv() {
++  const file = Bun.file(join(import.meta.dirname, "../../../.env"))
++
++  if (!(await file.exists())) return
++  const entries = (await file.text())
++    .split(/\r?\n/)
++    .map((line) => line.trim())
++    .filter((line) => line && !line.startsWith("#") && line.includes("="))
++    .map((line) => {
++      const at = line.indexOf("=")
++
++      return [
++        line.slice(0, at).trim(),
++        line
++          .slice(at + 1)
++          .trim()
++          .replace(/^(["'])(.*)\1$/, "$2"),
++      ] as const
++    })
++
++  for (const [key, value] of entries) process.env[key] ??= value
++}
++
+ async function prepareDesktop() {
+   await Promise.all([
+     $`bun run install-electron`,
+-- 
+2.43.0
+

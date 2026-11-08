@@ -35,7 +35,7 @@ export const Plugin = define({
       const account = decodeAccount(yield* ctx.storage.get(ACCOUNT))
       const models = account
         ? yield* request(base, "/api/models", { schema: RouterModels }).pipe(
-            Effect.map((items) => items.filter((item) => item.mode === "chat")),
+            Effect.map(readModels),
             Effect.orElseSucceed(() => state.models),
           )
         : []
@@ -61,39 +61,43 @@ export const Plugin = define({
       })
 
       for (const item of state.models) {
-        const catalog = findCatalog(providers.list(), item)
+        // One model the catalog can't describe must not take the whole provider list down with it.
+        try {
+          const catalog = findCatalog(providers.list(), item)
 
-        providers.models.update(providerID, item.slug, (model) => {
-          model.modelID = Model.ID.make(item.slug)
-          model.name = item.name || item.slug
-          if (catalog?.family) model.family = catalog.family
-          model.capabilities = {
-            tools: catalog?.capabilities.tools ?? true,
-            input: item.supports_vision ? ["text", "image"] : ["text"],
-            output: ["text"],
-            ...(catalog?.capabilities.temperature === undefined
-              ? {}
-              : { temperature: catalog.capabilities.temperature }),
-          }
-          model.limit = { context: item.context_length, output: catalog?.limit.output ?? model.limit.output }
-          model.time = { released: item.created * 1000 }
-          model.cost = [
-            {
-              input: perMillion(item.prompt_price_nano),
-              output: perMillion(item.completion_price_nano),
-              cache: {
-                read: perMillion(item.cache_read_price_nano ?? item.prompt_price_nano),
-                write: Money.USDPerMillionTokens.zero,
+          providers.models.update(providerID, item.slug, (model) => {
+            model.modelID = Model.ID.make(item.slug)
+            model.name = item.name || item.slug
+            if (catalog?.family) model.family = catalog.family
+            model.capabilities = {
+              tools: catalog?.capabilities.tools ?? true,
+              input: item.supports_vision ? ["text", "image"] : ["text"],
+              output: ["text"],
+              ...(catalog?.capabilities.temperature === undefined
+                ? {}
+                : { temperature: catalog.capabilities.temperature }),
+            }
+            model.limit = { context: item.context_length, output: catalog?.limit.output ?? model.limit.output }
+            model.cost = [
+              {
+                input: perMillion(item.prompt_price_nano),
+                output: perMillion(item.completion_price_nano),
+                cache: {
+                  read: perMillion(item.cache_read_price_nano ?? item.prompt_price_nano),
+                  write: Money.USDPerMillionTokens.zero,
+                },
               },
-            },
-          ]
-          // Claude goes through the Anthropic Messages endpoint, which keeps prompt caching intact.
-          if (item.owned_by === "anthropic") {
-            model.package = "@opencode/ai/providers/anthropic-compatible"
-            model.settings = { baseURL: `${base}/v1`, provider: providerID, apiKey: key }
-          }
-          model.variants = item.supports_reasoning ? [...Variant.resolve(withPackage(model))] : []
-        })
+            ]
+            // Claude goes through the Anthropic Messages endpoint, which keeps prompt caching intact.
+            if (item.owned_by === "anthropic") {
+              model.package = "@opencode/ai/providers/anthropic-compatible"
+              model.settings = { baseURL: `${base}/v1`, provider: providerID, apiKey: key }
+            }
+            model.variants = item.supports_reasoning ? [...Variant.resolve(withPackage(model))] : []
+          })
+        } catch (error) {
+          console.warn(`SuperVibeCode AI: skipped model ${item.slug}`, error)
+        }
       }
     })
 
@@ -261,14 +265,22 @@ const RouterModel = Schema.Struct({
   context_length: Schema.Int,
   prompt_price_nano: Schema.Number,
   completion_price_nano: Schema.Number,
-  cache_read_price_nano: Schema.NullOr(Schema.Number),
-  created: Schema.Number,
-  mode: Schema.String,
-  supports_reasoning: Schema.Boolean,
-  supports_vision: Schema.Boolean,
+  cache_read_price_nano: Schema.optional(Schema.NullOr(Schema.Number)),
+  created: Schema.optional(Schema.Number),
+  mode: Schema.optional(Schema.String),
+  supports_reasoning: Schema.optional(Schema.Boolean),
+  supports_vision: Schema.optional(Schema.Boolean),
 })
 type RouterModel = typeof RouterModel.Type
-const RouterModels = Schema.Array(RouterModel)
+// The catalog is a plain array, or wrapped in `data` like OpenAI's; an entry it can't read is skipped, not fatal.
+const RouterModels = Schema.Union([Schema.Array(Schema.Unknown), Schema.Struct({ data: Schema.Array(Schema.Unknown) })])
+
+const readModels = (body: typeof RouterModels.Type) =>
+  ("data" in body ? body.data : body).flatMap((entry) => {
+    const decoded = Schema.decodeUnknownOption(RouterModel)(entry)
+
+    return decoded._tag === "Some" && (decoded.value.mode ?? "chat") === "chat" ? [decoded.value] : []
+  })
 
 const Methods = Schema.Struct({
   registration: Schema.Boolean,

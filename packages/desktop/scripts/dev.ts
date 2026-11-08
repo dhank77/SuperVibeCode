@@ -10,6 +10,7 @@ type ServerSource = { type: "build" } | { type: "download"; version: string }
 type DevOptions = { server: ServerSource; electron: string[] }
 
 async function main() {
+  await loadRootEnv()
   process.env.OPENCODE_CHANNEL = "local"
   process.env.OPENCODE_VERSION ??= `2.0.0-local-${Date.now()}`
   process.env.OPENCODE_DISABLE_CHANNEL_DB = "0"
@@ -20,6 +21,31 @@ async function main() {
   await prepareDesktop()
   await prepareServer(options.server)
   await startDesktop(options.electron)
+}
+
+// `bun run dev:desktop` runs from packages/desktop, so Bun only reads that folder's .env. The repository's own .env
+// (SUPERVIBECODE_ROUTER_URL and the like) reaches the desktop's server through here; values already set win.
+async function loadRootEnv() {
+  const file = Bun.file(join(import.meta.dirname, "../../../.env"))
+
+  if (!(await file.exists())) return
+  const entries = (await file.text())
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#") && line.includes("="))
+    .map((line) => {
+      const at = line.indexOf("=")
+
+      return [
+        line.slice(0, at).trim(),
+        line
+          .slice(at + 1)
+          .trim()
+          .replace(/^(["'])(.*)\1$/, "$2"),
+      ] as const
+    })
+
+  for (const [key, value] of entries) process.env[key] ??= value
 }
 
 async function prepareDesktop() {

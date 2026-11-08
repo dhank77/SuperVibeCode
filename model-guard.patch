@@ -1,0 +1,96 @@
+From e3b8927c909f071193d8de6c3259a71d2d6a3d49 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 8 Nov 2026 07:36:05 +0800
+Subject: [PATCH] fix(core): skip a SuperVibeCode AI model the catalog can't
+ describe
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ .../core/src/plugin/supervibecode-router.ts   | 69 ++++++++++---------
+ 1 file changed, 37 insertions(+), 32 deletions(-)
+
+diff --git a/packages/core/src/plugin/supervibecode-router.ts b/packages/core/src/plugin/supervibecode-router.ts
+index a9dd2e2..0d06e64 100644
+--- a/packages/core/src/plugin/supervibecode-router.ts
++++ b/packages/core/src/plugin/supervibecode-router.ts
+@@ -61,39 +61,44 @@ export const Plugin = define({
+       })
+ 
+       for (const item of state.models) {
+-        const catalog = findCatalog(providers.list(), item)
+-
+-        providers.models.update(providerID, item.slug, (model) => {
+-          model.modelID = Model.ID.make(item.slug)
+-          model.name = item.name || item.slug
+-          if (catalog?.family) model.family = catalog.family
+-          model.capabilities = {
+-            tools: catalog?.capabilities.tools ?? true,
+-            input: item.supports_vision ? ["text", "image"] : ["text"],
+-            output: ["text"],
+-            ...(catalog?.capabilities.temperature === undefined
+-              ? {}
+-              : { temperature: catalog.capabilities.temperature }),
+-          }
+-          model.limit = { context: item.context_length, output: catalog?.limit.output ?? model.limit.output }
+-          if (item.created) model.time = { released: item.created * 1000 }
+-          model.cost = [
+-            {
+-              input: perMillion(item.prompt_price_nano),
+-              output: perMillion(item.completion_price_nano),
+-              cache: {
+-                read: perMillion(item.cache_read_price_nano ?? item.prompt_price_nano),
+-                write: Money.USDPerMillionTokens.zero,
++        // One model the catalog can't describe must not take the whole provider list down with it.
++        try {
++          const catalog = findCatalog(providers.list(), item)
++
++          providers.models.update(providerID, item.slug, (model) => {
++            model.modelID = Model.ID.make(item.slug)
++            model.name = item.name || item.slug
++            if (catalog?.family) model.family = catalog.family
++            model.capabilities = {
++              tools: catalog?.capabilities.tools ?? true,
++              input: item.supports_vision ? ["text", "image"] : ["text"],
++              output: ["text"],
++              ...(catalog?.capabilities.temperature === undefined
++                ? {}
++                : { temperature: catalog.capabilities.temperature }),
++            }
++            model.limit = { context: item.context_length, output: catalog?.limit.output ?? model.limit.output }
++            if (item.created) model.time = { released: item.created * 1000 }
++            model.cost = [
++              {
++                input: perMillion(item.prompt_price_nano),
++                output: perMillion(item.completion_price_nano),
++                cache: {
++                  read: perMillion(item.cache_read_price_nano ?? item.prompt_price_nano),
++                  write: Money.USDPerMillionTokens.zero,
++                },
+               },
+-            },
+-          ]
+-          // Claude goes through the Anthropic Messages endpoint, which keeps prompt caching intact.
+-          if (item.owned_by === "anthropic") {
+-            model.package = "@opencode/ai/providers/anthropic-compatible"
+-            model.settings = { baseURL: `${base}/v1`, provider: providerID, apiKey: key }
+-          }
+-          model.variants = item.supports_reasoning ? [...Variant.resolve(withPackage(model))] : []
+-        })
++            ]
++            // Claude goes through the Anthropic Messages endpoint, which keeps prompt caching intact.
++            if (item.owned_by === "anthropic") {
++              model.package = "@opencode/ai/providers/anthropic-compatible"
++              model.settings = { baseURL: `${base}/v1`, provider: providerID, apiKey: key }
++            }
++            model.variants = item.supports_reasoning ? [...Variant.resolve(withPackage(model))] : []
++          })
++        } catch (error) {
++          console.warn(`SuperVibeCode AI: skipped model ${item.slug}`, error)
++        }
+       }
+     })
+ 
+-- 
+2.43.0
+

@@ -8,7 +8,9 @@
 #
 # The installers are unsigned unless these optional repository secrets exist:
 #   MAC_CERTIFICATE (base64 .p12 Developer ID) and MAC_CERTIFICATE_PASSWORD sign the macOS app;
-#   APPLE_API_KEY_BASE64 (.p8), APPLE_API_KEY_ID and APPLE_API_ISSUER also notarize it.
+#   APPLE_API_KEY_BASE64 (.p8), APPLE_API_KEY_ID and APPLE_API_ISSUER also notarize it;
+#   SSLDOTCOM_USERNAME, SSLDOTCOM_PASSWORD, SSLDOTCOM_CREDENTIAL_ID and SSLDOTCOM_TOTP_SECRET sign the Windows app and
+#   installer with an SSL.com eSigner code signing certificate.
 name: supervibecode-release
 
 on:
@@ -165,6 +167,12 @@ jobs:
         run: npx electron-builder ${{ matrix.settings.flags }} --publish never --config electron-builder.config.ts
         working-directory: packages/desktop
         timeout-minutes: 45
+        env:
+          # Signs the Windows app and installer when these secrets exist; see the note at the top.
+          SSLDOTCOM_USERNAME: ${{ secrets.SSLDOTCOM_USERNAME }}
+          SSLDOTCOM_PASSWORD: ${{ secrets.SSLDOTCOM_PASSWORD }}
+          SSLDOTCOM_CREDENTIAL_ID: ${{ secrets.SSLDOTCOM_CREDENTIAL_ID }}
+          SSLDOTCOM_TOTP_SECRET: ${{ secrets.SSLDOTCOM_TOTP_SECRET }}
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

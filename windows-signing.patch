@@ -1,0 +1,135 @@
+From 15b0db94b5086fe350e99f338a2d085d4bebfa34 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 7 Nov 2026 19:16:26 +0800
+Subject: [PATCH] feat(desktop): sign the Windows app with an SSL.com eSigner
+ certificate
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ .github/workflows/supervibecode-release.yml | 10 +++-
+ packages/desktop/electron-builder.config.ts |  2 +
+ script/sign-windows.ps1                     | 52 ++++++++++++++++++---
+ 3 files changed, 56 insertions(+), 8 deletions(-)
+
+diff --git a/.github/workflows/supervibecode-release.yml b/.github/workflows/supervibecode-release.yml
+index 1310e03..2f56b29 100644
+--- a/.github/workflows/supervibecode-release.yml
++++ b/.github/workflows/supervibecode-release.yml
+@@ -8,7 +8,9 @@
+ #
+ # The installers are unsigned unless these optional repository secrets exist:
+ #   MAC_CERTIFICATE (base64 .p12 Developer ID) and MAC_CERTIFICATE_PASSWORD sign the macOS app;
+-#   APPLE_API_KEY_BASE64 (.p8), APPLE_API_KEY_ID and APPLE_API_ISSUER also notarize it.
++#   APPLE_API_KEY_BASE64 (.p8), APPLE_API_KEY_ID and APPLE_API_ISSUER also notarize it;
++#   SSLDOTCOM_USERNAME, SSLDOTCOM_PASSWORD, SSLDOTCOM_CREDENTIAL_ID and SSLDOTCOM_TOTP_SECRET sign the Windows app and
++#   installer with an SSL.com eSigner code signing certificate.
+ name: supervibecode-release
+ 
+ on:
+@@ -165,6 +167,12 @@ jobs:
+         run: npx electron-builder ${{ matrix.settings.flags }} --publish never --config electron-builder.config.ts
+         working-directory: packages/desktop
+         timeout-minutes: 45
++        env:
++          # Signs the Windows app and installer when these secrets exist; see the note at the top.
++          SSLDOTCOM_USERNAME: ${{ secrets.SSLDOTCOM_USERNAME }}
++          SSLDOTCOM_PASSWORD: ${{ secrets.SSLDOTCOM_PASSWORD }}
++          SSLDOTCOM_CREDENTIAL_ID: ${{ secrets.SSLDOTCOM_CREDENTIAL_ID }}
++          SSLDOTCOM_TOTP_SECRET: ${{ secrets.SSLDOTCOM_TOTP_SECRET }}
+ 
+       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+         with:
+diff --git a/packages/desktop/electron-builder.config.ts b/packages/desktop/electron-builder.config.ts
+index 4d4dd92..914ee60 100644
+--- a/packages/desktop/electron-builder.config.ts
++++ b/packages/desktop/electron-builder.config.ts
+@@ -215,6 +215,8 @@ const getBase = (appId: string): Configuration => {
+       icon: `resources/icons/icon.ico`,
+       signtoolOptions: {
+         sign: signWindows,
++        // One SHA-256 signature; the default adds SHA-1, which signs every file twice for no current Windows version.
++        signingHashAlgorithms: ["sha256"],
+       },
+       target: ["nsis"],
+       verifyUpdateCodeSignature: false,
+diff --git a/script/sign-windows.ps1 b/script/sign-windows.ps1
+index aaf2a5b..d77fc80 100644
+--- a/script/sign-windows.ps1
++++ b/script/sign-windows.ps1
+@@ -14,6 +14,50 @@ if ($env:GITHUB_ACTIONS -ne "true") {
+   exit 0
+ }
+ 
++$files = @($Path | ForEach-Object { Resolve-Path $_ -ErrorAction SilentlyContinue } | Select-Object -ExpandProperty Path -Unique)
++
++if (-not $files -or $files.Count -eq 0) {
++  throw "No files matched the requested paths"
++}
++
++# SSL.com eSigner: a cloud code signing certificate that can sign unattended from CI, for publishers outside the
++# countries Azure Artifact Signing serves.
++$ssl = @{
++  username = $env:SSLDOTCOM_USERNAME
++  password = $env:SSLDOTCOM_PASSWORD
++  credential = $env:SSLDOTCOM_CREDENTIAL_ID
++  totp = $env:SSLDOTCOM_TOTP_SECRET
++}
++
++if (-not ($ssl.Values | Where-Object { -not $_ })) {
++  $tools = Join-Path ($env:RUNNER_TEMP ?? [System.IO.Path]::GetTempPath()) "CodeSignTool"
++  $tool = Get-ChildItem -Path $tools -Filter "CodeSignTool.bat" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
++
++  if (-not $tool) {
++    $zip = "$tools.zip"
++    Invoke-WebRequest -Uri "https://www.ssl.com/download/codesigntool-for-windows/" -OutFile $zip
++    Expand-Archive -Path $zip -DestinationPath $tools -Force
++    $tool = Get-ChildItem -Path $tools -Filter "CodeSignTool.bat" -Recurse | Select-Object -First 1
++  }
++
++  foreach ($file in $files) {
++    Write-Host "Signing $file with SSL.com eSigner"
++    Push-Location $tool.DirectoryName
++    try {
++      # The arguments hold the credentials, so the tool's own output is all that is logged.
++      $output = & cmd /c "CodeSignTool.bat" sign "-input_file_path=$file" "-username=$($ssl.username)" `
++        "-password=$($ssl.password)" "-credential_id=$($ssl.credential)" "-totp_secret=$($ssl.totp)" "-override=true" 2>&1
++      Write-Host ($output -join "`n")
++      if ($LASTEXITCODE -ne 0 -or ($output -join "`n") -match "(?m)^Error") { throw "SSL.com eSigner could not sign $file" }
++    }
++    finally {
++      Pop-Location
++    }
++  }
++
++  exit 0
++}
++
+ $vars = @{
+   endpoint = $env:AZURE_TRUSTED_SIGNING_ENDPOINT
+   account = $env:AZURE_TRUSTED_SIGNING_ACCOUNT_NAME
+@@ -21,7 +65,7 @@ $vars = @{
+ }
+ 
+ if ($vars.Values | Where-Object { -not $_ }) {
+-  Write-Host "Skipping Windows signing because Azure Artifact Signing is not configured"
++  Write-Host "Skipping Windows signing because neither SSL.com eSigner nor Azure Artifact Signing is configured"
+   exit 0
+ }
+ 
+@@ -41,12 +85,6 @@ if (-not $module) {
+ 
+ Import-Module TrustedSigning -RequiredVersion $moduleVersion -Force
+ 
+-$files = @($Path | ForEach-Object { Resolve-Path $_ -ErrorAction SilentlyContinue } | Select-Object -ExpandProperty Path -Unique)
+-
+-if (-not $files -or $files.Count -eq 0) {
+-  throw "No files matched the requested paths"
+-}
+-
+ $params = @{
+   Endpoint                         = $vars.endpoint
+   CodeSigningAccountName           = $vars.account
+-- 
+2.43.0
+

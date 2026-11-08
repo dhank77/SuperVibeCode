@@ -113,6 +113,9 @@ const createModelsController = (directory: Accessor<string | undefined>) => {
 
     if (state === "show") return true
 
+    // SuperVibeCode AI sells a hand-picked list, so every model on it shows until the user hides it.
+    if (model.providerID === "supervibecode") return true
+
     if (latestSet().has(key)) return true
 
     // Models without a parseable release date stay visible.

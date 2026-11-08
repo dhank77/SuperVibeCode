@@ -1,0 +1,105 @@
+From e5c148c25401178b39610a0183840b259b5f49d0 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 8 Nov 2026 08:18:41 +0800
+Subject: [PATCH] feat(app): list SuperVibeCode AI after OpenCode with its own
+ mark
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ packages/app/src/providers/catalog/order.ts   |  1 +
+ packages/app/src/providers/models/models.tsx  |  3 +++
+ .../src/providers/models/provider-group.tsx   |  4 ++++
+ .../app/src/providers/supervibecode-logo.tsx  | 19 +++++++++++++++++++
+ .../core/src/plugin/supervibecode-router.ts   |  1 -
+ 5 files changed, 27 insertions(+), 1 deletion(-)
+ create mode 100644 packages/app/src/providers/supervibecode-logo.tsx
+
+diff --git a/packages/app/src/providers/catalog/order.ts b/packages/app/src/providers/catalog/order.ts
+index c0ed38b..72bc855 100644
+--- a/packages/app/src/providers/catalog/order.ts
++++ b/packages/app/src/providers/catalog/order.ts
+@@ -1,6 +1,7 @@
+ export const popularProviders = [
+   "opencode-go",
+   "opencode",
++  "supervibecode",
+   "anthropic",
+   "github-copilot",
+   "openai",
+diff --git a/packages/app/src/providers/models/models.tsx b/packages/app/src/providers/models/models.tsx
+index 33b67a9..c66d3a9 100644
+--- a/packages/app/src/providers/models/models.tsx
++++ b/packages/app/src/providers/models/models.tsx
+@@ -113,6 +113,9 @@ const createModelsController = (directory: Accessor<string | undefined>) => {
+ 
+     if (state === "show") return true
+ 
++    // SuperVibeCode AI sells a hand-picked list, so every model on it shows until the user hides it.
++    if (model.providerID === "supervibecode") return true
++
+     if (latestSet().has(key)) return true
+ 
+     // Models without a parseable release date stay visible.
+diff --git a/packages/app/src/providers/models/provider-group.tsx b/packages/app/src/providers/models/provider-group.tsx
+index e90c37e..2cd7d8f 100644
+--- a/packages/app/src/providers/models/provider-group.tsx
++++ b/packages/app/src/providers/models/provider-group.tsx
+@@ -8,6 +8,7 @@ import type { JSX } from "solid-js"
+ import { createMemo, For, Match, Show, Switch } from "solid-js"
+ import { consoleProviderGroup, consoleProviderName } from "@/providers/catalog/console"
+ import { OpenCodeLogo } from "@/providers/opencode-logo"
++import { SuperVibeCodeLogo } from "@/providers/supervibecode-logo"
+ import { useLanguage } from "@/runtime/i18n/language"
+ import customManagedProvider from "@/providers/custom-managed-provider.svg"
+ import "@/settings/settings.css"
+@@ -37,6 +38,9 @@ export function ProviderModelIcon(props: { provider: ModelProvider; class?: stri
+       <Match when={props.provider.id === "opencode"}>
+         <OpenCodeLogo class={`size-4 ${props.class ?? ""}`} />
+       </Match>
++      <Match when={props.provider.id === "supervibecode"}>
++        <SuperVibeCodeLogo class={`size-4 ${props.class ?? ""}`} />
++      </Match>
+       <Match when={icon()} keyed>
+         {(id) => <ProviderIcon id={id} width={16} height={16} class={props.class} />}
+       </Match>
+diff --git a/packages/app/src/providers/supervibecode-logo.tsx b/packages/app/src/providers/supervibecode-logo.tsx
+new file mode 100644
+index 0000000..8f1ffd0
+--- /dev/null
++++ b/packages/app/src/providers/supervibecode-logo.tsx
+@@ -0,0 +1,19 @@
++/** SuperVibeCode's pixel "S", in the current text color like the other provider marks. */
++export function SuperVibeCodeLogo(props: { class?: string }) {
++  return (
++    <svg
++      data-component="supervibecode-logo"
++      aria-hidden="true"
++      class={props.class}
++      viewBox="0 0 16 16"
++      fill="none"
++      xmlns="http://www.w3.org/2000/svg"
++    >
++      <path opacity="0.45" d="M3.2 2H5.6V4.4H3.2V2ZM10.4 11.6H12.8V14H10.4V11.6Z" fill="currentColor" />
++      <path
++        d="M5.6 2H12.8V4.4H5.6V2ZM3.2 4.4H5.6V6.8H3.2V4.4ZM3.2 6.8H12.8V9.2H3.2V6.8ZM10.4 9.2H12.8V11.6H10.4V9.2ZM3.2 11.6H10.4V14H3.2V11.6Z"
++        fill="currentColor"
++      />
++    </svg>
++  )
++}
+diff --git a/packages/core/src/plugin/supervibecode-router.ts b/packages/core/src/plugin/supervibecode-router.ts
+index 0d06e64..ad8d561 100644
+--- a/packages/core/src/plugin/supervibecode-router.ts
++++ b/packages/core/src/plugin/supervibecode-router.ts
+@@ -78,7 +78,6 @@ export const Plugin = define({
+                 : { temperature: catalog.capabilities.temperature }),
+             }
+             model.limit = { context: item.context_length, output: catalog?.limit.output ?? model.limit.output }
+-            if (item.created) model.time = { released: item.created * 1000 }
+             model.cost = [
+               {
+                 input: perMillion(item.prompt_price_nano),
+-- 
+2.43.0
+

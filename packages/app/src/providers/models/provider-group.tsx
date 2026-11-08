@@ -8,6 +8,7 @@ import type { JSX } from "solid-js"
 import { createMemo, For, Match, Show, Switch } from "solid-js"
 import { consoleProviderGroup, consoleProviderName } from "@/providers/catalog/console"
 import { OpenCodeLogo } from "@/providers/opencode-logo"
+import { SuperVibeCodeLogo } from "@/providers/supervibecode-logo"
 import { useLanguage } from "@/runtime/i18n/language"
 import customManagedProvider from "@/providers/custom-managed-provider.svg"
 import "@/settings/settings.css"
@@ -36,6 +37,9 @@ export function ProviderModelIcon(props: { provider: ModelProvider; class?: stri
     <Switch>
       <Match when={props.provider.id === "opencode"}>
         <OpenCodeLogo class={`size-4 ${props.class ?? ""}`} />
+      </Match>
+      <Match when={props.provider.id === "supervibecode"}>
+        <SuperVibeCodeLogo class={`size-4 ${props.class ?? ""}`} />
       </Match>
       <Match when={icon()} keyed>
         {(id) => <ProviderIcon id={id} width={16} height={16} class={props.class} />}

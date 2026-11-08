@@ -215,6 +215,8 @@ const getBase = (appId: string): Configuration => {
       icon: `resources/icons/icon.ico`,
       signtoolOptions: {
         sign: signWindows,
+        // One SHA-256 signature; the default adds SHA-1, which signs every file twice for no current Windows version.
+        signingHashAlgorithms: ["sha256"],
       },
       target: ["nsis"],
       verifyUpdateCodeSignature: false,
