@@ -3,7 +3,7 @@ import { Component, ComponentProps, createEffect, createMemo, For, JSX, Show, Su
 import { createStore } from "solid-js/store"
 import { createMediaQuery } from "@solid-primitives/media"
 import { useLocal, type ModelSelection } from "@/providers/models/selection"
-import { isFreeModel } from "@/providers/models/models"
+import { formatModelPrice, isFreeModel, sortModels } from "@/providers/models/models"
 import { useDialog } from "@opencode/ui/context/dialog"
 import { popularProviders } from "@/providers/catalog/providers"
 import { Button } from "@opencode/ui/button"
@@ -156,13 +156,22 @@ const ModelList: Component<{
                     gutter={12}
                     openDelay={0}
                     value={
-                      <ModelTooltip model={item} latest={item.latest} free={isFreeModel(item)} v2 />
+                      <ModelTooltip
+                        model={item}
+                        latest={item.latest}
+                        free={isFreeModel(item)}
+                        price={formatModelPrice(item)}
+                        v2
+                      />
                     }
                   >
                     <span class="min-w-0 truncate">{item.name}</span>
                   </Tooltip>
                   <Show when={isFreeModel(item)}>
                     <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
+                  </Show>
+                  <Show when={formatModelPrice(item)}>
+                    {(price) => <Badge class="shrink-0">{price()}</Badge>}
                   </Show>
                   <Show when={item.latest}>
                     <Badge class="shrink-0">{language.t("model.tag.latest")}</Badge>
@@ -469,7 +478,7 @@ function createModelSelectorController(input: {
         ? allModels().filter((item) => matchesModelSearch(query, [item.name, item.id, item.provider.name]))
         : allModels()
 
-      return [...filtered].sort((a, b) => a.name.localeCompare(b.name))
+      return [...filtered].sort(sortModels)
     },
     groups: (models: ModelItem[]) => {
       const byProvider = new Map<string, ModelItem[]>()
@@ -727,6 +736,7 @@ export function ModelSelectorPopoverView(props: {
                                   model={item}
                                   latest={item.latest}
                                   free={isFreeModel(item)}
+                                  price={formatModelPrice(item)}
                                   v2
                                 />
                               }
@@ -746,6 +756,9 @@ export function ModelSelectorPopoverView(props: {
                                 <span class="min-w-0 truncate leading-5">{item.name}</span>
                                 <Show when={isFreeModel(item)}>
                                   <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
+                                </Show>
+                                <Show when={formatModelPrice(item)}>
+                                  {(price) => <Badge class="shrink-0">{price()}</Badge>}
                                 </Show>
                                 <Show when={item.latest}>
                                   <Badge class="shrink-0">{language.t("model.tag.latest")}</Badge>

@@ -77,13 +77,16 @@ export const Plugin = define({
                 ? {}
                 : { temperature: catalog.capabilities.temperature }),
             }
+            const prompt = item.is_free ? 0 : item.prompt_price_nano
+            const completion = item.is_free ? 0 : item.completion_price_nano
+            const cacheRead = item.is_free ? 0 : (item.cache_read_price_nano ?? item.prompt_price_nano)
             model.limit = { context: item.context_length, output: catalog?.limit.output ?? model.limit.output }
             model.cost = [
               {
-                input: perMillion(item.prompt_price_nano),
-                output: perMillion(item.completion_price_nano),
+                input: perMillion(prompt),
+                output: perMillion(completion),
                 cache: {
-                  read: perMillion(item.cache_read_price_nano ?? item.prompt_price_nano),
+                  read: perMillion(cacheRead),
                   write: Money.USDPerMillionTokens.zero,
                 },
               },
@@ -101,14 +104,13 @@ export const Plugin = define({
       }
     })
 
-    // A new sign-in starts on the service's own models unless the user already chose another.
+    // A new sign-in starts on the service's cheapest model unless the user already chose another.
     yield* ctx.model.transform((models) => {
       if (!state.account?.key) return
       const current = models.default.get()
 
       if (current && current.providerID !== "opencode") return
-      const choices = models.list(providerID)
-      const pick = choices.find((model) => /sonnet/i.test(model.id)) ?? choices[0]
+      const pick = models.list(providerID)[0]
 
       if (pick) models.default.set(providerID, pick.id)
     })
@@ -266,6 +268,7 @@ const RouterModel = Schema.Struct({
   prompt_price_nano: Schema.Number,
   completion_price_nano: Schema.Number,
   cache_read_price_nano: Schema.optional(Schema.NullOr(Schema.Number)),
+  is_free: Schema.optional(Schema.Boolean),
   created: Schema.optional(Schema.Number),
   mode: Schema.optional(Schema.String),
   supports_reasoning: Schema.optional(Schema.Boolean),
@@ -275,12 +278,22 @@ type RouterModel = typeof RouterModel.Type
 // The catalog is a plain array, or wrapped in `data` like OpenAI's; an entry it can't read is skipped, not fatal.
 const RouterModels = Schema.Union([Schema.Array(Schema.Unknown), Schema.Struct({ data: Schema.Array(Schema.Unknown) })])
 
-const readModels = (body: typeof RouterModels.Type) =>
-  ("data" in body ? body.data : body).flatMap((entry) => {
-    const decoded = Schema.decodeUnknownOption(RouterModel)(entry)
+const pricePair = (item: RouterModel) =>
+  item.is_free ? ([0, 0] as const) : ([item.prompt_price_nano, item.completion_price_nano] as const)
 
-    return decoded._tag === "Some" && (decoded.value.mode ?? "chat") === "chat" ? [decoded.value] : []
-  })
+export const readModels = (body: typeof RouterModels.Type) =>
+  ("data" in body ? body.data : body)
+    .flatMap((entry) => {
+      const decoded = Schema.decodeUnknownOption(RouterModel)(entry)
+
+      return decoded._tag === "Some" && (decoded.value.mode ?? "chat") === "chat" ? [decoded.value] : []
+    })
+    .sort((a, b) => {
+      const [aIn, aOut] = pricePair(a)
+      const [bIn, bOut] = pricePair(b)
+
+      return aIn - bIn || aOut - bOut || a.name.localeCompare(b.name)
+    })
 
 const Methods = Schema.Struct({
   registration: Schema.Boolean,

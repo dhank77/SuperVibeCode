@@ -148,6 +148,7 @@ h3 {
 
 .nav nav {
   display: flex;
+  align-items: center;
   gap: 26px;
   font-size: 15px;
   font-weight: 500;
@@ -164,6 +165,20 @@ h3 {
 
 .nav .nav-github {
   color: var(--ink-strong);
+}
+
+.nav .nav-login {
+  color: #fff;
+  background: var(--violet-strong);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background-color 0.15s;
+}
+
+.nav .nav-login:hover {
+  color: #fff;
+  background: #8165ff;
 }
 
 /* Buttons */
@@ -1005,7 +1020,7 @@ h1 {
 /* Narrow screens */
 
 @media (max-width: 920px) {
-  .nav nav a:not(.nav-github) {
+  .nav nav a:not(.nav-github):not(.nav-login) {
     display: none;
   }
 

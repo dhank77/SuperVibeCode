@@ -1,3 +1,4 @@
+import { Badge } from "@opencode/ui/badge"
 import { useFilteredList } from "@opencode/ui/hooks"
 import { Switch } from "@opencode/ui/switch"
 import { type Component, createEffect, createMemo, For, Show } from "solid-js"
@@ -5,7 +6,7 @@ import { type Component, createEffect, createMemo, For, Show } from "solid-js"
 import { Schema } from "effect"
 import { Persistence } from "@/runtime/persistence/schema"
 import { useLanguage } from "@/runtime/i18n/language"
-import { useModels } from "@/providers/models/models"
+import { formatModelPrice, isFreeModel, sortModels, useModels } from "@/providers/models/models"
 import { useServerSDK } from "@/runtime/server/client"
 import { popularProviders } from "@/providers/catalog/providers"
 import { Persist, persisted } from "@/runtime/persistence/storage"
@@ -44,7 +45,7 @@ export const SettingsModels: Component<{
     items: (_filter) => models.list(),
     key: (x) => `${x.provider.id}:${x.id}`,
     filterKeys: ["provider.name", "name", "id"],
-    sortBy: (a, b) => a.name.localeCompare(b.name),
+    sortBy: sortModels,
     groupBy: (x) => x.provider.id,
     sortGroupsBy: (a, b) => {
       const aIndex = popularProviders.indexOf(a.category)
@@ -83,7 +84,20 @@ export const SettingsModels: Component<{
             const key = { providerID: item.provider.id, modelID: item.id }
 
             return (
-              <SettingsRow title={item.name} description="">
+              <SettingsRow
+                title={
+                  <span class="flex items-center gap-2">
+                    <span class="min-w-0 truncate">{item.name}</span>
+                    <Show when={isFreeModel(item)}>
+                      <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
+                    </Show>
+                    <Show when={formatModelPrice(item)}>
+                      {(price) => <Badge class="shrink-0">{price()}</Badge>}
+                    </Show>
+                  </span>
+                }
+                description=""
+              >
                 <div>
                   <Switch
                     checked={models.visible(key)}

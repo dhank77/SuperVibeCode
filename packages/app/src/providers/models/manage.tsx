@@ -1,3 +1,4 @@
+import { Badge } from "@opencode/ui/badge"
 import { Button } from "@opencode/ui/button"
 import { Dialog, DialogBody, DialogHeader, DialogTitleGroup } from "@opencode/ui/dialog"
 import { Switch } from "@opencode/ui/switch"
@@ -5,6 +6,7 @@ import { TextInput } from "@opencode/ui/text-input"
 import { useFilteredList } from "@opencode/ui/hooks"
 import { createMemo, For, Show, type Component } from "solid-js"
 import { createStore } from "solid-js/store"
+import { formatModelPrice, isFreeModel, sortModels } from "@/providers/models/models"
 import { useLocal } from "@/providers/models/selection"
 import { popularProviders } from "@/providers/catalog/providers"
 import { useLanguage } from "@/runtime/i18n/language"
@@ -48,7 +50,7 @@ export const DialogManageModels: Component = () => {
     items: () => local.model.list(),
     key: (x) => `${x.provider.id}:${x.id}`,
     filterKeys: ["provider.name", "name", "id"],
-    sortBy: (a, b) => a.name.localeCompare(b.name),
+    sortBy: sortModels,
     groupBy: (x) => x.provider.id,
     sortGroupsBy: (a, b) => {
       const aRank = popularProviders.indexOf(a.category)
@@ -75,7 +77,20 @@ export const DialogManageModels: Component = () => {
       <SettingsList variant="catalog">
         <For each={props.items}>
           {(item) => (
-            <SettingsRow title={item.name} description="">
+            <SettingsRow
+              title={
+                <span class="flex items-center gap-2">
+                  <span class="min-w-0 truncate">{item.name}</span>
+                  <Show when={isFreeModel(item)}>
+                    <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
+                  </Show>
+                  <Show when={formatModelPrice(item)}>
+                    {(price) => <Badge class="shrink-0">{price()}</Badge>}
+                  </Show>
+                </span>
+              }
+              description=""
+            >
               <div>
                 <Switch
                   checked={local.model.visible({ modelID: item.id, providerID: item.provider.id })}

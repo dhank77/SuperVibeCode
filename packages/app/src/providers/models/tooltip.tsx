@@ -33,9 +33,13 @@ function ModelTooltipRow(props: { name: JSX.Element; value: JSX.Element }) {
   )
 }
 
-export const ModelTooltip: Component<{ model: ModelInfo; latest?: boolean; free?: boolean; v2?: boolean }> = (
-  props,
-) => {
+export const ModelTooltip: Component<{
+  model: ModelInfo
+  latest?: boolean
+  free?: boolean
+  price?: string
+  v2?: boolean
+}> = (props) => {
   const language = useLanguage()
 
   const sourceName = (model: ModelInfo) => {
@@ -74,6 +78,8 @@ export const ModelTooltip: Component<{ model: ModelInfo; latest?: boolean; free?
     if (props.latest) tags.push(language.t("model.tag.latest"))
 
     if (props.free) tags.push(language.t("model.tag.free"))
+
+    if (!props.free && props.price) tags.push(props.price)
     const suffix = tags.length ? ` (${tags.join(", ")})` : ""
 
     return `${sourceName(props.model)} ${props.model.name}${suffix}`
@@ -85,6 +91,8 @@ export const ModelTooltip: Component<{ model: ModelInfo; latest?: boolean; free?
     if (props.latest) tags.push(language.t("model.tag.latest"))
 
     if (props.free) tags.push(language.t("model.tag.free"))
+
+    if (!props.free && props.price) tags.push(props.price)
     const suffix = tags.length ? ` (${tags.join(", ")})` : ""
 
     return `${props.model.name}${suffix}`
