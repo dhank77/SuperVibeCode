@@ -16,7 +16,7 @@ import {
 } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useLocal, type ModelSelection } from "@/providers/models/selection"
-import { formatModelPrice, isFreeModel, sortModels } from "@/providers/models/models"
+import { isFreeModel, modelTags, sortModels } from "@/providers/models/models"
 import { useDialog } from "@opencode/ui/context/dialog"
 import { popularProviders } from "@/providers/catalog/providers"
 import { Button } from "@opencode/ui/button"
@@ -207,23 +207,12 @@ const ModelList: Component<{
                     placement="right-start"
                     gutter={12}
                     openDelay={0}
-                    value={
-                      <ModelTooltip
-                        model={item}
-                        latest={item.latest}
-                        free={isFreeModel(item)}
-                        price={formatModelPrice(item)}
-                        v2
-                      />
-                    }
+                    value={<ModelTooltip model={item} latest={item.latest} free={isFreeModel(item)} v2 />}
                   >
                     <span class="min-w-0 truncate">{item.name}</span>
                   </Tooltip>
                   <Show when={isFreeModel(item)}>
                     <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
-                  </Show>
-                  <Show when={formatModelPrice(item)}>
-                    {(price) => <Badge class="shrink-0">{price()}</Badge>}
                   </Show>
                   <Show when={item.latest}>
                     <Badge class="shrink-0">{language.t("model.tag.latest")}</Badge>
@@ -501,7 +490,9 @@ function createModelSelectorController(input: {
       const query = search.trim()
 
       const filtered = query
-        ? allModels().filter((item) => matchesModelSearch(query, [item.name, item.id, item.provider.name]))
+        ? allModels().filter((item) =>
+            matchesModelSearch(query, [item.name, item.id, item.provider.name, modelTags(item)]),
+          )
         : allModels()
 
       return [...filtered].sort(sortModels)
@@ -973,9 +964,6 @@ export function DialogSelectModel(props: { provider?: string; model?: ModelState
           </Show>
           <Show when={isFreeModel(item())}>
             <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
-          </Show>
-          <Show when={formatModelPrice(item())}>
-            {(price) => <Badge class="shrink-0">{price()}</Badge>}
           </Show>
           <Show when={item().latest}>
             <Badge class="shrink-0">{language.t("model.tag.latest")}</Badge>

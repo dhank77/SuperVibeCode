@@ -16,22 +16,18 @@ function modelKey(model: ModelKey) {
   return `${model.providerID}:${model.modelID}`
 }
 
-function dollars(value: number) {
-  return String(Number(value.toFixed(value < 0.01 ? 3 : 2)))
-}
-
 export const isFreeModel = (model: { provider: { id: string }; cost?: { input: number; output?: number } }) =>
   (model.provider.id === "opencode" || model.provider.id === "supervibecode") &&
   (!model.cost || (model.cost.input === 0 && (model.cost.output ?? 0) === 0))
 
-export const formatModelPrice = (model: {
-  provider: { id: string }
-  cost?: { input: number; output: number }
-}) => {
-  if (model.provider.id !== "supervibecode" || isFreeModel(model) || !model.cost) return undefined
-  if (model.cost.input <= 0 && model.cost.output <= 0) return undefined
-  return `$${dollars(model.cost.input)}/$${dollars(model.cost.output)}`
-}
+/** Search words a model matches beyond its name: a free model matches "free" and "gratis". */
+export const modelTags = (model: { provider: { id: string }; cost?: { input: number; output?: number } }) =>
+  isFreeModel(model) ? "free gratis" : ""
+
+/** The model with its `modelTags`, for lists that filter on a `tags` key. */
+export const withModelTags = <T extends { provider: { id: string }; cost?: { input: number; output?: number } }>(
+  model: T,
+) => ({ ...model, tags: modelTags(model) })
 
 export const sortModels = <
   T extends {

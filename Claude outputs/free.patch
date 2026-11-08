@@ -1,0 +1,216 @@
+From 7834adb44ceb7e717c9e6544cb80d6f460ffe210 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 8 Nov 2026 09:42:35 +0800
+Subject: [PATCH] fix(app): show only the Free tag on SuperVibeCode models and
+ find free ones by searching free
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015mdRe2pYHSA5TYhhoxcYBW
+---
+ packages/app/src/providers/models/manage.tsx  | 11 ++++------
+ packages/app/src/providers/models/models.tsx  | 20 +++++++----------
+ .../src/providers/models/select-dialog.tsx    | 22 +++++--------------
+ packages/app/src/providers/models/tooltip.tsx |  3 ---
+ packages/app/src/settings/models/models.tsx   | 11 ++++------
+ 5 files changed, 21 insertions(+), 46 deletions(-)
+
+diff --git a/packages/app/src/providers/models/manage.tsx b/packages/app/src/providers/models/manage.tsx
+index 8330eeffdf..7651ee8bce 100644
+--- a/packages/app/src/providers/models/manage.tsx
++++ b/packages/app/src/providers/models/manage.tsx
+@@ -7,7 +7,7 @@ import { TextInput } from "@opencode/ui/text-input"
+ import { useFilteredList } from "@opencode/ui/hooks"
+ import { createMemo, For, Show, type Component } from "solid-js"
+ import { createStore } from "solid-js/store"
+-import { formatModelPrice, isFreeModel, sortModels } from "@/providers/models/models"
++import { isFreeModel, sortModels, withModelTags } from "@/providers/models/models"
+ import { useLocal } from "@/providers/models/selection"
+ import { popularProviders } from "@/providers/catalog/providers"
+ import { useLanguage } from "@/runtime/i18n/language"
+@@ -47,10 +47,10 @@ export const DialogManageModels: Component = () => {
+     local.model.setVisibility({ modelID: item.id, providerID: item.provider.id }, checked)
+   }
+ 
+-  const list = useFilteredList<ModelItem>({
+-    items: () => local.model.list(),
++  const list = useFilteredList<ModelItem & { tags: string }>({
++    items: () => local.model.list().map(withModelTags),
+     key: (x) => `${x.provider.id}:${x.id}`,
+-    filterKeys: ["provider.name", "name", "id"],
++    filterKeys: ["provider.name", "name", "id", "tags"],
+     sortBy: sortModels,
+     groupBy: (x) => x.provider.id,
+     sortGroupsBy: (a, b) => {
+@@ -91,9 +91,6 @@ export const DialogManageModels: Component = () => {
+                   <Show when={isFreeModel(item)}>
+                     <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
+                   </Show>
+-                  <Show when={formatModelPrice(item)}>
+-                    {(price) => <Badge class="shrink-0">{price()}</Badge>}
+-                  </Show>
+                 </span>
+               </div>
+               <div class="search-list-trailing" onClick={(event) => event.stopPropagation()}>
+diff --git a/packages/app/src/providers/models/models.tsx b/packages/app/src/providers/models/models.tsx
+index 7f2af92a0b..d143cc84e8 100644
+--- a/packages/app/src/providers/models/models.tsx
++++ b/packages/app/src/providers/models/models.tsx
+@@ -16,22 +16,18 @@ function modelKey(model: ModelKey) {
+   return `${model.providerID}:${model.modelID}`
+ }
+ 
+-function dollars(value: number) {
+-  return String(Number(value.toFixed(value < 0.01 ? 3 : 2)))
+-}
+-
+ export const isFreeModel = (model: { provider: { id: string }; cost?: { input: number; output?: number } }) =>
+   (model.provider.id === "opencode" || model.provider.id === "supervibecode") &&
+   (!model.cost || (model.cost.input === 0 && (model.cost.output ?? 0) === 0))
+ 
+-export const formatModelPrice = (model: {
+-  provider: { id: string }
+-  cost?: { input: number; output: number }
+-}) => {
+-  if (model.provider.id !== "supervibecode" || isFreeModel(model) || !model.cost) return undefined
+-  if (model.cost.input <= 0 && model.cost.output <= 0) return undefined
+-  return `$${dollars(model.cost.input)}/$${dollars(model.cost.output)}`
+-}
++/** Search words a model matches beyond its name: a free model matches "free" and "gratis". */
++export const modelTags = (model: { provider: { id: string }; cost?: { input: number; output?: number } }) =>
++  isFreeModel(model) ? "free gratis" : ""
++
++/** The model with its `modelTags`, for lists that filter on a `tags` key. */
++export const withModelTags = <T extends { provider: { id: string }; cost?: { input: number; output?: number } }>(
++  model: T,
++) => ({ ...model, tags: modelTags(model) })
+ 
+ export const sortModels = <
+   T extends {
+diff --git a/packages/app/src/providers/models/select-dialog.tsx b/packages/app/src/providers/models/select-dialog.tsx
+index 2511e1afa5..60815e4191 100644
+--- a/packages/app/src/providers/models/select-dialog.tsx
++++ b/packages/app/src/providers/models/select-dialog.tsx
+@@ -16,7 +16,7 @@ import {
+ } from "solid-js"
+ import { createStore } from "solid-js/store"
+ import { useLocal, type ModelSelection } from "@/providers/models/selection"
+-import { formatModelPrice, isFreeModel, sortModels } from "@/providers/models/models"
++import { isFreeModel, modelTags, sortModels } from "@/providers/models/models"
+ import { useDialog } from "@opencode/ui/context/dialog"
+ import { popularProviders } from "@/providers/catalog/providers"
+ import { Button } from "@opencode/ui/button"
+@@ -207,24 +207,13 @@ const ModelList: Component<{
+                     placement="right-start"
+                     gutter={12}
+                     openDelay={0}
+-                    value={
+-                      <ModelTooltip
+-                        model={item}
+-                        latest={item.latest}
+-                        free={isFreeModel(item)}
+-                        price={formatModelPrice(item)}
+-                        v2
+-                      />
+-                    }
++                    value={<ModelTooltip model={item} latest={item.latest} free={isFreeModel(item)} v2 />}
+                   >
+                     <span class="min-w-0 truncate">{item.name}</span>
+                   </Tooltip>
+                   <Show when={isFreeModel(item)}>
+                     <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
+                   </Show>
+-                  <Show when={formatModelPrice(item)}>
+-                    {(price) => <Badge class="shrink-0">{price()}</Badge>}
+-                  </Show>
+                   <Show when={item.latest}>
+                     <Badge class="shrink-0">{language.t("model.tag.latest")}</Badge>
+                   </Show>
+@@ -501,7 +490,9 @@ function createModelSelectorController(input: {
+       const query = search.trim()
+ 
+       const filtered = query
+-        ? allModels().filter((item) => matchesModelSearch(query, [item.name, item.id, item.provider.name]))
++        ? allModels().filter((item) =>
++            matchesModelSearch(query, [item.name, item.id, item.provider.name, modelTags(item)]),
++          )
+         : allModels()
+ 
+       return [...filtered].sort(sortModels)
+@@ -974,9 +965,6 @@ export function DialogSelectModel(props: { provider?: string; model?: ModelState
+           <Show when={isFreeModel(item())}>
+             <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
+           </Show>
+-          <Show when={formatModelPrice(item())}>
+-            {(price) => <Badge class="shrink-0">{price()}</Badge>}
+-          </Show>
+           <Show when={item().latest}>
+             <Badge class="shrink-0">{language.t("model.tag.latest")}</Badge>
+           </Show>
+diff --git a/packages/app/src/providers/models/tooltip.tsx b/packages/app/src/providers/models/tooltip.tsx
+index 2f7df37dfa..5a3dff4903 100644
+--- a/packages/app/src/providers/models/tooltip.tsx
++++ b/packages/app/src/providers/models/tooltip.tsx
+@@ -37,7 +37,6 @@ export const ModelTooltip: Component<{
+   model: ModelInfo
+   latest?: boolean
+   free?: boolean
+-  price?: string
+   v2?: boolean
+ }> = (props) => {
+   const language = useLanguage()
+@@ -79,7 +78,6 @@ export const ModelTooltip: Component<{
+ 
+     if (props.free) tags.push(language.t("model.tag.free"))
+ 
+-    if (!props.free && props.price) tags.push(props.price)
+     const suffix = tags.length ? ` (${tags.join(", ")})` : ""
+ 
+     return `${sourceName(props.model)} ${props.model.name}${suffix}`
+@@ -92,7 +90,6 @@ export const ModelTooltip: Component<{
+ 
+     if (props.free) tags.push(language.t("model.tag.free"))
+ 
+-    if (!props.free && props.price) tags.push(props.price)
+     const suffix = tags.length ? ` (${tags.join(", ")})` : ""
+ 
+     return `${props.model.name}${suffix}`
+diff --git a/packages/app/src/settings/models/models.tsx b/packages/app/src/settings/models/models.tsx
+index 972b8e7fa7..e92553e6f7 100644
+--- a/packages/app/src/settings/models/models.tsx
++++ b/packages/app/src/settings/models/models.tsx
+@@ -16,7 +16,7 @@ import {
+ import { Schema } from "effect"
+ import { Persistence } from "@/runtime/persistence/schema"
+ import { useLanguage } from "@/runtime/i18n/language"
+-import { formatModelPrice, isFreeModel, sortModels, useModels } from "@/providers/models/models"
++import { isFreeModel, sortModels, useModels, withModelTags } from "@/providers/models/models"
+ import { useServerSDK } from "@/runtime/server/client"
+ import { popularProviders } from "@/providers/catalog/providers"
+ import { Persist, persisted } from "@/runtime/persistence/storage"
+@@ -61,10 +61,10 @@ export const SettingsModels: Component<{
+ 
+   const sections = new Map<string, HTMLElement>()
+ 
+-  const list = useFilteredList<ModelItem>({
+-    items: (_filter) => models.list(),
++  const list = useFilteredList<ModelItem & { tags: string }>({
++    items: (_filter) => models.list().map(withModelTags),
+     key: (x) => `${x.provider.id}:${x.id}`,
+-    filterKeys: ["provider.name", "name", "id"],
++    filterKeys: ["provider.name", "name", "id", "tags"],
+     sortBy: sortModels,
+     groupBy: (x) => x.provider.id,
+     sortGroupsBy: (a, b) => {
+@@ -111,9 +111,6 @@ export const SettingsModels: Component<{
+                     <Show when={isFreeModel(item)}>
+                       <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
+                     </Show>
+-                    <Show when={formatModelPrice(item)}>
+-                      {(price) => <Badge class="shrink-0">{price()}</Badge>}
+-                    </Show>
+                   </span>
+                 }
+                 description=""
+-- 
+2.43.0
+

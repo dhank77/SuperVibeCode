@@ -7,7 +7,7 @@ import { TextInput } from "@opencode/ui/text-input"
 import { useFilteredList } from "@opencode/ui/hooks"
 import { createMemo, For, Show, type Component } from "solid-js"
 import { createStore } from "solid-js/store"
-import { formatModelPrice, isFreeModel, sortModels } from "@/providers/models/models"
+import { isFreeModel, sortModels, withModelTags } from "@/providers/models/models"
 import { useLocal } from "@/providers/models/selection"
 import { popularProviders } from "@/providers/catalog/providers"
 import { useLanguage } from "@/runtime/i18n/language"
@@ -47,10 +47,10 @@ export const DialogManageModels: Component = () => {
     local.model.setVisibility({ modelID: item.id, providerID: item.provider.id }, checked)
   }
 
-  const list = useFilteredList<ModelItem>({
-    items: () => local.model.list(),
+  const list = useFilteredList<ModelItem & { tags: string }>({
+    items: () => local.model.list().map(withModelTags),
     key: (x) => `${x.provider.id}:${x.id}`,
-    filterKeys: ["provider.name", "name", "id"],
+    filterKeys: ["provider.name", "name", "id", "tags"],
     sortBy: sortModels,
     groupBy: (x) => x.provider.id,
     sortGroupsBy: (a, b) => {
@@ -90,9 +90,6 @@ export const DialogManageModels: Component = () => {
                   <span class="min-w-0 truncate">{item.name}</span>
                   <Show when={isFreeModel(item)}>
                     <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
-                  </Show>
-                  <Show when={formatModelPrice(item)}>
-                    {(price) => <Badge class="shrink-0">{price()}</Badge>}
                   </Show>
                 </span>
               </div>

@@ -16,7 +16,7 @@ import {
 import { Schema } from "effect"
 import { Persistence } from "@/runtime/persistence/schema"
 import { useLanguage } from "@/runtime/i18n/language"
-import { formatModelPrice, isFreeModel, sortModels, useModels } from "@/providers/models/models"
+import { isFreeModel, sortModels, useModels, withModelTags } from "@/providers/models/models"
 import { useServerSDK } from "@/runtime/server/client"
 import { popularProviders } from "@/providers/catalog/providers"
 import { Persist, persisted } from "@/runtime/persistence/storage"
@@ -61,10 +61,10 @@ export const SettingsModels: Component<{
 
   const sections = new Map<string, HTMLElement>()
 
-  const list = useFilteredList<ModelItem>({
-    items: (_filter) => models.list(),
+  const list = useFilteredList<ModelItem & { tags: string }>({
+    items: (_filter) => models.list().map(withModelTags),
     key: (x) => `${x.provider.id}:${x.id}`,
-    filterKeys: ["provider.name", "name", "id"],
+    filterKeys: ["provider.name", "name", "id", "tags"],
     sortBy: sortModels,
     groupBy: (x) => x.provider.id,
     sortGroupsBy: (a, b) => {
@@ -110,9 +110,6 @@ export const SettingsModels: Component<{
                     <span class="min-w-0 truncate">{item.name}</span>
                     <Show when={isFreeModel(item)}>
                       <Badge class="shrink-0">{language.t("model.tag.free")}</Badge>
-                    </Show>
-                    <Show when={formatModelPrice(item)}>
-                      {(price) => <Badge class="shrink-0">{price()}</Badge>}
                     </Show>
                   </span>
                 }
