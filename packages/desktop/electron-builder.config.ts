@@ -18,6 +18,11 @@ const rootDir = path.resolve(packageDir, "../..")
 
 const signScript = path.join(rootDir, "script", "sign-windows.ps1")
 
+const entitlements = {
+  app: path.join(rootDir, ".github", "release", "entitlements", "desktop.plist"),
+  cli: path.join(rootDir, ".github", "release", "entitlements", "desktop-cli.plist"),
+}
+
 // The Electron 42 packaging update briefly installed Linux launchers/icons under
 // "opencode-desktop". Keep that hidden desktop entry around so existing GNOME/KDE
 // pins still resolve after the canonical app id changes back to ai.opencode.desktop.
@@ -64,7 +69,7 @@ function macSignOptions(options: CustomMacSignOptions): CustomMacSignOptions {
       if (file !== path.join(options.app, "Contents/Resources/opencode-cli")) return defaults ?? {}
 
       // The Bun CLI loads bun-pty's native library; Electron and its helpers do not need this exception.
-      return { ...defaults, entitlements: path.join(packageDir, "resources/entitlements.cli.plist") }
+      return { ...defaults, entitlements: entitlements.cli }
     },
   }
 }
@@ -218,8 +223,8 @@ const getBase = (appId: string): Configuration => {
       identity: appleSigning ? undefined : "-",
       hardenedRuntime: appleSigning,
       gatekeeperAssess: false,
-      entitlements: "resources/entitlements.plist",
-      entitlementsInherit: "resources/entitlements.plist",
+      entitlements: entitlements.app,
+      entitlementsInherit: entitlements.app,
       sign: async (options) => {
         const { sign } = await import("app-builder-lib/out/codeSign/macCodeSign")
         await sign(macSignOptions(options))

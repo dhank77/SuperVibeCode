@@ -126,6 +126,11 @@ test("shared packaging defaults", async () => {
   const include = path.join(import.meta.dirname, "resources/windows/installer.nsh")
   expect(config.nsis?.include).toBe(include)
   expect(await Bun.file(include).exists()).toBe(true)
+  expect(await Bun.file(String(config.mac?.entitlements)).exists()).toBe(true)
+  expect(await Bun.file(String(config.mac?.entitlementsInherit)).exists()).toBe(true)
+  expect(
+    await Bun.file(path.resolve(import.meta.dirname, "../../.github/release/entitlements/desktop-cli.plist")).exists(),
+  ).toBe(true)
   expect(config.files).toContain("!resources/opencode-cli*")
   expect(config.extraResources).toEqual([
     { from: "resources/", to: "", filter: ["opencode-cli", "opencode-cli.exe", "opencode-cli.version"] },
