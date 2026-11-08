@@ -5,7 +5,7 @@ import { IconButton } from "@opencode/ui/icon-button"
 import { useMutation } from "@tanstack/solid-query"
 import { TextField } from "@opencode/ui/text-field"
 import { showToast } from "@/shell/notifications/toast"
-import { batch, For } from "solid-js"
+import { batch, For, Show } from "solid-js"
 import { createStore, produce } from "solid-js/store"
 import { ExternalLink } from "@/runtime/platform/external-link"
 import { useData } from "@/runtime/server/current"
@@ -19,7 +19,13 @@ const KEY_RETRY_MS = 500
 
 const KEY_ATTEMPTS = 20
 
-export function CustomProviderForm(props: { autofocus?: boolean } = {}) {
+export function CustomProviderForm(
+  props: {
+    autofocus?: boolean
+    /** Shows the form's own icon and title; off where the dialog header already names it. */
+    heading?: boolean
+  } = {},
+) {
   const dialog = useDialog()
   const data = useData()
   const serverSDK = useServerSDK()
@@ -171,10 +177,12 @@ export function CustomProviderForm(props: { autofocus?: boolean } = {}) {
 
   return (
     <div class="flex flex-col gap-6 px-2.5 pb-3 overflow-y-auto max-h-[60vh]">
-      <div class="px-2.5 flex gap-4 items-center">
-        <CustomManagedProviderIcon class="size-5 shrink-0" />
-        <div class="text-16-medium text-text-strong">{language.t("provider.custom.title")}</div>
-      </div>
+      <Show when={props.heading ?? true}>
+        <div class="px-2.5 flex gap-4 items-center">
+          <CustomManagedProviderIcon class="size-5 shrink-0" />
+          <div class="text-16-medium text-text-strong">{language.t("provider.custom.title")}</div>
+        </div>
+      </Show>
 
       <form onSubmit={save} class="px-2.5 pb-6 flex flex-col gap-6">
         <p class="text-14-regular text-text-base">

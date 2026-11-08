@@ -59,10 +59,10 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - opencode-darwin-arm64
-          - opencode-darwin-x64-baseline
-          - opencode-windows-x64-baseline
-          - opencode-linux-x64-baseline
+          - darwin-arm64
+          - darwin-x64-baseline
+          - windows-x64-baseline
+          - linux-x64-baseline
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
@@ -71,8 +71,9 @@ jobs:
           bun-version: 1.4.4
 
       - name: Build
-        run: ./packages/cli/script/build.ts --target=${{ matrix.target }}
+        run: ./packages/cli/script/build.ts
         env:
+          OPENCODE_TARGET: ${{ matrix.target }}
           OPENCODE_VERSION: ${{ needs.version.outputs.version }}
           # The AI service the app signs in to, from the repository variable of the same name. Empty leaves it out.
           SUPERVIBECODE_ROUTER_URL: ${{ vars.SUPERVIBECODE_ROUTER_URL }}
@@ -93,27 +94,31 @@ jobs:
         settings:
           - host: macos-26
             target: aarch64-apple-darwin
-            cli: opencode-darwin-arm64
+            cli: darwin-arm64
+            desktop: darwin-arm64
             flags: --mac --arm64
           - host: macos-26-intel
             target: x86_64-apple-darwin
-            cli: opencode-darwin-x64-baseline
+            cli: darwin-x64-baseline
+            desktop: darwin-x64
             flags: --mac --x64
           - host: windows-2025
             target: x86_64-pc-windows-msvc
-            cli: opencode-windows-x64-baseline
+            cli: windows-x64-baseline
+            desktop: windows-x64
             flags: --win --x64
           - host: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
-            cli: opencode-linux-x64-baseline
+            cli: linux-x64-baseline
+            desktop: linux-x64
             flags: --linux --x64
     runs-on: ${{ matrix.settings.host }}
     timeout-minutes: 60
     env:
       OPENCODE_VERSION: ${{ needs.version.outputs.version }}
       OPENCODE_CHANNEL: prod
-      OPENCODE_CLI_TARGET: ${{ matrix.settings.target }}
-      OPENCODE_CLI_DIST: ${{ github.workspace }}/packages/cli/dist
+      # The desktop build copies this target's server from packages/cli/dist into the app.
+      OPENCODE_TARGET: ${{ matrix.settings.desktop }}
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
@@ -152,10 +157,6 @@ jobs:
             echo "APPLE_API_KEY_ID=$APPLE_API_KEY_ID" >> "$GITHUB_ENV"
             echo "APPLE_API_ISSUER=$APPLE_API_ISSUER" >> "$GITHUB_ENV"
           fi
-
-      - name: Prepare
-        run: bun ./scripts/prepare.ts
-        working-directory: packages/desktop
 
       - name: Build
         run: bun run build
@@ -210,7 +211,7 @@ jobs:
         shell: bash
         run: |
           mkdir release
-          bun packages/desktop/scripts/merge-update-manifests.ts release/latest-mac.yml \
+          bun packages/desktop/script/merge-update-manifests.ts release/latest-mac.yml \
             artifacts/desktop-aarch64-apple-darwin/latest-mac.yml artifacts/desktop-x86_64-apple-darwin/latest-mac.yml
           find artifacts -type f ! -name 'latest-mac.yml' -exec cp {} release/ \;
           ls -la release

@@ -7,7 +7,7 @@ import path from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import type { Configuration } from "electron-builder"
 import { getConfig } from "./electron-builder.config"
-import { CLI_BINARIES, nodePtyPackage } from "./scripts/utils"
+import { CLI_BINARIES, nodePtyPackage } from "./script/utils"
 
 // Use electron-builder's matcher so the tests also cover its glob and directory traversal semantics.
 const { FileMatcher } = createRequire(import.meta.resolve("electron-builder"))("app-builder-lib/out/fileMatcher")
@@ -20,21 +20,21 @@ const channels = [
 
 function load(channel: string, target?: string): Configuration {
   const previous = process.env.OPENCODE_CHANNEL
-  const previousTarget = process.env.OPENCODE_CLI_TARGET
+  const previousTarget = process.env.OPENCODE_TARGET
   process.env.OPENCODE_CHANNEL = channel
 
-  if (target !== undefined) process.env.OPENCODE_CLI_TARGET = target
-  else delete process.env.OPENCODE_CLI_TARGET
+  if (target !== undefined) process.env.OPENCODE_TARGET = target
+  else delete process.env.OPENCODE_TARGET
 
   try {
     return getConfig()
   } finally {
     delete process.env.OPENCODE_CHANNEL
-    delete process.env.OPENCODE_CLI_TARGET
+    delete process.env.OPENCODE_TARGET
 
     if (previous !== undefined) process.env.OPENCODE_CHANNEL = previous
 
-    if (previousTarget !== undefined) process.env.OPENCODE_CLI_TARGET = previousTarget
+    if (previousTarget !== undefined) process.env.OPENCODE_TARGET = previousTarget
   }
 }
 
@@ -50,6 +50,14 @@ function trimFilter(dir: string, config: Configuration) {
 test.each(channels)("channel identity for $channel", ({ channel, appId }) => {
   const config = load(channel)
   expect(config.appId).toBe(appId)
+  // Releases publish to the fork's GitHub releases; only the stable app updates from them.
+  if (channel === "prod")
+    expect(config.publish).toEqual({
+      provider: "github",
+      owner: "latjoromhi25d-dotcom",
+      repo: "SuperVibeCode",
+      releaseType: "release",
+    })
   expect(config.extraMetadata?.desktopName).toBe(`${appId}.desktop`)
   // The executable must never end in `.desktop`: libappimage resolves the
   // AppImage's desktop entry by globbing `*.desktop`, and an ELF matching
@@ -82,9 +90,37 @@ test("legacy Linux launcher stays hidden", async () => {
   expect(desktop).toContain("NoDisplay=true")
 })
 
+test.each(channels)("macOS bundle for $channel", ({ channel }) => {
+  const config = load(channel)
+  // SuperVibeCode ships its ICNS on every channel; the Icon Composer package holds OpenCode's artwork.
+  expect(config.mac?.icon).toBe("resources/icons/icon.icns")
+  // The prod override must keep the rest of the shared macOS settings.
+  expect(config.mac?.target).toEqual(["dmg", "zip"])
+
+  for (const key of [
+    "NSMicrophoneUsageDescription",
+    "NSDocumentsFolderUsageDescription",
+    "NSDesktopFolderUsageDescription",
+    "NSDownloadsFolderUsageDescription",
+    "NSNetworkVolumesUsageDescription",
+    "NSRemovableVolumesUsageDescription",
+  ])
+    expect(config.mac?.extendInfo?.[key], key).toMatch(/\S/)
+})
+
+test("the production Icon Composer package references its bundled artwork", async () => {
+  const icon = await Bun.file(path.join(import.meta.dirname, "icons/prod/icon.icon/icon.json")).json()
+  expect(icon["supported-platforms"]).toEqual({ squares: ["macOS"] })
+  const image = icon.groups[0].layers[0]["image-name"]
+  expect(await Bun.file(path.join(import.meta.dirname, "icons/prod/icon.icon/Assets", image)).exists()).toBe(true)
+})
+
 test("shared packaging defaults", async () => {
   const config = load("dev")
-  expect(config.mac?.sign).toBeFunction()
+  // SuperVibeCode signs while packaging: ad hoc without a certificate, and notarizes only with an App Store Connect key.
+  expect(config.mac?.sign).toBeDefined()
+  expect(config.mac?.notarize).toBe(false)
+  expect(config.win?.signtoolOptions?.sign).toBeDefined()
   expect(config.dmg?.sign).not.toBe(true)
   expect(config.mac?.extendInfo?.NSAutoFillRequiresTextContentTypeForOneTimeCodeOnMac).toBe(true)
   const include = path.join(import.meta.dirname, "resources/windows/installer.nsh")

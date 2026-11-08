@@ -35,8 +35,8 @@ export function useNewFromTemplate() {
 
   const open = (conn = servers.visible[0], initial?: TemplateChoice) => {
     if (!conn) return
-    const projects = global.ensureServerCtx(conn).projects
-    const recent = projects.last() ?? projects.list()[0]?.worktree
+    const projects = global.serverCtx(ServerConnection.key(conn))?.projects
+    const recent = (projects?.last() ?? projects?.list()[0])?.worktree
 
     // New projects go where the last one was made, or beside the most recent project.
     const choice = initial ?? {
@@ -68,13 +68,15 @@ export function useNewFromTemplate() {
     const template = projectTemplates.find((item) => item.id === choice.template)
 
     if (!template) return language.t("common.requestFailed")
-    const ctx = global.ensureServerCtx(conn)
+    const ctx = global.serverCtx(ServerConnection.key(conn))
+
+    if (!ctx) return language.t("common.requestFailed")
     const directory = projectDirectory(choice.parent, choice.name)
 
     // A folder that already holds files is someone's work: never write a template over it.
     const existing = await ctx.sdk.api.file
       .list({ location: { directory }, path: "." })
-      .then((response) => response.data.length)
+      .then((response: { data: readonly unknown[] }) => response.data.length)
       .catch(() => 0)
 
     if (existing > 0) return language.t("home.template.exists", { path: directory })

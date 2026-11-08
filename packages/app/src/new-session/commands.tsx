@@ -2,6 +2,7 @@ import { useDialog } from "@opencode/ui/context/dialog"
 import { useSettingsCommand } from "@/settings/command"
 import { useCommand } from "@/shell/commands/command"
 import { useLanguage } from "@/runtime/i18n/language"
+import { projectSearchCommand } from "@/shell/titlebar/titlebar"
 import { useNewFromTemplateCommand } from "@/home/projects/new-from-template"
 
 export function useNewSessionCommands(input: {
@@ -21,7 +22,7 @@ export function useNewSessionCommands(input: {
 
   useSettingsCommand()
   useNewFromTemplateCommand()
-  command.register("new-session", () => [
+  command.register("palette", () => [
     {
       id: "command.palette",
       title: language.t("command.palette"),
@@ -31,6 +32,8 @@ export function useNewSessionCommands(input: {
         void dialog.show(() => <DialogCommandPalette />)
       },
     },
+  ])
+  command.register("new-session", () => [
     {
       id: "input.focus",
       title: language.t("command.input.focus"),
@@ -39,20 +42,22 @@ export function useNewSessionCommands(input: {
       onSelect: input.restoreFocus,
     },
     {
-      id: "project.select",
-      title: language.t("session.new.project.search"),
-      category: language.t("command.category.project"),
-      keybind: "mod+shift+o",
-      disabled: input.project.empty(),
-      onSelect: input.project.open,
-    },
-    {
       id: "session.location.cycle",
       title: language.t("command.session.location.cycle"),
       category: language.t("command.category.workspace"),
       keybind: "mod+alt+l",
       disabled: !input.workspace.enabled(),
       onSelect: input.workspace.cycle,
+    },
+  ])
+  // Shadows the titlebar's command of the same key while the draft is mounted, so it searches projects in place.
+  command.register(projectSearchCommand.id, () => [
+    {
+      ...projectSearchCommand,
+      title: language.t("session.new.project.search"),
+      category: language.t("command.category.project"),
+      disabled: input.project.empty(),
+      onSelect: input.project.open,
     },
   ])
 }

@@ -203,7 +203,7 @@ and notarize the macOS app, add the secrets listed at the top of
 ## Staying up to date with OpenCode
 
 SuperVibeCode follows OpenCode's `dev` branch. Its own changes live mostly in new folders
-(`packages/gui-extensions/src/preview`, `packages/gui-extensions/src/autogit`), so merges stay small:
+(`packages/gui-plugins/src/preview`, `packages/gui-plugins/src/autogit`, `packages/gui-plugins/src/account`), so merges stay small:
 
 ```bash
 git remote add upstream https://github.com/anomalyco/opencode.git   # once

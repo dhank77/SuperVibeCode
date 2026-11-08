@@ -142,6 +142,8 @@ it.live("does not inherit host process.env when creating a shell in a workspace-
     expect(capturedEnv).toEqual({
       TERM: "xterm-256color",
       OPENCODE_TERMINAL: "1",
+      // SuperVibeCode keeps dev servers from opening a browser window; the app preview shows them.
+      BROWSER: "none",
     })
   }),
 )

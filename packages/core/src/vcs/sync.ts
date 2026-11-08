@@ -59,7 +59,7 @@ const layer = Layer.effect(
     const cwd = location.directory
 
     const git = (args: string[], env?: Record<string, string>) =>
-      processes.run(ChildProcess.make(gitExecutable, args, { cwd, env, extendEnv: true, stdin: "ignore" })).pipe(
+      processes.run(ChildProcess.make(gitExecutable(), args, { cwd, env, extendEnv: true, stdin: "ignore" })).pipe(
         Effect.map((result) => ({
           ok: result.exitCode === 0,
           out: result.stdout.toString("utf8").trim(),
