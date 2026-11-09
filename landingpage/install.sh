@@ -27,7 +27,9 @@ cleanup() {
 trap cleanup EXIT
 
 echo "Downloading SuperVibeCode for $( [ "$arch" = arm64 ] && echo "Apple silicon" || echo "Intel" ) Macs..."
-curl -fL --progress-bar "$url" -o "$work/SuperVibeCode.dmg"
+# GitHub's download servers sometimes time out (HTTP 502/504); retry before giving up.
+curl -fL --retry 5 --retry-delay 3 --retry-all-errors --progress-bar "$url" -o "$work/SuperVibeCode.dmg" \
+  || { echo "Download failed. Check your connection and run the command again, or download it from https://github.com/$REPO/releases/latest"; exit 1; }
 
 mkdir -p "$mount"
 hdiutil attach "$work/SuperVibeCode.dmg" -nobrowse -readonly -noautoopen -quiet -mountpoint "$mount"

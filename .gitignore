@@ -42,3 +42,8 @@ legal-drafts-private/
 Claude outputs/sync-upstream.patch.gz
 /services/www/.astro
 /packages/posts/.astro
+
+# Ebook "Vibe Coding dengan SuperVibeCode" (LaTeX), tidak ikut dikirim
+ebook/
+Claude outputs/ebook.tar.gz
+Claude outputs/Vibe-Coding-SuperVibeCode.pdf
