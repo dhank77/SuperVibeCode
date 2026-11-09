@@ -27,9 +27,23 @@ cleanup() {
 trap cleanup EXIT
 
 echo "Downloading SuperVibeCode for $( [ "$arch" = arm64 ] && echo "Apple silicon" || echo "Intel" ) Macs..."
-# GitHub's download servers sometimes time out (HTTP 502/504); retry before giving up.
-curl -fL --retry 5 --retry-delay 3 --retry-all-errors --progress-bar "$url" -o "$work/SuperVibeCode.dmg" \
-  || { echo "Download failed. Check your connection and run the command again, or download it from https://github.com/$REPO/releases/latest"; exit 1; }
+# GitHub's download link sometimes answers 504 in some regions (Southeast Asia among them) while its API still serves
+# the same file, so fall back to the API when the link fails.
+download() {
+  curl -fL --retry 2 --retry-delay 2 --retry-all-errors --progress-bar "$url" -o "$work/SuperVibeCode.dmg" && return 0
+  echo "Trying another download route..."
+  asset="$(curl -fsSL --retry 3 --retry-all-errors "https://api.github.com/repos/$REPO/releases/latest" | tr -d '\n' \
+    | grep -o "\"url\": *\"[^\"]*/releases/assets/[0-9]*\"[^}]*\"name\": *\"supervibecode-desktop-mac-$arch.dmg\"" \
+    | grep -o 'https://api.github.com/[^"]*/releases/assets/[0-9]*' | head -n 1)"
+  [ -n "$asset" ] || return 1
+  curl -fL --retry 5 --retry-delay 3 --retry-all-errors --progress-bar -H "Accept: application/octet-stream" "$asset" \
+    -o "$work/SuperVibeCode.dmg"
+}
+
+download || {
+  echo "Download failed. Check your connection and run the command again, or download it from https://github.com/$REPO/releases/latest"
+  exit 1
+}
 
 mkdir -p "$mount"
 hdiutil attach "$work/SuperVibeCode.dmg" -nobrowse -readonly -noautoopen -quiet -mountpoint "$mount"
