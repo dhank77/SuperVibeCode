@@ -1,5 +1,5 @@
 // The repository whose GitHub releases hold the installers. Change it here if releases move.
-const REPO = "latjoromhi25d-dotcom/SuperVibeCode"
+const REPO = "dhank77/supervibecode"
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
@@ -12,8 +12,8 @@ document.querySelectorAll("[data-file]").forEach((link) => {
   link.href = `https://github.com/${REPO}/releases/latest/download/${link.dataset.file}`
 })
 
-// One-command installs come from the site, which serves the scripts beside this page.
-const SITE = "https://supervibecode.ai.id"
+// One-command installs come straight from the repository, since the site's host blocks curl with a bot challenge.
+const SITE = "https://raw.githubusercontent.com/dhank77/supervibecode/main/landingpage"
 
 document.querySelectorAll("[data-install]").forEach((code) => {
   const script = `${SITE}/${code.dataset.install}`
