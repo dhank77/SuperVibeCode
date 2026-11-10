@@ -1,11 +1,13 @@
-// The repository whose GitHub releases hold the installers. Change it here if releases move.
-const REPO = "dhank77/supervibecode"
+// The repository whose GitHub releases hold the installers (it only builds them). Change it here if releases move.
+const REPO = "latjoromhi25d-dotcom/SuperVibeCode"
+// The main repository: the GitHub links and the installer scripts live here.
+const SOURCE = "dhank77/supervibecode"
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
 // Links: every GitHub link and download button points at REPO.
 document.querySelectorAll("[data-repo-link]").forEach((link) => {
-  link.href = `https://github.com/${REPO}${link.dataset.path ?? ""}`
+  link.href = `https://github.com/${link.dataset.path ? REPO : SOURCE}${link.dataset.path ?? ""}`
 })
 
 document.querySelectorAll("[data-file]").forEach((link) => {
@@ -13,7 +15,7 @@ document.querySelectorAll("[data-file]").forEach((link) => {
 })
 
 // One-command installs come straight from the repository, since the site's host blocks curl with a bot challenge.
-const SITE = "https://raw.githubusercontent.com/dhank77/supervibecode/main/landingpage"
+const SITE = `https://raw.githubusercontent.com/${SOURCE}/main/landingpage`
 
 document.querySelectorAll("[data-install]").forEach((code) => {
   const script = `${SITE}/${code.dataset.install}`

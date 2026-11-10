@@ -5,7 +5,7 @@
 # an app not notarized by Apple gets. Run it again to update.
 set -euo pipefail
 
-REPO="${SUPERVIBECODE_REPO:-dhank77/supervibecode}"
+REPO="${SUPERVIBECODE_REPO:-latjoromhi25d-dotcom/SuperVibeCode}"
 
 if [ "$(uname -s)" != "Darwin" ]; then
   echo "This installer is for macOS. On Windows run: irm https://raw.githubusercontent.com/dhank77/supervibecode/main/landingpage/install.ps1 | iex"

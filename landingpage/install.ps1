@@ -5,7 +5,7 @@
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$repo = if ($env:SUPERVIBECODE_REPO) { $env:SUPERVIBECODE_REPO } else { "dhank77/supervibecode" }
+$repo = if ($env:SUPERVIBECODE_REPO) { $env:SUPERVIBECODE_REPO } else { "latjoromhi25d-dotcom/SuperVibeCode" }
 $url = "https://github.com/$repo/releases/latest/download/supervibecode-desktop-win-x64.exe"
 $installer = Join-Path ([System.IO.Path]::GetTempPath()) "SuperVibeCode-Setup.exe"
 
