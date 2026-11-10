@@ -51,14 +51,12 @@ export function call<M extends keyof Methods>(server: ServerRef, method: M, inpu
 
 /** The balance in rupiah when the service sells in rupiah, else in dollars. */
 export function formatBalance(status: Status, locale: string) {
-  const usd = (status.balanceNano ?? 0) / 1_000_000_000
+  const amount = (status.balanceNano ?? 0) / 1_000_000_000
 
-  if (status.idrPerUsd)
-    return new Intl.NumberFormat(locale, { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(
-      usd * status.idrPerUsd,
-    )
+  // The router already stores the balance in rupiah, so it must not be converted again.
+  if (status.idrPerUsd) return formatRupiah(amount, locale)
 
-  return new Intl.NumberFormat(locale, { style: "currency", currency: "USD" }).format(usd)
+  return new Intl.NumberFormat(locale, { style: "currency", currency: "USD" }).format(amount)
 }
 
 export function formatRupiah(amount: number, locale: string) {
