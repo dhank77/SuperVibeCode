@@ -1,7 +1,7 @@
 // The repository whose GitHub releases hold the installers (it only builds them). Change it here if releases move.
 const REPO = "latjoromhi25d-dotcom/SuperVibeCode"
-// The main repository: the GitHub links and the installer scripts live here.
-const SOURCE = "dhank77/supervibecode"
+// The repository the GitHub links and the installer scripts come from.
+const SOURCE = "latjoromhi25d-dotcom/SuperVibeCode"
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 

